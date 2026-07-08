@@ -1,5 +1,3 @@
-import { normalizePhone } from '@/lib/auth/phone'
-
 const enc = new TextEncoder()
 
 export const USER_SESSION_COOKIE = 'speedy_user_session'
@@ -13,11 +11,8 @@ type SessionPayload = {
 }
 
 function getAuthSecret(): string {
-  const secret =
-    process.env.AUTH_SECRET ||
-    process.env.NEON_AUTH_COOKIE_SECRET ||
-    process.env.ADMIN_SECRET_TOKEN
-  if (!secret) throw new Error('AUTH_SECRET is not configured')
+  const secret = process.env.AUTH_SECRET?.trim() || process.env.NEON_AUTH_COOKIE_SECRET?.trim()
+  if (!secret) throw new Error('AUTH_SECRET or NEON_AUTH_COOKIE_SECRET must be configured')
   return secret
 }
 
@@ -79,13 +74,6 @@ export async function verifySessionToken(token: string | undefined | null): Prom
   } catch {
     return null
   }
-}
-
-export function isAdminPhone(phone: string): boolean {
-  const raw = process.env.ADMIN_PHONE?.trim()
-  if (!raw) return false
-  const adminPhone = normalizePhone(raw) || raw
-  return phone === adminPhone
 }
 
 export type { SessionPayload }

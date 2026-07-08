@@ -12,6 +12,7 @@ import { Label } from '@/components/ui/label'
 import { OmanPhoneInput } from '@/components/auth/oman-phone-input'
 import { GoogleSignInButton } from '@/components/auth/google-sign-in-button'
 import { normalizePhone } from '@/lib/auth/phone'
+import { TurnstileWidget, isTurnstileConfigured } from '@/components/cloudflare/turnstile-widget'
 import {
   getReturnTo,
   saveAuthMode,
@@ -31,6 +32,7 @@ export function AuthPhoneForm({ mode = 'login', adminOnly = false }: AuthPhoneFo
   const [localPhone, setLocalPhone] = React.useState('')
   const [name, setName] = React.useState('')
   const [loading, setLoading] = React.useState(false)
+  const [turnstileToken, setTurnstileToken] = React.useState<string | null>(null)
 
   const t = (ar: string, en: string) => (lang === 'ar' ? ar : en)
 
@@ -45,12 +47,16 @@ export function AuthPhoneForm({ mode = 'login', adminOnly = false }: AuthPhoneFo
       )
       return
     }
+    if (isTurnstileConfigured() && !turnstileToken) {
+      toast.error(t('أكمل التحقق الأمني أولاً', 'Complete the security check first'))
+      return
+    }
     setLoading(true)
     try {
       const res = await fetch('/api/phone/send-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone: normalized }),
+        body: JSON.stringify({ phone: normalized, turnstileToken }),
       })
       const data = (await res.json().catch(() => null)) as {
         error?: string
@@ -127,6 +133,8 @@ export function AuthPhoneForm({ mode = 'login', adminOnly = false }: AuthPhoneFo
           <Button className="w-full" onClick={continueToVerify} disabled={loading}>
             {loading ? t('جارٍ الإرسال...', 'Sending...') : t('متابعة', 'Continue')}
           </Button>
+
+          <TurnstileWidget action="phone-otp" onToken={setTurnstileToken} />
 
           {!adminOnly && (
             <p className="text-center text-sm text-muted-foreground">

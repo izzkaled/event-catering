@@ -8,16 +8,17 @@ import {
   SESSION_MAX_AGE,
   USER_SESSION_COOKIE,
   createSessionToken,
-  isAdminPhone,
 } from '@/lib/auth/session'
+import { isAdminPhone } from '@/lib/auth/admin'
 import { checkOtpSms, usesTwilioVerify } from '@/lib/auth/sms'
 import { checkRateLimit, clearRateLimit, getClientIp } from '@/lib/auth/rate-limit'
+import { requireTurnstile } from '@/lib/cloudflare/turnstile'
 
 export const dynamic = 'force-dynamic'
 
 export async function POST(req: Request) {
   const ip = getClientIp(req)
-  if (!checkRateLimit(`phone-verify:${ip}`)) {
+  if (!(await checkRateLimit(`phone-verify:${ip}`))) {
     return NextResponse.json({ error: 'Too many attempts. Try again later.' }, { status: 429 })
   }
 
@@ -26,7 +27,11 @@ export async function POST(req: Request) {
     code?: string
     mode?: 'login' | 'signup'
     name?: string
+    turnstileToken?: string
   } | null
+
+  const turnstileDenied = await requireTurnstile(req, body?.turnstileToken)
+  if (turnstileDenied) return turnstileDenied
 
   const phone = normalizePhone(body?.phone || '')
   const code = body?.code?.trim()
@@ -103,8 +108,8 @@ export async function POST(req: Request) {
       .returning()
   }
 
-  clearRateLimit(`phone-verify:${ip}`)
-  clearRateLimit(`phone-send:${phone}`)
+  await clearRateLimit(`phone-verify:${ip}`)
+  await clearRateLimit(`phone-send:${phone}`)
 
   const token = await createSessionToken(user.id, user.role as 'user' | 'admin')
   const res = NextResponse.json({

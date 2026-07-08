@@ -3,6 +3,7 @@ import { eq } from 'drizzle-orm'
 import { verifyAdmin } from '@/lib/admin-auth'
 import { db } from '@/lib/db'
 import { orders, type OrderStatus } from '@/lib/db/schema'
+import { triggerOrderConfirmation } from '@/lib/security/trigger-confirmation'
 
 export const dynamic = 'force-dynamic'
 
@@ -57,22 +58,11 @@ export async function PATCH(request: Request, context: RouteContext) {
 
     // On confirmation, send customer a "confirmed" PDF invoice
     if (becameConfirmed) {
-      const origin = new URL(request.url).origin
-      fetch(`${origin}/api/send-confirmation`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ orderId: order.id, event: 'confirmed' }),
-      }).catch(console.error)
+      triggerOrderConfirmation(new URL(request.url).origin, order.id, 'confirmed')
     }
 
-    // Notify customer when order is cancelled
     if (becameCancelled) {
-      const origin = new URL(request.url).origin
-      fetch(`${origin}/api/send-confirmation`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ orderId: order.id, event: 'cancelled' }),
-      }).catch(console.error)
+      triggerOrderConfirmation(new URL(request.url).origin, order.id, 'cancelled')
     }
 
     return NextResponse.json(order)

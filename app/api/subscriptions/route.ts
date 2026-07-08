@@ -13,9 +13,9 @@ export async function GET() {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  // One-time link: orphan orders with same email as this account (legacy bookings)
+  // Legacy orphan link: only for Neon accounts (email verified via Neon Auth)
   const email = user.email?.trim().toLowerCase()
-  if (email) {
+  if (email && user.source === 'neon') {
     await db
       .update(orders)
       .set({ user_id: user.profileId, updated_at: new Date() })

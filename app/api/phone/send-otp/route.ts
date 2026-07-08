@@ -5,16 +5,23 @@ import { normalizePhone } from '@/lib/auth/phone'
 import { generateOtpCode, hashOtp, OTP_TTL_MS } from '@/lib/auth/otp'
 import { sendOtpSms, usesTwilioVerify } from '@/lib/auth/sms'
 import { checkRateLimit, clearRateLimit, getClientIp } from '@/lib/auth/rate-limit'
+import { requireTurnstile } from '@/lib/cloudflare/turnstile'
 
 export const dynamic = 'force-dynamic'
 
 export async function POST(req: Request) {
   const ip = getClientIp(req)
-  if (!checkRateLimit(`phone-send:${ip}`)) {
+  if (!(await checkRateLimit(`phone-send:${ip}`))) {
     return NextResponse.json({ error: 'Too many attempts. Try again later.' }, { status: 429 })
   }
 
-  const body = (await req.json().catch(() => null)) as { phone?: string } | null
+  const body = (await req.json().catch(() => null)) as {
+    phone?: string
+    turnstileToken?: string
+  } | null
+
+  const turnstileDenied = await requireTurnstile(req, body?.turnstileToken)
+  if (turnstileDenied) return turnstileDenied
   const phone = normalizePhone(body?.phone || '')
   if (!phone) {
     return NextResponse.json(
@@ -23,7 +30,7 @@ export async function POST(req: Request) {
     )
   }
 
-  if (!checkRateLimit(`phone-send:${phone}`)) {
+  if (!(await checkRateLimit(`phone-send:${phone}`))) {
     return NextResponse.json({ error: 'Too many attempts for this number.' }, { status: 429 })
   }
 
@@ -31,7 +38,7 @@ export async function POST(req: Request) {
     if (usesTwilioVerify()) {
       // Twilio generates and SMS-delivers the code to the user's phone
       const result = await sendOtpSms(phone)
-      clearRateLimit(`phone-send:${ip}`)
+      await clearRateLimit(`phone-send:${ip}`)
       console.info(`[phone OTP] SMS sent via Twilio Verify to ${phone}`)
       return NextResponse.json({
         success: true,

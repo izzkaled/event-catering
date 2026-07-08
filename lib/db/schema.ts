@@ -7,6 +7,7 @@ import {
   date,
   timestamp,
   boolean,
+  index,
 } from 'drizzle-orm/pg-core'
 
 export const packages = pgTable('packages', {
@@ -72,14 +73,20 @@ export const orders = pgTable('orders', {
 
   created_at: timestamp('created_at').defaultNow(),
   updated_at: timestamp('updated_at').defaultNow(),
-})
+}, (table) => [
+  index('orders_user_id_idx').on(table.user_id),
+  index('orders_status_idx').on(table.status),
+  index('orders_created_at_idx').on(table.created_at),
+])
 
 export const site_visits = pgTable('site_visits', {
   id: uuid('id').defaultRandom().primaryKey(),
   page: text('page').default('/').notNull(),
   visitor_id: text('visitor_id'),
   created_at: timestamp('created_at').defaultNow(),
-})
+}, (table) => [
+  index('site_visits_created_at_idx').on(table.created_at),
+])
 
 export const admin_notifications = pgTable('admin_notifications', {
   id: uuid('id').defaultRandom().primaryKey(),
@@ -105,7 +112,9 @@ export const otpCodes = pgTable('otp_codes', {
   expires_at: timestamp('expires_at').notNull(),
   attempts: integer('attempts').default(0).notNull(),
   created_at: timestamp('created_at').defaultNow(),
-})
+}, (table) => [
+  index('otp_codes_phone_idx').on(table.phone),
+])
 
 export type Package = typeof packages.$inferSelect
 export type Order = typeof orders.$inferSelect

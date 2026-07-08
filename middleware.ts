@@ -1,35 +1,45 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { auth } from '@/lib/neon-auth'
-import { USER_SESSION_COOKIE } from '@/lib/auth/session'
+import { USER_SESSION_COOKIE, verifySessionToken } from '@/lib/auth/session'
+import { getUserRoleById } from '@/lib/db/edge'
+import { requireCloudflareProxy } from '@/lib/cloudflare/proxy'
 
 const neonMiddleware = auth.middleware({ loginUrl: '/auth/login' })
 
 export async function middleware(request: NextRequest) {
   const { pathname, searchParams } = request.nextUrl
   const hasOAuthVerifier = searchParams.has('neon_auth_session_verifier')
-  const hasPhoneSession = Boolean(request.cookies.get(USER_SESSION_COOKIE)?.value)
+  const phoneToken = request.cookies.get(USER_SESSION_COOKIE)?.value
+  const phoneSession = phoneToken ? await verifySessionToken(phoneToken) : null
 
-  // Complete Google OAuth session exchange
+  if (
+    process.env.TRUST_CLOUDFLARE_PROXY === 'true' &&
+    (pathname.startsWith('/api/admin') || pathname.startsWith('/admin'))
+  ) {
+    const blocked = requireCloudflareProxy(request)
+    if (blocked) return blocked
+  }
+
+  if (pathname.startsWith('/api/admin')) {
+    return NextResponse.next()
+  }
+
   if (hasOAuthVerifier || pathname.startsWith('/auth/callback')) {
     return neonMiddleware(request)
   }
 
-  // Phone OTP session is enough for profile / subscriptions / admin shell
-  if (
-    hasPhoneSession &&
-    (pathname.startsWith('/profile') ||
-      pathname.startsWith('/subscriptions') ||
-      pathname.startsWith('/admin'))
-  ) {
-    return NextResponse.next()
-  }
-
   if (pathname.startsWith('/profile') || pathname.startsWith('/subscriptions')) {
+    if (phoneSession) return NextResponse.next()
     return neonMiddleware(request)
   }
 
   if (pathname.startsWith('/admin') && pathname !== '/admin/login') {
+    if (phoneSession) {
+      const role = await getUserRoleById(phoneSession.uid)
+      if (role === 'admin') return NextResponse.next()
+      return NextResponse.redirect(new URL('/admin/login', request.url))
+    }
     return neonMiddleware(request)
   }
 
@@ -43,6 +53,7 @@ export const config = {
     '/subscriptions',
     '/subscriptions/:path*',
     '/admin/:path*',
+    '/api/admin/:path*',
     '/auth/callback',
     '/auth/login',
     '/auth/signup',

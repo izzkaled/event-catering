@@ -5,6 +5,8 @@ import { users } from '@/lib/db/schema'
 import { getSessionUser } from '@/lib/auth/get-session-user'
 import { normalizePhone } from '@/lib/auth/phone'
 import { isPhoneTakenByOther } from '@/lib/auth/profile-update'
+import { clampText, isValidEmail } from '@/lib/security/order-validation'
+import { MUSCAT_AREAS } from '@/lib/constants'
 import { auth } from '@/lib/neon-auth'
 
 export const dynamic = 'force-dynamic'
@@ -64,11 +66,32 @@ export async function PATCH(req: Request) {
     phone = normalized
   }
 
-  if (current.source === 'neon' && (name !== undefined || body?.email !== undefined)) {
+  let emailUpdate: string | null | undefined = undefined
+  if (body?.email !== undefined) {
+    const raw = body.email.trim()
+    if (raw && !isValidEmail(raw)) {
+      return NextResponse.json({ error: 'Invalid email address' }, { status: 400 })
+    }
+    emailUpdate = raw || null
+  }
+
+  let areaUpdate: string | null | undefined = undefined
+  if (body?.area !== undefined) {
+    const raw = body.area.trim()
+    if (raw && !MUSCAT_AREAS.includes(raw as (typeof MUSCAT_AREAS)[number])) {
+      return NextResponse.json({ error: 'Invalid area' }, { status: 400 })
+    }
+    areaUpdate = raw || null
+  }
+
+  const addressUpdate =
+    body?.address !== undefined ? clampText(body.address, 500) || null : undefined
+
+  if (current.source === 'neon' && (name !== undefined || emailUpdate !== undefined)) {
     try {
       await auth.updateUser({
         ...(name !== undefined ? { name } : {}),
-        ...(body?.email !== undefined ? { email: body.email.trim() || undefined } : {}),
+        ...(emailUpdate !== undefined ? { email: emailUpdate || undefined } : {}),
       })
     } catch {
       // profile table is source of truth if Neon update fails
@@ -78,11 +101,11 @@ export async function PATCH(req: Request) {
   const [updated] = await db
     .update(users)
     .set({
-      name: name ?? undefined,
-      email: body?.email !== undefined ? body.email.trim() || null : undefined,
+      name: name !== undefined ? clampText(name, 120) : undefined,
+      email: emailUpdate,
       phone: body?.phone !== undefined ? phone : undefined,
-      area: body?.area !== undefined ? body.area.trim() || null : undefined,
-      address: body?.address !== undefined ? body.address.trim() || null : undefined,
+      area: areaUpdate,
+      address: addressUpdate,
       updated_at: new Date(),
     })
     .where(eq(users.id, current.profileId))

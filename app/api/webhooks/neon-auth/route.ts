@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server'
 import { Resend } from 'resend'
 import { sendOtpSms } from '@/lib/auth/sms'
+import { checkRateLimit, getClientIp } from '@/lib/auth/rate-limit'
+import { verifyNeonAuthWebhook } from '@/lib/security/verify-webhook'
 
 export const dynamic = 'force-dynamic'
 
@@ -63,6 +65,14 @@ async function sendOtpEmail(to: string, code: string, appName: string) {
  * This handler must deliver email OTPs (Resend) and optional phone OTPs (Twilio).
  */
 export async function POST(req: Request) {
+  const denied = verifyNeonAuthWebhook(req)
+  if (denied) return denied
+
+  const ip = getClientIp(req)
+  if (!(await checkRateLimit(`neon-webhook:${ip}`))) {
+    return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
+  }
+
   const rawBody = await req.text()
   let payload: WebhookPayload | null = null
 

@@ -6,8 +6,9 @@ import { orders, users } from '@/lib/db/schema'
 import { formatPhoneDisplay } from '@/lib/constants'
 import { buildInvoicePdfBuffer } from '@/lib/invoices/invoice-pdf'
 import type { Order } from '@/lib/db/schema'
-
-export const dynamic = 'force-dynamic'
+import { verifyInternalApi } from '@/lib/security/internal-api'
+import { checkRateLimit, getClientIp } from '@/lib/auth/rate-limit'
+import { requireCloudflareProxy } from '@/lib/cloudflare/proxy'
 
 type InvoiceEvent = 'created' | 'confirmed' | 'cancelled'
 
@@ -39,17 +40,33 @@ async function resolveCustomerEmail(order: Order): Promise<string | null> {
 
 export async function POST(request: Request) {
   try {
-    const { orderId, event } = (await request.json().catch(() => null)) as
-      | { orderId?: string; event?: InvoiceEvent }
-      | null
+    const proxyDenied = requireCloudflareProxy(request)
+    if (proxyDenied) return proxyDenied
+
+    const denied = verifyInternalApi(request)
+    if (denied) return denied
+
+    const ip = getClientIp(request)
+    if (!(await checkRateLimit(`send-confirm:${ip}`))) {
+      return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
+    }
+
+    const body = (await request.json().catch(() => null)) as {
+      orderId?: string
+      event?: InvoiceEvent
+    } | null
+    const orderId = body?.orderId
+    const event = body?.event
     if (!orderId) {
       return NextResponse.json({ error: 'Missing orderId' }, { status: 400 })
     }
 
     const resendKey = process.env.RESEND_API_KEY
-    const adminEmail = process.env.ADMIN_EMAIL || 'Izzkaled@gmail.com'
+    const adminEmail = process.env.ADMIN_EMAIL?.trim()
+    if (!adminEmail) {
+      console.warn('ADMIN_EMAIL not set, skipping admin notifications')
+    }
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
-    const adminToken = process.env.ADMIN_SECRET_TOKEN || ''
     const whatsapp = process.env.NEXT_PUBLIC_WHATSAPP || '96877222432'
     const from = process.env.RESEND_FROM_EMAIL?.trim() || 'Speedy Cleaning <onboarding@resend.dev>'
 
@@ -68,7 +85,8 @@ export async function POST(request: Request) {
     const customerEmail = await resolveCustomerEmail(order)
     const customerPhoneDisplay = formatPhoneDisplay(order.customer_phone)
     const isSameRecipient =
-      Boolean(customerEmail) && customerEmail!.toLowerCase() === adminEmail.toLowerCase()
+      Boolean(customerEmail && adminEmail) &&
+      customerEmail!.toLowerCase() === adminEmail!.toLowerCase()
 
     if (event === 'cancelled') {
       const cancelHtml = `
@@ -100,7 +118,7 @@ export async function POST(request: Request) {
               html: cancelHtml,
             })
           : Promise.resolve(),
-        isSameRecipient
+        isSameRecipient || !adminEmail
           ? Promise.resolve()
           : resend.emails.send({
               from,
@@ -160,7 +178,7 @@ export async function POST(request: Request) {
         <p><strong>السعر الإجمالي:</strong> ${order.price_omr} OMR</p>
         <p><strong>تاريخ البداية:</strong> ${order.start_date}</p>
         <p><a href="${waLink}">واتساب العميل</a></p>
-        <p><a href="${siteUrl}/admin/orders${adminToken ? `?token=${adminToken}` : ''}">لوحة التحكم</a></p>
+        <p><a href="${siteUrl}/admin/orders">لوحة التحكم</a></p>
         <p style="margin-top:16px">الفاتورة PDF مرفقة (${isConfirmed ? 'مؤكدة' : 'بانتظار التأكيد'}).</p>
       </div>
     `
@@ -180,7 +198,7 @@ export async function POST(request: Request) {
     }
 
     // Skip duplicate admin email when customer and admin share the same inbox
-    if (!isSameRecipient) {
+    if (!isSameRecipient && adminEmail) {
       sends.push(
         resend.emails.send({
           from,

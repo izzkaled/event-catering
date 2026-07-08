@@ -41,6 +41,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { cn } from '@/lib/utils'
+import { TurnstileWidget, isTurnstileConfigured } from '@/components/cloudflare/turnstile-widget'
 
 type BookingDraft = {
   step: number
@@ -123,6 +124,7 @@ export function BookingFlow({ packages }: { packages: Package[] }) {
   const [preferredTime, setPreferredTime] = useState('')
   const [preferredDays, setPreferredDays] = useState<string[]>([])
   const [submitting, setSubmitting] = useState(false)
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null)
   const [loginDialogOpen, setLoginDialogOpen] = useState(false)
   const [loggedIn, setLoggedIn] = useState(false)
   const [profileLoaded, setProfileLoaded] = useState(false)
@@ -223,6 +225,12 @@ export function BookingFlow({ packages }: { packages: Package[] }) {
       toast.error(t('booking.invalidPhone'))
       return
     }
+    if (isTurnstileConfigured() && !turnstileToken) {
+      toast.error(
+        lang === 'ar' ? 'أكمل التحقق الأمني أولاً' : 'Complete the security check first',
+      )
+      return
+    }
 
     setSubmitting(true)
     try {
@@ -247,6 +255,7 @@ export function BookingFlow({ packages }: { packages: Package[] }) {
           start_date: startDate,
           preferred_time: preferredTime,
           preferred_days: preferredDays,
+          turnstileToken,
         }),
       })
 
@@ -589,16 +598,19 @@ export function BookingFlow({ packages }: { packages: Package[] }) {
               )}
 
               {step === 3 && selectedPkg && (
-                <OrderSummary
-                  pkg={selectedPkg}
-                  customerName={name}
-                  customerPhone={normalizePhone(phone) || phone}
-                  customerArea={area}
-                  customerAddress={address}
-                  startDate={startDate}
-                  preferredTime={preferredTime}
-                  preferredDays={preferredDays}
-                />
+                <>
+                  <OrderSummary
+                    pkg={selectedPkg}
+                    customerName={name}
+                    customerPhone={normalizePhone(phone) || phone}
+                    customerArea={area}
+                    customerAddress={address}
+                    startDate={startDate}
+                    preferredTime={preferredTime}
+                    preferredDays={preferredDays}
+                  />
+                  <TurnstileWidget action="booking" onToken={setTurnstileToken} />
+                </>
               )}
 
               {/* Desktop navigation */}

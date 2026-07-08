@@ -5,8 +5,8 @@ import 'react-big-calendar/lib/css/react-big-calendar.css'
 import * as React from 'react'
 import { Calendar, dateFnsLocalizer, type Event as RBCEvent } from 'react-big-calendar'
 import { addMinutes, format, getDay, parse, startOfWeek } from 'date-fns'
-import enUS from 'date-fns/locale/en-US'
-import arSA from 'date-fns/locale/ar-SA'
+import { enUS } from 'date-fns/locale/en-US'
+import { arSA } from 'date-fns/locale/ar-SA'
 import { toast } from 'sonner'
 import { useLanguage } from '@/components/language-provider'
 import { Button } from '@/components/ui/button'
@@ -24,7 +24,7 @@ type CalendarEvent = RBCEvent & {
 const localizer = dateFnsLocalizer({
   format,
   parse,
-  startOfWeek: (date) => startOfWeek(date, { weekStartsOn: 0 }),
+  startOfWeek: (date: Date) => startOfWeek(date, { weekStartsOn: 0 }),
   getDay,
   locales: { 'en-US': enUS, 'ar-SA': arSA },
 })

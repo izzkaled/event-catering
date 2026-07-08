@@ -46,7 +46,7 @@ export function OmanPhoneInput({
           inputMode="tel"
           autoFocus={autoFocus}
           maxLength={8}
-          className="border-0 shadow-none focus-visible:ring-0"
+          className="h-11 border-0 text-base shadow-none focus-visible:ring-0 sm:h-10 sm:text-sm"
           onKeyDown={(e) => {
             if (e.key === 'Enter') onEnter?.()
           }}

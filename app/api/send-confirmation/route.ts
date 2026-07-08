@@ -11,10 +11,15 @@ export const dynamic = 'force-dynamic'
 
 type InvoiceEvent = 'created' | 'confirmed' | 'cancelled'
 
-function pdfAttachment(order: Order, kind: 'requested' | 'confirmed', filename: string) {
+function pdfAttachment(
+  order: Order,
+  kind: 'requested' | 'confirmed',
+  filename: string,
+  audience: 'customer' | 'admin',
+) {
   return {
     filename,
-    content: buildInvoicePdfBuffer(order, kind).toString('base64'),
+    content: buildInvoicePdfBuffer(order, kind, audience).toString('base64'),
     contentType: 'application/pdf' as const,
   }
 }
@@ -59,9 +64,11 @@ export async function POST(request: Request) {
     }
 
     const resend = new Resend(resendKey)
-    const phone = formatPhoneDisplay(order.customer_phone)
     const waLink = `https://wa.me/${order.customer_phone.replace(/\D/g, '')}`
     const customerEmail = await resolveCustomerEmail(order)
+    const customerPhoneDisplay = formatPhoneDisplay(order.customer_phone)
+    const isSameRecipient =
+      Boolean(customerEmail) && customerEmail!.toLowerCase() === adminEmail.toLowerCase()
 
     if (event === 'cancelled') {
       const cancelHtml = `
@@ -78,7 +85,7 @@ export async function POST(request: Request) {
       const adminCancelHtml = `
         <div dir="rtl" style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto">
           <h2>❌ تم إلغاء الطلب: ${order.order_number}</h2>
-          <p><strong>العميل:</strong> ${order.customer_name} | <strong>الجوال:</strong> ${phone}</p>
+          <p><strong>العميل:</strong> ${order.customer_name} | <strong>الجوال:</strong> ${customerPhoneDisplay}</p>
           <p>تم إعلام العميل بالإلغاء. لم يُستلم أي مبلغ.</p>
           <p><a href="${siteUrl}/admin/orders">عرض الطلبات</a></p>
         </div>
@@ -93,12 +100,14 @@ export async function POST(request: Request) {
               html: cancelHtml,
             })
           : Promise.resolve(),
-        resend.emails.send({
-          from,
-          to: adminEmail,
-          subject: `❌ إلغاء طلب: ${order.order_number}`,
-          html: adminCancelHtml,
-        }),
+        isSameRecipient
+          ? Promise.resolve()
+          : resend.emails.send({
+              from,
+              to: adminEmail,
+              subject: `❌ إلغاء طلب: ${order.order_number}`,
+              html: adminCancelHtml,
+            }),
       ])
 
       return NextResponse.json({
@@ -113,7 +122,8 @@ export async function POST(request: Request) {
     const filename = isConfirmed
       ? `invoice-confirmed-${order.order_number}.pdf`
       : `invoice-requested-${order.order_number}.pdf`
-    const attachment = pdfAttachment(order, invoiceKind, filename)
+    const customerAttachment = pdfAttachment(order, invoiceKind, filename, 'customer')
+    const adminAttachment = pdfAttachment(order, invoiceKind, `admin-${filename}`, 'admin')
 
     const customerSubject = isConfirmed
       ? `تم تأكيد اشتراكك ${order.order_number} | Speedy Cleaning`
@@ -122,15 +132,17 @@ export async function POST(request: Request) {
     const customerHtml = `
       <div dir="rtl" style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto">
         <h2>${isConfirmed ? 'تم تأكيد اشتراكك ✅' : 'تم استلام طلبك بنجاح! 🎉'}</h2>
+        <p>مرحباً ${order.customer_name}،</p>
         <p><strong>رقم الطلب:</strong> ${order.order_number}</p>
-        <p><strong>الباقة:</strong> ${order.hours_per_visit} ساعة | ${order.visits_per_week} زيارة/أسبوع | ${order.visits_per_month} زيارة/شهر</p>
+        <p><strong>الباقة:</strong> ${order.package_name_ar || `${order.hours_per_visit} ساعة | ${order.visits_per_week} زيارة/أسبوع`}</p>
         <p><strong>الإجمالي:</strong> ${order.price_omr} OMR</p>
         <p>${
           isConfirmed
             ? 'تم تأكيد الحجز. ستبدأ الزيارات حسب الجدول المتفق عليه.'
-            : `سيتواصل معك فريقنا على رقم ${phone} خلال 24 ساعة.`
+            : 'سيتواصل معك فريقنا خلال 24 ساعة لإتمام الدفع.'
         }</p>
         <p><a href="https://wa.me/${whatsapp}">تواصل معنا على واتساب</a></p>
+        <p><a href="${siteUrl}/subscriptions">عرض اشتراكاتي</a></p>
         <p style="margin-top:16px">الفاتورة PDF مرفقة في البريد.</p>
       </div>
     `
@@ -142,7 +154,7 @@ export async function POST(request: Request) {
     const adminHtml = `
       <div dir="rtl" style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto">
         <h2>${isConfirmed ? '✅ تم تأكيد اشتراك' : '🆕 طلب اشتراك جديد'}: ${order.order_number}</h2>
-        <p><strong>الاسم:</strong> ${order.customer_name} | <strong>الجوال:</strong> ${phone} | <strong>المنطقة:</strong> ${order.customer_area}</p>
+        <p><strong>الاسم:</strong> ${order.customer_name} | <strong>جوال العميل:</strong> ${customerPhoneDisplay} | <strong>المنطقة:</strong> ${order.customer_area}</p>
         ${customerEmail ? `<p><strong>إيميل العميل:</strong> ${customerEmail}</p>` : ''}
         <p><strong>الباقة:</strong> ${order.hours_per_visit} ساعة / ${order.visits_per_week} زيارة أسبوعياً / ${order.visits_per_month} زيارة شهرياً</p>
         <p><strong>السعر الإجمالي:</strong> ${order.price_omr} OMR</p>
@@ -153,24 +165,34 @@ export async function POST(request: Request) {
       </div>
     `
 
-    await Promise.all([
-      customerEmail
-        ? resend.emails.send({
-            from,
-            to: customerEmail,
-            subject: customerSubject,
-            html: customerHtml,
-            attachments: [attachment],
-          })
-        : Promise.resolve(),
-      resend.emails.send({
-        from,
-        to: adminEmail,
-        subject: adminSubject,
-        html: adminHtml,
-        attachments: [attachment],
-      }),
-    ])
+    const sends: Promise<unknown>[] = []
+
+    if (customerEmail) {
+      sends.push(
+        resend.emails.send({
+          from,
+          to: customerEmail,
+          subject: customerSubject,
+          html: customerHtml,
+          attachments: [customerAttachment],
+        }),
+      )
+    }
+
+    // Skip duplicate admin email when customer and admin share the same inbox
+    if (!isSameRecipient) {
+      sends.push(
+        resend.emails.send({
+          from,
+          to: adminEmail,
+          subject: adminSubject,
+          html: adminHtml,
+          attachments: [adminAttachment],
+        }),
+      )
+    }
+
+    await Promise.all(sends)
 
     return NextResponse.json({
       success: true,

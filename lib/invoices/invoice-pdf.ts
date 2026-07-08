@@ -4,6 +4,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 
 type InvoiceKind = 'requested' | 'confirmed'
+type InvoiceAudience = 'customer' | 'admin'
 
 function safe(v: unknown) {
   return String(v ?? '').trim()
@@ -81,7 +82,11 @@ function drawCellBilingual(
   doc.text(ar || '-', x + w - padX, line2Y, { align: 'right', maxWidth: w - padX * 2 })
 }
 
-export function buildInvoicePdfBuffer(order: Order, kind: InvoiceKind): Buffer {
+export function buildInvoicePdfBuffer(
+  order: Order,
+  kind: InvoiceKind,
+  audience: InvoiceAudience = 'customer',
+): Buffer {
   const doc = new jsPDF({ unit: 'pt', format: 'a4' })
 
   // IMPORTANT:
@@ -169,12 +174,22 @@ export function buildInvoicePdfBuffer(order: Order, kind: InvoiceKind): Buffer {
   doc.line(left, pageH - 55, right, pageH - 55)
   doc.setFontSize(9)
   doc.setFont('helvetica', 'normal')
-  doc.text(
-    'Support WhatsApp: +968 ' + safe(process.env.NEXT_PUBLIC_WHATSAPP || '96877222432'),
-    left,
-    pageH - 35,
-  )
-  doc.text('Support email: ' + safe(process.env.ADMIN_EMAIL || 'izzkaled@gmail.com'), left, pageH - 22)
+
+  const supportWhatsApp = safe(process.env.NEXT_PUBLIC_WHATSAPP || '96877222432').replace(/\D/g, '')
+  const siteUrl = safe(process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000').replace(/\/$/, '')
+  const supportWhatsAppDisplay = supportWhatsApp.startsWith('968')
+    ? `+968 ${supportWhatsApp.slice(3)}`
+    : `+${supportWhatsApp}`
+
+  if (audience === 'customer') {
+    doc.text(`Support WhatsApp: ${supportWhatsAppDisplay}`, left, pageH - 35)
+    doc.text(`My subscriptions: ${siteUrl}/subscriptions`, left, pageH - 22)
+  } else {
+    doc.text(`Support WhatsApp: ${supportWhatsAppDisplay}`, left, pageH - 48)
+    doc.text(`Admin panel: ${siteUrl}/admin/orders`, left, pageH - 35)
+    doc.text(`Customer WhatsApp: https://wa.me/${order.customer_phone.replace(/\D/g, '')}`, left, pageH - 22)
+  }
+
   doc.text(`Generated: ${new Date().toISOString()}`, right, pageH - 22, { align: 'right' })
 
   const arrayBuffer = doc.output('arraybuffer') as ArrayBuffer

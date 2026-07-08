@@ -4,6 +4,7 @@ import * as React from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
+import { CheckCircle2, Lock, Mail, ShieldCheck, Sparkles, User } from 'lucide-react'
 import { useLanguage } from '@/components/language-provider'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -35,6 +36,14 @@ function authErrorMessage(error: unknown): string {
     if (typeof message === 'string' && message.trim()) return message
   }
   return 'Something went wrong'
+}
+
+function FieldIcon({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="pointer-events-none absolute start-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+      {children}
+    </span>
+  )
 }
 
 export function AuthEmailForm({ mode = 'login', adminOnly = false }: AuthEmailFormProps) {
@@ -93,7 +102,6 @@ export function AuthEmailForm({ mode = 'login', adminOnly = false }: AuthEmailFo
         if (error) throw new Error(authErrorMessage(error))
 
         if (data?.user && !data.user.emailVerified) {
-          // Ensure an OTP is requested even if Neon signup email was swallowed by webhook.
           await authClient.emailOtp
             .sendVerificationOtp({ email: normalizedEmail, type: 'email-verification' })
             .catch(() => null)
@@ -115,7 +123,6 @@ export function AuthEmailForm({ mode = 'login', adminOnly = false }: AuthEmailFo
       if (error) {
         const message = authErrorMessage(error).toLowerCase()
 
-        // Email exists but not verified yet
         if (message.includes('verif') || message.includes('email not verified')) {
           await authClient.emailOtp
             .sendVerificationOtp({ email: normalizedEmail, type: 'email-verification' })
@@ -125,7 +132,6 @@ export function AuthEmailForm({ mode = 'login', adminOnly = false }: AuthEmailFo
           return
         }
 
-        // Neon often returns a generic credentials error for unknown emails too.
         if (
           message.includes('not found') ||
           message.includes('no user') ||
@@ -183,120 +189,197 @@ export function AuthEmailForm({ mode = 'login', adminOnly = false }: AuthEmailFo
     }
   }
 
-  return (
-    <div dir={dir} className="mx-auto w-full max-w-lg px-4 py-10">
-      <Card>
-        <CardHeader>
-          <CardTitle>
-            {adminOnly
-              ? t('تسجيل دخول لوحة الإدارة', 'Admin login')
-              : mode === 'signup'
-                ? t('إنشاء حساب', 'Create account')
-                : t('تسجيل الدخول', 'Login')}
-          </CardTitle>
-          <CardDescription>
-            {adminOnly
-              ? t('سجّل الدخول بالبريد وكلمة المرور', 'Sign in with email and password')
-              : mode === 'signup'
-                ? t('أنشئ حسابك عبر Google أو البريد الإلكتروني', 'Create account with Google or email')
-                : t('سجّل الدخول عبر Google أو البريد الإلكتروني', 'Sign in with Google or email')}
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {!adminOnly && (
-            <>
-              <GoogleSignInButton />
-              <div className="relative py-1 text-center text-xs text-muted-foreground">
-                <span className="bg-card relative z-10 px-3">
-                  {t('أو بالبريد الإلكتروني', 'or with email')}
-                </span>
-                <span className="absolute inset-x-0 top-1/2 border-t border-border" />
-              </div>
-            </>
-          )}
+  const signupBenefits = [
+    t('تتبع اشتراكاتك من مكان واحد', 'Track all subscriptions in one place'),
+    t('حفظ بياناتك للحجز السريع', 'Save details for faster booking'),
+    t('استلام الفواتير على بريدك', 'Receive invoices by email'),
+    t('تسجيل دخول آمن عبر Google أو البريد', 'Secure login with Google or email'),
+  ]
 
-          {mode === 'signup' && (
-            <div className="space-y-1">
-              <Label>{t('الاسم الكامل', 'Full name')}</Label>
+  const formCard = (
+    <Card className="border-border/80 shadow-xl shadow-primary/5">
+      <CardHeader className="space-y-1 pb-4">
+        <CardTitle className="text-2xl font-extrabold tracking-tight">
+          {adminOnly
+            ? t('تسجيل دخول لوحة الإدارة', 'Admin login')
+            : mode === 'signup'
+              ? t('إنشاء حساب', 'Create account')
+              : t('تسجيل الدخول', 'Login')}
+        </CardTitle>
+        <CardDescription className="text-base">
+          {adminOnly
+            ? t('سجّل الدخول بالبريد وكلمة المرور', 'Sign in with email and password')
+            : mode === 'signup'
+              ? t('انضم إلينا وابدأ بحجز خدمة التنظيف', 'Join us and start booking cleaning services')
+              : t('مرحباً بعودتك! سجّل دخولك للمتابعة', 'Welcome back! Sign in to continue')}
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {!adminOnly && (
+          <>
+            <GoogleSignInButton />
+            <div className="relative py-1 text-center text-xs text-muted-foreground">
+              <span className="relative z-10 bg-card px-3">{t('أو بالبريد الإلكتروني', 'or with email')}</span>
+              <span className="absolute inset-x-0 top-1/2 border-t border-border" />
+            </div>
+          </>
+        )}
+
+        {mode === 'signup' && (
+          <div className="space-y-1.5">
+            <Label htmlFor="auth-name">{t('الاسم الكامل', 'Full name')}</Label>
+            <div className="relative">
+              <FieldIcon>
+                <User className="size-4" />
+              </FieldIcon>
               <Input
+                id="auth-name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 autoComplete="name"
                 disabled={loading}
+                className="ps-10"
+                placeholder={t('مثال: أحمد الهنائي', 'e.g. Ahmed Al-Hinai')}
               />
             </div>
-          )}
+          </div>
+        )}
 
-          <div className="space-y-1">
-            <Label>{t('البريد الإلكتروني', 'Email')}</Label>
+        <div className="space-y-1.5">
+          <Label htmlFor="auth-email">{t('البريد الإلكتروني', 'Email')}</Label>
+          <div className="relative">
+            <FieldIcon>
+              <Mail className="size-4" />
+            </FieldIcon>
             <Input
+              id="auth-email"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               autoComplete="email"
               inputMode="email"
               disabled={loading}
+              className="ps-10"
+              placeholder="you@example.com"
               onKeyDown={(e) => {
                 if (e.key === 'Enter') submit()
               }}
             />
           </div>
+        </div>
 
-          <div className="space-y-1">
-            <Label>{t('كلمة المرور', 'Password')}</Label>
+        <div className="space-y-1.5">
+          <Label htmlFor="auth-password">{t('كلمة المرور', 'Password')}</Label>
+          <div className="relative">
+            <FieldIcon>
+              <Lock className="size-4" />
+            </FieldIcon>
             <Input
+              id="auth-password"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
               disabled={loading}
+              className="ps-10"
+              placeholder={mode === 'signup' ? t('8 أحرف على الأقل', 'At least 8 characters') : '••••••••'}
               onKeyDown={(e) => {
                 if (e.key === 'Enter') submit()
               }}
             />
           </div>
-
-          <Button className="w-full" onClick={submit} disabled={loading}>
-            {loading
-              ? t('جارٍ...', 'Please wait...')
-              : mode === 'signup'
-                ? t('إنشاء الحساب', 'Create account')
-                : t('تسجيل الدخول', 'Log in')}
-          </Button>
-
-          {!adminOnly && (
-            <p className="text-center text-sm text-muted-foreground">
-              {mode === 'login' ? (
-                <>
-                  {t('ليس لديك حساب؟', "Don't have an account?")}{' '}
-                  <Link
-                    href="/auth/signup"
-                    className="font-medium text-primary underline-offset-4 hover:underline"
-                  >
-                    {t('سجّل الآن', 'Sign up')}
-                  </Link>
-                </>
-              ) : (
-                <>
-                  {t('لديك حساب؟', 'Already have an account?')}{' '}
-                  <Link
-                    href="/auth/login"
-                    className="font-medium text-primary underline-offset-4 hover:underline"
-                  >
-                    {t('سجّل الدخول', 'Log in')}
-                  </Link>
-                </>
-              )}
+          {mode === 'signup' && (
+            <p className="text-xs text-muted-foreground">
+              {t('استخدم 8 أحرف أو أكثر لحماية حسابك', 'Use 8+ characters to secure your account')}
             </p>
           )}
+        </div>
 
-          {!adminOnly && (
-            <Button variant="outline" className="w-full" onClick={() => router.push(getReturnTo('/'))}>
-              {t('إلغاء والعودة', 'Cancel and go back')}
-            </Button>
-          )}
-        </CardContent>
-      </Card>
+        <Button className="h-11 w-full text-base shadow-md shadow-primary/15" onClick={submit} disabled={loading}>
+          {loading
+            ? t('جارٍ...', 'Please wait...')
+            : mode === 'signup'
+              ? t('إنشاء الحساب', 'Create account')
+              : t('تسجيل الدخول', 'Log in')}
+        </Button>
+
+        {!adminOnly && (
+          <p className="text-center text-sm text-muted-foreground">
+            {mode === 'login' ? (
+              <>
+                {t('ليس لديك حساب؟', "Don't have an account?")}{' '}
+                <Link
+                  href="/auth/signup"
+                  className="font-semibold text-primary underline-offset-4 hover:underline"
+                >
+                  {t('سجّل الآن', 'Sign up')}
+                </Link>
+              </>
+            ) : (
+              <>
+                {t('لديك حساب؟', 'Already have an account?')}{' '}
+                <Link
+                  href="/auth/login"
+                  className="font-semibold text-primary underline-offset-4 hover:underline"
+                >
+                  {t('سجّل الدخول', 'Log in')}
+                </Link>
+              </>
+            )}
+          </p>
+        )}
+
+        {!adminOnly && (
+          <Button variant="ghost" className="w-full text-muted-foreground" onClick={() => router.push(getReturnTo('/'))}>
+            {t('إلغاء والعودة', 'Cancel and go back')}
+          </Button>
+        )}
+      </CardContent>
+    </Card>
+  )
+
+  if (mode === 'signup' && !adminOnly) {
+    return (
+      <div dir={dir} className="mx-auto grid w-full max-w-4xl gap-6 lg:grid-cols-[1fr_1.1fr] lg:gap-8">
+        <Card className="hidden border-primary/15 bg-primary/5 lg:flex lg:flex-col lg:justify-center">
+          <CardContent className="space-y-6 p-8">
+            <div className="space-y-2">
+              <span className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+                <Sparkles className="size-3.5" />
+                {t('حساب مجاني', 'Free account')}
+              </span>
+              <h2 className="text-2xl font-extrabold leading-snug">
+                {t('لماذا تنشئ حساباً؟', 'Why create an account?')}
+              </h2>
+              <p className="text-sm leading-relaxed text-muted-foreground">
+                {t(
+                  'احفظ بياناتك، تابع اشتراكاتك، واستلم تأكيدات الحجز والفواتير مباشرة.',
+                  'Save your details, track subscriptions, and get booking confirmations and invoices.',
+                )}
+              </p>
+            </div>
+            <ul className="space-y-3">
+              {signupBenefits.map((item) => (
+                <li key={item} className="flex items-start gap-3 text-sm">
+                  <CheckCircle2 className="mt-0.5 size-5 shrink-0 text-accent" />
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
+            <div className="flex items-center gap-2 rounded-xl border border-border/60 bg-background/80 p-4 text-xs text-muted-foreground">
+              <ShieldCheck className="size-4 shrink-0 text-primary" />
+              {t('بياناتك محمية ولا تُشارك مع أطراف خارجية', 'Your data is protected and never shared with third parties')}
+            </div>
+          </CardContent>
+        </Card>
+        {formCard}
+      </div>
+    )
+  }
+
+  return (
+    <div dir={dir} className="mx-auto w-full max-w-md">
+      {formCard}
     </div>
   )
 }

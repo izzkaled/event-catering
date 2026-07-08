@@ -53,10 +53,10 @@ export default function MySubscriptionsPage() {
   return (
     <div className="flex min-h-screen flex-col">
       <SiteHeader />
-      <main dir={dir} className="mx-auto w-full max-w-3xl flex-1 px-4 py-10">
-        <div className="mb-8 flex flex-wrap items-end justify-between gap-3">
+      <main dir={dir} className="mx-auto w-full max-w-3xl flex-1 px-3 py-6 pb-24 sm:px-4 sm:py-10 sm:pb-10">
+        <div className="mb-6 flex flex-col gap-3 sm:mb-8 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">{t('اشتراكاتي', 'My subscriptions')}</h1>
+            <h1 className="text-xl font-bold tracking-tight sm:text-2xl">{t('اشتراكاتي', 'My subscriptions')}</h1>
             <p className="mt-1 text-sm text-muted-foreground">
               {t(
                 'طلبات الباقات والحالة بعد تأكيد الإدارة',
@@ -64,7 +64,7 @@ export default function MySubscriptionsPage() {
               )}
             </p>
           </div>
-          <Button render={<Link href="/booking" />} nativeButton={false}>
+          <Button render={<Link href="/booking" />} nativeButton={false} className="h-11 w-full sm:w-auto">
             {t('طلب اشتراك جديد', 'New subscription')}
           </Button>
         </div>

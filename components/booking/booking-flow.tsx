@@ -1,12 +1,22 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { Fragment, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Check, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react'
+import {
+  CalendarDays,
+  Check,
+  ChevronLeft,
+  ChevronRight,
+  ClipboardCheck,
+  Loader2,
+  MapPin,
+  Sparkles,
+  UserCircle,
+} from 'lucide-react'
 import { toast } from 'sonner'
 import { useLanguage } from '@/components/language-provider'
 import { PackageSelector } from '@/components/booking/package-selector'
-import { OrderSummary } from '@/components/booking/order-summary'
+import { BookingTrustBadges, OrderSummary } from '@/components/booking/order-summary'
 import { LoginRequiredDialog } from '@/components/auth/login-required-dialog'
 import { OmanPhoneInput } from '@/components/auth/oman-phone-input'
 import {
@@ -26,10 +36,11 @@ import {
   WEEK_DAYS_EN,
 } from '@/lib/constants'
 import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { Progress } from '@/components/ui/progress'
+import { cn } from '@/lib/utils'
 
 type BookingDraft = {
   step: number
@@ -58,6 +69,30 @@ function localPhoneDigits(phone: string | null | undefined) {
   return phone.replace(/\D/g, '').replace(/^968/, '').slice(0, 8)
 }
 
+const STEP_ICONS = [Sparkles, UserCircle, CalendarDays, ClipboardCheck] as const
+
+function StepHeader({
+  icon: Icon,
+  title,
+  description,
+}: {
+  icon: typeof Sparkles
+  title: string
+  description: string
+}) {
+  return (
+    <div className="mb-5 flex items-start gap-3 border-b border-border pb-4 sm:mb-6 sm:gap-4 sm:pb-5">
+      <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary sm:size-12 sm:rounded-2xl">
+        <Icon className="size-5 sm:size-6" />
+      </span>
+      <div className="min-w-0">
+        <h2 className="text-lg font-extrabold tracking-tight sm:text-xl md:text-2xl">{title}</h2>
+        <p className="mt-0.5 text-xs text-muted-foreground sm:mt-1 sm:text-sm">{description}</p>
+      </div>
+    </div>
+  )
+}
+
 export function BookingFlow({ packages }: { packages: Package[] }) {
   const router = useRouter()
   const { lang, t, dir } = useLanguage()
@@ -67,7 +102,13 @@ export function BookingFlow({ packages }: { packages: Package[] }) {
     t('booking.step.details'),
     t('booking.step.schedule'),
     t('booking.step.review'),
-    t('booking.step.done'),
+  ]
+
+  const stepDescriptions = [
+    lang === 'ar' ? 'اختر الباقة المناسبة لاحتياجات منزلك' : 'Choose the plan that fits your home',
+    lang === 'ar' ? 'أدخل بيانات التواصل وعنوان الخدمة' : 'Enter contact details and service address',
+    lang === 'ar' ? 'حدّد موعد بداية الزيارات والأيام المفضلة' : 'Pick start date, time slot, and preferred days',
+    lang === 'ar' ? 'راجع تفاصيل طلبك قبل التأكيد' : 'Review your order before confirming',
   ]
 
   const [step, setStep] = useState(0)
@@ -92,7 +133,6 @@ export function BookingFlow({ packages }: { packages: Package[] }) {
     async function hydrate() {
       const draft = getCheckoutDraft<BookingDraft>()
 
-      // Restore draft first (after login redirect)
       if (draft) {
         setStep(draft.step)
         setName(draft.name)
@@ -111,7 +151,6 @@ export function BookingFlow({ packages }: { packages: Package[] }) {
         clearCheckoutDraft()
       }
 
-      // Load saved account (Google or phone session)
       try {
         const res = await fetch('/api/profile', { credentials: 'include' })
         if (!res.ok) {
@@ -125,7 +164,6 @@ export function BookingFlow({ packages }: { packages: Package[] }) {
         if (cancelled) return
 
         setLoggedIn(true)
-        // Prefill empty fields from saved account (don't overwrite draft values)
         setName((prev) => prev || data.user.name || '')
         setPhone((prev) => prev || localPhoneDigits(data.user.phone))
         setEmail((prev) => prev || data.user.email || '')
@@ -188,7 +226,6 @@ export function BookingFlow({ packages }: { packages: Package[] }) {
 
     setSubmitting(true)
     try {
-      // Save account details for next time
       await persistProfile()
 
       const res = await fetch('/api/orders', {
@@ -241,7 +278,6 @@ export function BookingFlow({ packages }: { packages: Package[] }) {
     if (step === 3) {
       if (!selectedPkg) return
 
-      // Re-check session (phone or Google)
       const profileRes = await fetch('/api/profile', { credentials: 'include' })
       const isAuthed = profileRes.ok
       setLoggedIn(isAuthed)
@@ -277,213 +313,419 @@ export function BookingFlow({ packages }: { packages: Package[] }) {
 
   const PrevIcon = dir === 'rtl' ? ChevronRight : ChevronLeft
   const NextIcon = dir === 'rtl' ? ChevronLeft : ChevronRight
+  const StepIcon = STEP_ICONS[step] ?? Sparkles
 
   if (!packages.length) {
     return (
-      <div className="mx-auto max-w-3xl px-4 py-16 text-center text-muted-foreground">
-        {lang === 'ar' ? 'لا توجد باقات متاحة حالياً' : 'No packages available'}
+      <div className="mx-auto max-w-3xl px-4 py-20 text-center">
+        <p className="text-lg text-muted-foreground">
+          {lang === 'ar' ? 'لا توجد باقات متاحة حالياً' : 'No packages available'}
+        </p>
       </div>
     )
   }
 
   return (
-    <div className="mx-auto w-full max-w-3xl px-4 py-8">
+    <div className="relative min-h-[calc(100vh-4rem)]">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/10 via-background to-background" />
+      <div className="pointer-events-none absolute -start-32 top-20 size-96 rounded-full bg-accent/10 blur-3xl" />
+      <div className="pointer-events-none absolute -end-32 bottom-0 size-80 rounded-full bg-primary/10 blur-3xl" />
+
       <LoginRequiredDialog open={loginDialogOpen} onOpenChange={setLoginDialogOpen} />
-      <div className="mb-8">
-        <div className="mb-3 flex items-center justify-between">
-          {steps.slice(0, 4).map((label, i) => (
-            <div key={label} className="flex flex-col items-center gap-1.5">
-              <span
-                className={`flex size-9 items-center justify-center rounded-full text-sm font-bold transition-colors ${
-                  i < step
-                    ? 'bg-accent text-accent-foreground'
-                    : i === step
-                      ? 'bg-primary text-primary-foreground'
-                      : 'bg-secondary text-muted-foreground'
-                }`}
-              >
-                {i < step ? <Check className="size-4" /> : i + 1}
-              </span>
-              <span
-                className={`hidden text-xs sm:block ${
-                  i === step ? 'font-bold text-foreground' : 'text-muted-foreground'
-                }`}
-              >
-                {label}
-              </span>
-            </div>
-          ))}
+
+      {/* Hero */}
+      <div className="relative border-b border-border/60 bg-card/40 backdrop-blur-sm">
+        <div className="mx-auto max-w-6xl px-3 py-6 sm:px-4 sm:py-12">
+          <span className="mb-2 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-semibold text-primary sm:mb-3 sm:px-4 sm:py-1.5 sm:text-sm">
+            <Sparkles className="size-3.5 sm:size-4" />
+            {lang === 'ar' ? 'حجز سريع وآمن' : 'Fast & secure booking'}
+          </span>
+          <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl md:text-4xl">
+            {t('nav.booking')}
+          </h1>
+          <p className="mt-1.5 max-w-2xl text-sm text-muted-foreground sm:mt-2 sm:text-base">
+            {lang === 'ar'
+              ? '4 خطوات بسيطة — اختر باقتك، أدخل بياناتك، حدّد الموعد، وأكّد الطلب.'
+              : '4 simple steps — pick a package, enter details, schedule visits, and confirm.'}
+          </p>
         </div>
-        <Progress value={(step / 3) * 100} className="h-2" />
       </div>
 
-      {profileLoaded && loggedIn && (
-        <p className="mb-4 rounded-lg border border-primary/20 bg-primary/5 px-3 py-2 text-sm text-primary">
-          {lang === 'ar'
-            ? 'تم تحميل بيانات حسابك — يمكنك تعديلها قبل تأكيد الطلب'
-            : 'Your account details were loaded — you can edit them before confirming'}
-        </p>
-      )}
-
-      <div className="rounded-2xl border border-border bg-card p-5 sm:p-7">
-        {step === 0 && (
-          <PackageSelector packages={packages} selected={selectedPkg} onSelect={setSelectedPkg} />
-        )}
-
-        {step === 1 && (
-          <div className="flex flex-col gap-5">
-            <p className="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-800 dark:bg-amber-950 dark:text-amber-200">
-              {t('booking.muscat_only')}
+      <div className="relative mx-auto grid max-w-6xl gap-6 px-3 py-6 pb-28 sm:gap-8 sm:px-4 sm:py-8 sm:pb-8 lg:grid-cols-[1fr_320px] lg:py-10">
+        {/* Main column */}
+        <div className="min-w-0">
+          {/* Stepper */}
+          <div className="mb-4 sm:mb-8">
+            <p className="mb-3 text-center text-sm font-bold text-foreground sm:hidden">
+              {steps[step]} · {step + 1}/{steps.length}
             </p>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="name">{t('booking.name')}</Label>
-                <Input id="name" value={name} onChange={(e) => setName(e.target.value)} />
-              </div>
-              <OmanPhoneInput
-                value={phone}
-                onChange={setPhone}
-                label={t('booking.phone')}
-                hint={t(
-                  'مفتاح عُمان +968 — أدخل 8 أرقام',
-                  'Oman +968 — enter 8 digits',
-                )}
-              />
-            </div>
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="email">{t('booking.email')}</Label>
-              <Input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            </div>
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="area">{t('booking.area')}</Label>
-              <select
-                id="area"
-                value={area}
-                onChange={(e) => setArea(e.target.value)}
-                className="h-10 rounded-md border border-input bg-background px-3 text-sm"
-              >
-                <option value="">{lang === 'ar' ? 'اختر المنطقة' : 'Select area'}</option>
-                {areas.map((a, i) => (
-                  <option key={a} value={MUSCAT_AREAS[i]}>
-                    {a}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="address">{t('booking.address')}</Label>
-              <Input id="address" value={address} onChange={(e) => setAddress(e.target.value)} />
-            </div>
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="notes">{t('booking.notes')}</Label>
-              <Textarea id="notes" value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} />
-            </div>
-          </div>
-        )}
-
-        {step === 2 && (
-          <div className="flex flex-col gap-5">
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="date">{t('booking.date')}</Label>
-              <Input
-                id="date"
-                type="date"
-                min={today}
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-              />
-            </div>
-            <div className="flex flex-col gap-2">
-              <Label>{t('booking.time')}</Label>
-              <div className="grid grid-cols-2 gap-2">
-                {times.map((time, i) => (
-                  <button
-                    key={time}
-                    type="button"
-                    onClick={() => setPreferredTime(PREFERRED_TIMES[i])}
-                    className={`rounded-lg border p-3 text-sm font-medium transition-colors ${
-                      preferredTime === PREFERRED_TIMES[i]
-                        ? 'border-primary bg-primary text-primary-foreground'
-                        : 'border-border hover:border-primary/40'
-                    }`}
-                  >
-                    {time}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div className="flex flex-col gap-2">
-              <Label>{t('booking.days')}</Label>
-              <div className="flex flex-wrap gap-2">
-                {days.map((day, i) => {
-                  const arDay = WEEK_DAYS_AR[i]
-                  const active = preferredDays.includes(arDay)
-                  return (
-                    <button
-                      key={day}
-                      type="button"
-                      onClick={() => toggleDay(arDay)}
-                      className={`rounded-lg border px-3 py-2 text-sm transition-colors ${
-                        active
-                          ? 'border-primary bg-primary text-primary-foreground'
-                          : 'border-border hover:border-primary/40'
-                      }`}
+            <div className="flex items-center">
+              {steps.map((label, i) => (
+                <Fragment key={label}>
+                  <div className="flex min-w-0 flex-col items-center gap-2">
+                    <span
+                      className={cn(
+                        'flex size-10 shrink-0 items-center justify-center rounded-full text-sm font-bold transition-all sm:size-11',
+                        i < step
+                          ? 'bg-accent text-accent-foreground shadow-sm'
+                          : i === step
+                            ? 'bg-primary text-primary-foreground shadow-md shadow-primary/25'
+                            : 'border border-border bg-card text-muted-foreground',
+                      )}
                     >
-                      {day}
-                    </button>
-                  )
-                })}
-              </div>
+                      {i < step ? <Check className="size-4" /> : i + 1}
+                    </span>
+                    <span
+                      className={cn(
+                        'hidden max-w-[4.5rem] truncate text-center text-[11px] sm:block sm:max-w-none sm:text-xs',
+                        i === step ? 'font-bold text-foreground' : 'text-muted-foreground',
+                      )}
+                    >
+                      {label}
+                    </span>
+                  </div>
+                  {i < steps.length - 1 && (
+                    <div
+                      className={cn(
+                        'mx-1 h-0.5 min-w-[12px] flex-1 rounded-full sm:mx-2',
+                        i < step ? 'bg-accent' : 'bg-border',
+                      )}
+                    />
+                  )}
+                </Fragment>
+              ))}
             </div>
           </div>
-        )}
 
-        {step === 3 && selectedPkg && (
-          <div className="flex flex-col gap-5">
-            <h2 className="text-xl font-bold">{t('booking.review')}</h2>
-            <div className="rounded-xl bg-secondary/50 p-4">
-              <OrderSummary
-                pkg={selectedPkg}
-                customerName={name}
-                customerPhone={normalizePhone(phone) || phone}
-                customerArea={area}
-                customerAddress={address}
-                startDate={startDate}
-                preferredTime={preferredTime}
-                preferredDays={preferredDays}
+          {profileLoaded && loggedIn && (
+            <div className="mb-5 flex items-center gap-2 rounded-xl border border-primary/20 bg-primary/5 px-4 py-3 text-sm text-primary">
+              <Check className="size-4 shrink-0" />
+              {lang === 'ar'
+                ? 'تم تحميل بيانات حسابك — يمكنك تعديلها قبل التأكيد'
+                : 'Account details loaded — edit anytime before confirming'}
+            </div>
+          )}
+
+          {selectedPkg && (
+            <Card className="mb-4 border-border/80 lg:hidden">
+              <CardHeader className="py-3">
+                <CardTitle className="text-sm">
+                  {lang === 'ar' ? 'ملخص سريع' : 'Quick summary'}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <OrderSummary
+                  compact
+                  pkg={selectedPkg}
+                  customerName={step >= 1 ? name : undefined}
+                  customerArea={step >= 1 ? area : undefined}
+                  startDate={step >= 2 ? startDate : undefined}
+                  preferredTime={step >= 2 ? preferredTime : undefined}
+                />
+              </CardContent>
+            </Card>
+          )}
+
+          <Card className="border-border/80 shadow-lg shadow-primary/5">
+            <CardContent className="p-4 sm:p-8">
+              <StepHeader
+                icon={StepIcon}
+                title={steps[step]}
+                description={stepDescriptions[step]}
               />
-            </div>
-          </div>
-        )}
 
-        {step < 4 && (
-          <div className="mt-7 flex items-center justify-between gap-3">
-            <Button variant="ghost" onClick={back} disabled={step === 0} className={step === 0 ? 'invisible' : ''}>
-              <PrevIcon className="size-4" />
-              {t('booking.back')}
-            </Button>
-            <div className="flex items-center gap-4">
-              {step > 0 && selectedPkg && step < 3 && (
-                <span className="text-sm text-muted-foreground">
-                  {t('booking.total')}:{' '}
-                  <span className="font-bold text-primary">
-                    {parseFloat(selectedPkg.price_omr).toFixed(2)} OMR
-                  </span>
-                </span>
+              {step === 0 && (
+                <PackageSelector packages={packages} selected={selectedPkg} onSelect={setSelectedPkg} />
               )}
-              <Button onClick={next} disabled={submitting}>
-                {submitting && <Loader2 className="size-4 animate-spin" />}
-                {step === 3 ? t('booking.confirm') : t('booking.next')}
-                {!submitting && <NextIcon className="size-4" />}
-              </Button>
-            </div>
+
+              {step === 1 && (
+                <div className="flex flex-col gap-6">
+                  <div className="flex items-start gap-3 rounded-xl border border-amber-200/80 bg-amber-50/80 p-4 text-sm text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/40 dark:text-amber-100">
+                    <MapPin className="mt-0.5 size-4 shrink-0" />
+                    {t('booking.muscat_only')}
+                  </div>
+
+                  <div className="grid gap-5 sm:grid-cols-2">
+                    <div className="space-y-2">
+                      <Label htmlFor="name">{t('booking.name')}</Label>
+                      <Input
+                        id="name"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        placeholder={lang === 'ar' ? 'الاسم الكامل' : 'Full name'}
+                        className="h-11"
+                      />
+                    </div>
+                    <OmanPhoneInput
+                      value={phone}
+                      onChange={setPhone}
+                      label={t('booking.phone')}
+                      hint={t('booking.phoneHint')}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="email">{t('booking.email')}</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="you@example.com"
+                      className="h-11"
+                    />
+                  </div>
+
+                  <div className="rounded-xl border border-border/80 bg-secondary/20 p-5 space-y-4">
+                    <p className="text-sm font-bold">{lang === 'ar' ? 'عنوان الخدمة' : 'Service address'}</p>
+                    <div className="space-y-2">
+                      <Label htmlFor="area">{t('booking.area')}</Label>
+                      <select
+                        id="area"
+                        value={area}
+                        onChange={(e) => setArea(e.target.value)}
+                        className="flex h-11 w-full rounded-lg border border-input bg-background px-3 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
+                      >
+                        <option value="">{lang === 'ar' ? 'اختر المنطقة' : 'Select area'}</option>
+                        {areas.map((a, i) => (
+                          <option key={a} value={MUSCAT_AREAS[i]}>
+                            {a}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="address">{t('booking.address')}</Label>
+                      <Input
+                        id="address"
+                        value={address}
+                        onChange={(e) => setAddress(e.target.value)}
+                        placeholder={lang === 'ar' ? 'الحي، الشارع، رقم المنزل' : 'District, street, house no.'}
+                        className="h-11"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="notes">{t('booking.notes')}</Label>
+                    <Textarea
+                      id="notes"
+                      value={notes}
+                      onChange={(e) => setNotes(e.target.value)}
+                      rows={3}
+                      placeholder={lang === 'ar' ? 'ملاحظات اختيارية...' : 'Optional notes...'}
+                      className="min-h-[88px] resize-y"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {step === 2 && (
+                <div className="flex flex-col gap-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="date">{t('booking.date')}</Label>
+                    <Input
+                      id="date"
+                      type="date"
+                      min={today}
+                      value={startDate}
+                      onChange={(e) => setStartDate(e.target.value)}
+                      className="h-11 w-full max-w-full sm:max-w-xs"
+                    />
+                  </div>
+
+                  <div className="space-y-3">
+                    <Label>{t('booking.time')}</Label>
+                    <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                      {times.map((time, i) => {
+                        const active = preferredTime === PREFERRED_TIMES[i]
+                        return (
+                          <button
+                            key={time}
+                            type="button"
+                            onClick={() => setPreferredTime(PREFERRED_TIMES[i])}
+                            className={cn(
+                              'min-h-[48px] rounded-xl border px-3 py-3 text-sm font-semibold transition-all active:scale-[0.98]',
+                              active
+                                ? 'border-primary bg-primary text-primary-foreground shadow-md shadow-primary/20'
+                                : 'border-border bg-card hover:border-primary/40 hover:bg-primary/5',
+                            )}
+                          >
+                            {time}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    <Label>{t('booking.days')}</Label>
+                    <div className="flex flex-wrap gap-2">
+                      {days.map((day, i) => {
+                        const arDay = WEEK_DAYS_AR[i]
+                        const active = preferredDays.includes(arDay)
+                        return (
+                          <button
+                            key={day}
+                            type="button"
+                            onClick={() => toggleDay(arDay)}
+                            className={cn(
+                              'min-h-[44px] min-w-[2.75rem] rounded-xl border px-3 py-2.5 text-sm font-medium transition-all active:scale-[0.98] sm:px-4',
+                              active
+                                ? 'border-primary bg-primary text-primary-foreground shadow-sm'
+                                : 'border-border bg-card hover:border-primary/40',
+                            )}
+                          >
+                            {day}
+                          </button>
+                        )
+                      })}
+                    </div>
+                    {preferredDays.length === 0 && (
+                      <p className="text-xs text-muted-foreground">{t('booking.selectDays')}</p>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {step === 3 && selectedPkg && (
+                <OrderSummary
+                  pkg={selectedPkg}
+                  customerName={name}
+                  customerPhone={normalizePhone(phone) || phone}
+                  customerArea={area}
+                  customerAddress={address}
+                  startDate={startDate}
+                  preferredTime={preferredTime}
+                  preferredDays={preferredDays}
+                />
+              )}
+
+              {/* Desktop navigation */}
+              <div className="mt-6 hidden flex-col-reverse gap-3 border-t border-border pt-5 sm:mt-8 sm:flex sm:flex-row sm:items-center sm:justify-between sm:pt-6">
+                <Button
+                  variant="ghost"
+                  onClick={back}
+                  disabled={step === 0}
+                  className={cn('h-11 gap-2', step === 0 && 'invisible')}
+                >
+                  <PrevIcon className="size-4" />
+                  {t('booking.back')}
+                </Button>
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                  {selectedPkg && step < 3 && (
+                    <div className="rounded-xl bg-secondary/50 px-4 py-2 text-center sm:text-end">
+                      <span className="text-xs text-muted-foreground">{t('booking.total')}</span>
+                      <p className="text-lg font-extrabold tabular-nums text-primary">
+                        {parseFloat(selectedPkg.price_omr).toFixed(2)}{' '}
+                        <span className="text-sm font-semibold">OMR</span>
+                      </p>
+                    </div>
+                  )}
+                  <Button
+                    onClick={next}
+                    disabled={submitting}
+                    size="lg"
+                    className="h-12 gap-2 px-8 shadow-md shadow-primary/15"
+                  >
+                    {submitting && <Loader2 className="size-4 animate-spin" />}
+                    {step === 3 ? t('booking.confirm') : t('booking.next')}
+                    {!submitting && <NextIcon className="size-4" />}
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Mobile trust badges */}
+          <Card className="mt-4 border-dashed bg-muted/20 lg:hidden">
+            <CardContent className="p-4">
+              <BookingTrustBadges />
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Sidebar */}
+        <aside className="hidden lg:block">
+          <div className="sticky top-24 space-y-4">
+            <Card className="border-border/80 shadow-md">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base">
+                  {lang === 'ar' ? 'ملخص الطلب' : 'Order summary'}
+                </CardTitle>
+                <CardDescription>
+                  {selectedPkg
+                    ? lang === 'ar'
+                      ? 'يتحدّث تلقائياً مع كل خطوة'
+                      : 'Updates as you complete each step'
+                    : lang === 'ar'
+                      ? 'اختر باقة للبدء'
+                      : 'Select a package to start'}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {selectedPkg ? (
+                  <OrderSummary
+                    compact
+                    pkg={selectedPkg}
+                    customerName={step >= 1 ? name : undefined}
+                    customerPhone={step >= 1 ? normalizePhone(phone) || phone : undefined}
+                    customerArea={step >= 1 ? area : undefined}
+                    customerAddress={step >= 1 ? address : undefined}
+                    startDate={step >= 2 ? startDate : undefined}
+                    preferredTime={step >= 2 ? preferredTime : undefined}
+                    preferredDays={step >= 2 ? preferredDays : undefined}
+                  />
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    {lang === 'ar'
+                      ? 'ستظهر تفاصيل اشتراكك هنا بعد اختيار الباقة.'
+                      : 'Your subscription details will appear here after you pick a package.'}
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card className="border-dashed bg-muted/20">
+              <CardContent className="p-5">
+                <BookingTrustBadges />
+              </CardContent>
+            </Card>
           </div>
-        )}
+        </aside>
+      </div>
+
+      {/* Mobile sticky action bar */}
+      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-background/95 backdrop-blur-md pb-safe sm:hidden">
+        <div className="flex items-center gap-2 px-3 py-3">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={back}
+            disabled={step === 0}
+            className="size-11 shrink-0"
+            aria-label={t('booking.back')}
+          >
+            <PrevIcon className="size-5" />
+          </Button>
+          {selectedPkg && (
+            <div className="min-w-0 flex-1 rounded-xl bg-secondary/60 px-3 py-1.5 text-center">
+              <span className="block text-[10px] text-muted-foreground">{t('booking.total')}</span>
+              <span className="text-base font-extrabold tabular-nums text-primary">
+                {parseFloat(selectedPkg.price_omr).toFixed(2)} OMR
+              </span>
+            </div>
+          )}
+          <Button
+            onClick={next}
+            disabled={submitting}
+            className="h-11 min-w-[7.5rem] flex-1 gap-1 text-base shadow-md"
+          >
+            {submitting && <Loader2 className="size-4 animate-spin" />}
+            {step === 3 ? t('booking.confirm') : t('booking.next')}
+            {!submitting && <NextIcon className="size-4" />}
+          </Button>
+        </div>
       </div>
     </div>
   )

@@ -1,0 +1,18 @@
+{
+  "name": "نظافة بلس",
+  "short_name": "نظافة بلس",
+  "description": "منصة حجز خدمات التنظيف المنزلي والتجاري",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f7fbfe",
+  "theme_color": "#2f7fd1",
+  "dir": "rtl",
+  "lang": "ar",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

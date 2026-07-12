@@ -61,7 +61,7 @@ export const ORDER_STATUS_LABELS: Record<string, { ar: string; en: string }> = {
 /** Tailwind classes for subscription/order status badges */
 export const ORDER_STATUS_COLORS: Record<string, string> = {
   pending: 'bg-amber-100 text-amber-900 border-amber-200',
-  confirmed: 'bg-emerald-100 text-emerald-900 border-emerald-200',
+  confirmed: 'bg-primary/10 text-primary border-primary/25',
   active: 'bg-sky-100 text-sky-900 border-sky-200',
   cancelled: 'bg-rose-100 text-rose-900 border-rose-200',
   completed: 'bg-slate-100 text-slate-800 border-slate-200',

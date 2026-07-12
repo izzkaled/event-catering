@@ -27,15 +27,23 @@ type AuthEmailFormProps = {
   adminOnly?: boolean
 }
 
-function authErrorMessage(error: unknown): string {
-  if (!error) return 'Something went wrong'
+function authErrorMessage(error: unknown, lang: 'ar' | 'en' = 'en'): string {
+  if (!error) return lang === 'ar' ? 'حدث خطأ' : 'Something went wrong'
   if (typeof error === 'string') return error
   if (error instanceof Error) return error.message
-  if (typeof error === 'object' && error !== null && 'message' in error) {
-    const message = (error as { message?: unknown }).message
-    if (typeof message === 'string' && message.trim()) return message
+  if (typeof error === 'object' && error !== null) {
+    const obj = error as { message?: unknown; messageAr?: unknown; code?: unknown }
+    if (obj.code === 'TOO_MANY_ATTEMPTS' || obj.code === 'TOO_MANY_SIGNUPS') {
+      if (lang === 'ar' && typeof obj.messageAr === 'string' && obj.messageAr.trim()) {
+        return obj.messageAr
+      }
+    }
+    if (typeof obj.messageAr === 'string' && lang === 'ar' && obj.messageAr.trim()) {
+      return obj.messageAr
+    }
+    if (typeof obj.message === 'string' && obj.message.trim()) return obj.message
   }
-  return 'Something went wrong'
+  return lang === 'ar' ? 'حدث خطأ' : 'Something went wrong'
 }
 
 function FieldIcon({ children }: { children: React.ReactNode }) {
@@ -99,12 +107,16 @@ export function AuthEmailForm({ mode = 'login', adminOnly = false }: AuthEmailFo
           password,
           name: name.trim(),
         })
-        if (error) throw new Error(authErrorMessage(error))
+        if (error) throw new Error(authErrorMessage(error, lang))
 
         if (data?.user && !data.user.emailVerified) {
-          await authClient.emailOtp
-            .sendVerificationOtp({ email: normalizedEmail, type: 'email-verification' })
-            .catch(() => null)
+          const { error: otpError } = await authClient.emailOtp.sendVerificationOtp({
+            email: normalizedEmail,
+            type: 'email-verification',
+          })
+          if (otpError) {
+            throw new Error(authErrorMessage(otpError, lang))
+          }
           toast.success(t('تحقق من بريدك لإدخال رمز OTP', 'Check your email for the OTP code'))
           goVerify(normalizedEmail, 'signup')
           return
@@ -121,25 +133,38 @@ export function AuthEmailForm({ mode = 'login', adminOnly = false }: AuthEmailFo
       })
 
       if (error) {
-        const message = authErrorMessage(error).toLowerCase()
+        const message = authErrorMessage(error, lang)
+        const messageLower = message.toLowerCase()
+        const code =
+          typeof error === 'object' && error !== null && 'code' in error
+            ? String((error as { code?: unknown }).code || '')
+            : ''
 
-        if (message.includes('verif') || message.includes('email not verified')) {
-          await authClient.emailOtp
-            .sendVerificationOtp({ email: normalizedEmail, type: 'email-verification' })
-            .catch(() => null)
+        if (code === 'TOO_MANY_ATTEMPTS' || messageLower.includes('too many failed')) {
+          throw new Error(message)
+        }
+
+        if (messageLower.includes('verif') || messageLower.includes('email not verified')) {
+          const { error: otpError } = await authClient.emailOtp.sendVerificationOtp({
+            email: normalizedEmail,
+            type: 'email-verification',
+          })
+          if (otpError) {
+            throw new Error(authErrorMessage(otpError, lang))
+          }
           toast.message(t('يلزم التحقق من البريد أولاً', 'Please verify your email first'))
           goVerify(normalizedEmail, 'login')
           return
         }
 
         if (
-          message.includes('not found') ||
-          message.includes('no user') ||
-          message.includes('user not found') ||
-          message.includes('does not exist') ||
-          message.includes('invalid') ||
-          message.includes('credential') ||
-          message.includes('password')
+          messageLower.includes('not found') ||
+          messageLower.includes('no user') ||
+          messageLower.includes('user not found') ||
+          messageLower.includes('does not exist') ||
+          messageLower.includes('invalid') ||
+          messageLower.includes('credential') ||
+          messageLower.includes('password')
         ) {
           saveAuthEmail(normalizedEmail)
           saveAuthMode('signup')
@@ -158,7 +183,7 @@ export function AuthEmailForm({ mode = 'login', adminOnly = false }: AuthEmailFo
           return
         }
 
-        throw new Error(authErrorMessage(error))
+        throw new Error(message)
       }
 
       if (adminOnly) {
@@ -173,9 +198,13 @@ export function AuthEmailForm({ mode = 'login', adminOnly = false }: AuthEmailFo
       }
 
       if (data?.user && !data.user.emailVerified) {
-        await authClient.emailOtp
-          .sendVerificationOtp({ email: normalizedEmail, type: 'email-verification' })
-          .catch(() => null)
+        const { error: otpError } = await authClient.emailOtp.sendVerificationOtp({
+          email: normalizedEmail,
+          type: 'email-verification',
+        })
+        if (otpError) {
+          throw new Error(authErrorMessage(otpError, lang))
+        }
         goVerify(normalizedEmail, 'login')
         return
       }
@@ -238,7 +267,7 @@ export function AuthEmailForm({ mode = 'login', adminOnly = false }: AuthEmailFo
                 onChange={(e) => setName(e.target.value)}
                 autoComplete="name"
                 disabled={loading}
-                className="ps-10"
+                className="h-11 ps-10 text-base"
                 placeholder={t('مثال: أحمد الهنائي', 'e.g. Ahmed Al-Hinai')}
               />
             </div>
@@ -259,7 +288,7 @@ export function AuthEmailForm({ mode = 'login', adminOnly = false }: AuthEmailFo
               autoComplete="email"
               inputMode="email"
               disabled={loading}
-              className="ps-10"
+              className="h-11 ps-10 text-base"
               placeholder="you@example.com"
               onKeyDown={(e) => {
                 if (e.key === 'Enter') submit()
@@ -281,7 +310,7 @@ export function AuthEmailForm({ mode = 'login', adminOnly = false }: AuthEmailFo
               onChange={(e) => setPassword(e.target.value)}
               autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
               disabled={loading}
-              className="ps-10"
+              className="h-11 ps-10 text-base"
               placeholder={mode === 'signup' ? t('8 أحرف على الأقل', 'At least 8 characters') : '••••••••'}
               onKeyDown={(e) => {
                 if (e.key === 'Enter') submit()
@@ -361,7 +390,7 @@ export function AuthEmailForm({ mode = 'login', adminOnly = false }: AuthEmailFo
             <ul className="space-y-3">
               {signupBenefits.map((item) => (
                 <li key={item} className="flex items-start gap-3 text-sm">
-                  <CheckCircle2 className="mt-0.5 size-5 shrink-0 text-accent" />
+                  <CheckCircle2 className="mt-0.5 size-5 shrink-0 text-primary" />
                   <span>{item}</span>
                 </li>
               ))}

@@ -15,23 +15,23 @@ export function Hero() {
       <div className="pointer-events-none absolute -left-32 top-20 size-96 rounded-full bg-accent/10 blur-3xl" />
       <div className="pointer-events-none absolute -right-32 bottom-0 size-80 rounded-full bg-primary/10 blur-3xl" />
 
-      <div className="relative mx-auto grid w-full max-w-6xl items-center gap-12 px-4 py-14 lg:grid-cols-2 lg:py-24">
-        <div className={`flex flex-col gap-6 ${dir === 'rtl' ? 'text-center lg:text-right' : 'text-center lg:text-left'}`}>
-          <span className="mx-auto inline-flex w-fit items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-1.5 text-sm font-semibold text-primary lg:mx-0">
+      <div className="relative mx-auto grid w-full max-w-6xl items-center gap-8 px-4 py-10 sm:gap-10 sm:py-14 lg:grid-cols-2 lg:gap-12 lg:py-24">
+        <div className={`flex flex-col gap-5 sm:gap-6 ${dir === 'rtl' ? 'text-center lg:text-right' : 'text-center lg:text-left'}`}>
+          <span className="mx-auto inline-flex w-fit items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-3 py-1.5 text-xs font-semibold text-primary sm:px-4 sm:text-sm lg:mx-0">
             <MapPin className="size-4" />
             {t('hero.badge')}
           </span>
 
           <div className="space-y-2">
-            <p className="text-sm font-bold uppercase tracking-widest text-muted-foreground">
+            <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground sm:text-sm">
               Speedy Cleaning · نظافة بلس
             </p>
-            <h1 className="text-balance text-4xl font-extrabold leading-[1.15] tracking-tight sm:text-5xl lg:text-[3.25rem]">
+            <h1 className="text-balance text-3xl font-extrabold leading-[1.2] tracking-tight sm:text-4xl sm:leading-[1.15] lg:text-[3.25rem]">
               {t('hero.title')}
             </h1>
           </div>
 
-          <p className="text-pretty text-lg leading-relaxed text-muted-foreground">
+          <p className="text-pretty text-base leading-relaxed text-muted-foreground sm:text-lg">
             {t('hero.subtitle')}. {t('hero.desc')}
           </p>
 
@@ -40,7 +40,7 @@ export function Hero() {
               render={<Link href="/booking" />}
               nativeButton={false}
               size="lg"
-              className="h-12 px-8 text-base shadow-lg shadow-primary/20"
+              className="h-12 w-full px-8 text-base shadow-lg shadow-primary/20 sm:w-auto"
             >
               {t('hero.cta')}
             </Button>
@@ -49,13 +49,13 @@ export function Hero() {
               nativeButton={false}
               size="lg"
               variant="outline"
-              className="h-12 px-8 text-base"
+              className="h-12 w-full px-8 text-base sm:w-auto"
             >
               {t('nav.services')}
             </Button>
           </div>
 
-          <div className={`flex flex-wrap justify-center gap-4 lg:justify-start`}>
+          <div className="flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] sm:flex-wrap sm:justify-center sm:overflow-visible lg:justify-start [&::-webkit-scrollbar]:hidden">
             {[
               { icon: ShieldCheck, label: t('hero.trust1') },
               { icon: Clock, label: t('hero.trust2') },
@@ -63,9 +63,9 @@ export function Hero() {
             ].map(({ icon: Icon, label }) => (
               <div
                 key={label}
-                className="flex items-center gap-2 rounded-full border border-border bg-card/80 px-3 py-1.5 text-sm text-muted-foreground backdrop-blur-sm"
+                className="flex shrink-0 items-center gap-1.5 rounded-full border border-border bg-card/80 px-2.5 py-1.5 text-xs text-muted-foreground backdrop-blur-sm sm:gap-2 sm:px-3 sm:text-sm"
               >
-                <Icon className="size-4 text-accent" />
+                <Icon className="size-3.5 text-primary sm:size-4" />
                 {label}
               </div>
             ))}

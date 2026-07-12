@@ -31,7 +31,7 @@ const localizer = dateFnsLocalizer({
 
 const typeColor: Record<EventType, string> = {
   campaign: '#2563EB',
-  event: '#22C55E',
+  event: '#0EA5E9',
   deadline: '#F59E0B',
   meeting: '#6366F1',
   urgent: '#EF4444',

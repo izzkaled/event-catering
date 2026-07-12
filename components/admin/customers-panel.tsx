@@ -149,7 +149,7 @@ export function CustomersPanel() {
                           target="_blank"
                           rel="noopener noreferrer"
                         >
-                          <MessageCircle className="size-3 text-green-600" />
+                          <MessageCircle className="size-3 text-primary" />
                         </a>
                       </div>
                     ) : (

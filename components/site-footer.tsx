@@ -1,7 +1,8 @@
 'use client'
 
 import Link from 'next/link'
-import { Sparkles, Phone, Mail, MapPin } from 'lucide-react'
+import { Phone, Mail, MapPin } from 'lucide-react'
+import { BrandLogo } from '@/components/brand-logo'
 import { useLanguage } from '@/components/language-provider'
 
 const WHATSAPP = process.env.NEXT_PUBLIC_WHATSAPP || '96877222432'
@@ -19,20 +20,17 @@ export function SiteFooter() {
       <div className="mx-auto grid w-full max-w-6xl gap-8 px-4 py-12 sm:grid-cols-2 lg:grid-cols-3">
         <div className="flex flex-col gap-3">
           <Link href="/" className="flex items-center gap-2">
-            <span className="flex size-9 items-center justify-center rounded-xl bg-primary text-primary-foreground">
-              <Sparkles className="size-5" />
-            </span>
-            <span className="text-lg font-extrabold">Speedy Cleaning | نظافة بلس</span>
+            <BrandLogo subtitle="نظافة بلس · Muscat" />
           </Link>
           <p className="text-sm leading-relaxed text-muted-foreground">{desc}</p>
         </div>
 
         <div className="flex flex-col gap-3">
           <h3 className="text-sm font-bold">روابط سريعة</h3>
-          <Link href="/#services" className="text-sm text-muted-foreground hover:text-foreground">
+          <Link href="/#services" className="touch-target flex min-h-10 items-center text-sm text-muted-foreground hover:text-foreground">
             {t('nav.services')}
           </Link>
-          <Link href="/booking" className="text-sm text-muted-foreground hover:text-foreground">
+          <Link href="/booking" className="touch-target flex min-h-10 items-center text-sm text-muted-foreground hover:text-foreground">
             {t('nav.booking')}
           </Link>
         </div>

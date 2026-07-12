@@ -9,6 +9,8 @@ import type { Order } from '@/lib/db/schema'
 import { verifyInternalApi } from '@/lib/security/internal-api'
 import { checkRateLimit, getClientIp } from '@/lib/auth/rate-limit'
 import { requireCloudflareProxy } from '@/lib/cloudflare/proxy'
+import { emailLogoHtml } from '@/lib/email/brand-header'
+import { escapeHtml } from '@/lib/security/escape-html'
 
 type InvoiceEvent = 'created' | 'confirmed' | 'cancelled'
 
@@ -88,24 +90,39 @@ export async function POST(request: Request) {
       Boolean(customerEmail && adminEmail) &&
       customerEmail!.toLowerCase() === adminEmail!.toLowerCase()
 
+    const name = escapeHtml(order.customer_name)
+    const orderNo = escapeHtml(order.order_number)
+    const packageLabel = escapeHtml(
+      order.package_name_ar || `${order.hours_per_visit} ساعة | ${order.visits_per_week} زيارة/أسبوع`,
+    )
+    const phoneHtml = escapeHtml(customerPhoneDisplay)
+    const areaHtml = escapeHtml(order.customer_area)
+    const emailHtml = escapeHtml(customerEmail)
+    const priceHtml = escapeHtml(order.price_omr)
+    const startHtml = escapeHtml(order.start_date)
+    const safeSite = escapeHtml(siteUrl)
+    const safeWa = escapeHtml(whatsapp)
+
     if (event === 'cancelled') {
       const cancelHtml = `
         <div dir="rtl" style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto">
+          ${emailLogoHtml(siteUrl)}
           <h2>تم إلغاء الطلب</h2>
-          <p>مرحباً ${order.customer_name}،</p>
-          <p>نود إعلامك بأنه تم <strong>إلغاء</strong> طلب الاشتراك رقم <strong>${order.order_number}</strong>.</p>
-          <p><strong>الباقة:</strong> ${order.package_name_ar || `${order.hours_per_visit} ساعة | ${order.visits_per_week} زيارة/أسبوع`}</p>
+          <p>مرحباً ${name}،</p>
+          <p>نود إعلامك بأنه تم <strong>إلغاء</strong> طلب الاشتراك رقم <strong>${orderNo}</strong>.</p>
+          <p><strong>الباقة:</strong> ${packageLabel}</p>
           <p>لم يتم استلام أي مبلغ مقابل هذا الطلب.</p>
-          <p><a href="https://wa.me/${whatsapp}">تواصل معنا على واتساب</a></p>
+          <p><a href="https://wa.me/${safeWa}">تواصل معنا على واتساب</a></p>
         </div>
       `
 
       const adminCancelHtml = `
         <div dir="rtl" style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto">
-          <h2>❌ تم إلغاء الطلب: ${order.order_number}</h2>
-          <p><strong>العميل:</strong> ${order.customer_name} | <strong>الجوال:</strong> ${customerPhoneDisplay}</p>
+          ${emailLogoHtml(siteUrl)}
+          <h2>❌ تم إلغاء الطلب: ${orderNo}</h2>
+          <p><strong>العميل:</strong> ${name} | <strong>الجوال:</strong> ${phoneHtml}</p>
           <p>تم إعلام العميل بالإلغاء. لم يُستلم أي مبلغ.</p>
-          <p><a href="${siteUrl}/admin/orders">عرض الطلبات</a></p>
+          <p><a href="${safeSite}/admin/orders">عرض الطلبات</a></p>
         </div>
       `
 
@@ -149,18 +166,19 @@ export async function POST(request: Request) {
 
     const customerHtml = `
       <div dir="rtl" style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto">
+        ${emailLogoHtml(siteUrl)}
         <h2>${isConfirmed ? 'تم تأكيد اشتراكك ✅' : 'تم استلام طلبك بنجاح! 🎉'}</h2>
-        <p>مرحباً ${order.customer_name}،</p>
-        <p><strong>رقم الطلب:</strong> ${order.order_number}</p>
-        <p><strong>الباقة:</strong> ${order.package_name_ar || `${order.hours_per_visit} ساعة | ${order.visits_per_week} زيارة/أسبوع`}</p>
-        <p><strong>الإجمالي:</strong> ${order.price_omr} OMR</p>
+        <p>مرحباً ${name}،</p>
+        <p><strong>رقم الطلب:</strong> ${orderNo}</p>
+        <p><strong>الباقة:</strong> ${packageLabel}</p>
+        <p><strong>الإجمالي:</strong> ${priceHtml} OMR</p>
         <p>${
           isConfirmed
             ? 'تم تأكيد الحجز. ستبدأ الزيارات حسب الجدول المتفق عليه.'
             : 'سيتواصل معك فريقنا خلال 24 ساعة لإتمام الدفع.'
         }</p>
-        <p><a href="https://wa.me/${whatsapp}">تواصل معنا على واتساب</a></p>
-        <p><a href="${siteUrl}/subscriptions">عرض اشتراكاتي</a></p>
+        <p><a href="https://wa.me/${safeWa}">تواصل معنا على واتساب</a></p>
+        <p><a href="${safeSite}/subscriptions">عرض اشتراكاتي</a></p>
         <p style="margin-top:16px">الفاتورة PDF مرفقة في البريد.</p>
       </div>
     `
@@ -171,14 +189,15 @@ export async function POST(request: Request) {
 
     const adminHtml = `
       <div dir="rtl" style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto">
-        <h2>${isConfirmed ? '✅ تم تأكيد اشتراك' : '🆕 طلب اشتراك جديد'}: ${order.order_number}</h2>
-        <p><strong>الاسم:</strong> ${order.customer_name} | <strong>جوال العميل:</strong> ${customerPhoneDisplay} | <strong>المنطقة:</strong> ${order.customer_area}</p>
-        ${customerEmail ? `<p><strong>إيميل العميل:</strong> ${customerEmail}</p>` : ''}
-        <p><strong>الباقة:</strong> ${order.hours_per_visit} ساعة / ${order.visits_per_week} زيارة أسبوعياً / ${order.visits_per_month} زيارة شهرياً</p>
-        <p><strong>السعر الإجمالي:</strong> ${order.price_omr} OMR</p>
-        <p><strong>تاريخ البداية:</strong> ${order.start_date}</p>
-        <p><a href="${waLink}">واتساب العميل</a></p>
-        <p><a href="${siteUrl}/admin/orders">لوحة التحكم</a></p>
+        ${emailLogoHtml(siteUrl)}
+        <h2>${isConfirmed ? '✅ تم تأكيد اشتراك' : '🆕 طلب اشتراك جديد'}: ${orderNo}</h2>
+        <p><strong>الاسم:</strong> ${name} | <strong>جوال العميل:</strong> ${phoneHtml} | <strong>المنطقة:</strong> ${areaHtml}</p>
+        ${customerEmail ? `<p><strong>إيميل العميل:</strong> ${emailHtml}</p>` : ''}
+        <p><strong>الباقة:</strong> ${escapeHtml(order.hours_per_visit)} ساعة / ${escapeHtml(order.visits_per_week)} زيارة أسبوعياً / ${escapeHtml(order.visits_per_month)} زيارة شهرياً</p>
+        <p><strong>السعر الإجمالي:</strong> ${priceHtml} OMR</p>
+        <p><strong>تاريخ البداية:</strong> ${startHtml}</p>
+        <p><a href="${escapeHtml(waLink)}">واتساب العميل</a></p>
+        <p><a href="${safeSite}/admin/orders">لوحة التحكم</a></p>
         <p style="margin-top:16px">الفاتورة PDF مرفقة (${isConfirmed ? 'مؤكدة' : 'بانتظار التأكيد'}).</p>
       </div>
     `

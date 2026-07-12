@@ -4,7 +4,7 @@ import { otpCodes } from '@/lib/db/schema'
 import { normalizePhone } from '@/lib/auth/phone'
 import { generateOtpCode, hashOtp, OTP_TTL_MS } from '@/lib/auth/otp'
 import { sendOtpSms, usesTwilioVerify } from '@/lib/auth/sms'
-import { checkRateLimit, clearRateLimit, getClientIp } from '@/lib/auth/rate-limit'
+import { checkRateLimit, getClientIp } from '@/lib/auth/rate-limit'
 import { requireTurnstile } from '@/lib/cloudflare/turnstile'
 
 export const dynamic = 'force-dynamic'
@@ -38,7 +38,7 @@ export async function POST(req: Request) {
     if (usesTwilioVerify()) {
       // Twilio generates and SMS-delivers the code to the user's phone
       const result = await sendOtpSms(phone)
-      await clearRateLimit(`phone-send:${ip}`)
+      // Do not clear rate limits after success — prevents SMS bombing.
       console.info(`[phone OTP] SMS sent via Twilio Verify to ${phone}`)
       return NextResponse.json({
         success: true,
@@ -59,7 +59,6 @@ export async function POST(req: Request) {
     })
 
     const result = await sendOtpSms(phone, code)
-    clearRateLimit(`phone-send:${ip}`)
     console.info(`[phone OTP] SMS sent via Messages API to ${phone}`)
 
     return NextResponse.json({

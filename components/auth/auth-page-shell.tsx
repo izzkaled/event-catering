@@ -1,7 +1,7 @@
 'use client'
 
 import type { ReactNode } from 'react'
-import { Sparkles } from 'lucide-react'
+import { BrandLogo } from '@/components/brand-logo'
 import { useLanguage } from '@/components/language-provider'
 
 type AuthPageShellProps = {
@@ -19,9 +19,11 @@ export function AuthPageShell({ children }: AuthPageShellProps) {
 
       <div className="relative w-full max-w-5xl">
         <div className="mb-8 flex flex-col items-center gap-2 text-center">
-          <span className="flex size-14 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-lg shadow-primary/25">
-            <Sparkles className="size-7" />
-          </span>
+          <BrandLogo
+            size="lg"
+            showText={false}
+            imageClassName="shadow-lg shadow-primary/20"
+          />
           <p className="text-sm font-bold tracking-wide text-muted-foreground">
             Speedy Cleaning · {lang === 'ar' ? 'نظافة بلس' : 'Clean Plus'}
           </p>

@@ -37,14 +37,28 @@ export async function verifyTurnstileToken(
   }
 }
 
-/** Reject bots on public forms when Turnstile is configured. */
+/**
+ * Reject bots on public forms.
+ * Production fails closed if Turnstile keys are missing,
+ * unless ALLOW_MISSING_TURNSTILE=true (temporary escape hatch).
+ */
 export async function requireTurnstile(
   request: Request,
   token: string | undefined | null,
 ): Promise<NextResponse | null> {
   if (!isTurnstileEnabled()) {
+    if (
+      process.env.NODE_ENV === 'production' &&
+      process.env.ALLOW_MISSING_TURNSTILE?.trim() !== 'true'
+    ) {
+      console.error('[turnstile] CLOUDFLARE_TURNSTILE_* keys not set — blocking request')
+      return NextResponse.json(
+        { error: 'Bot protection is not configured. Please try again later.' },
+        { status: 503 },
+      )
+    }
     if (process.env.NODE_ENV === 'production') {
-      console.warn('[turnstile] CLOUDFLARE_TURNSTILE_* keys not set in production')
+      console.warn('[turnstile] ALLOW_MISSING_TURNSTILE=true — requests allowed without Turnstile')
     }
     return null
   }

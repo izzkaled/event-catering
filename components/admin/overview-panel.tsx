@@ -75,7 +75,7 @@ export function OverviewPanel() {
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <span className="flex items-center gap-2 rounded-full bg-green-100 px-3 py-1 text-sm font-medium text-green-800 dark:bg-green-950 dark:text-green-200">
+          <span className="flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary">
             <Users className="size-4" />
             {stats.liveVisitors} {t('admin.overview.liveVisitors')}
           </span>

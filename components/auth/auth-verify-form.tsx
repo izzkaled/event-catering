@@ -51,6 +51,33 @@ export function AuthVerifyForm() {
   }, [adminOnly, router])
 
   React.useEffect(() => {
+    if (!email) return
+    let cancelled = false
+    ;(async () => {
+      try {
+        await sendOtp(false)
+        if (!cancelled) {
+          toast.message(
+            t('تم إرسال رمز التحقق إلى بريدك', 'Verification code sent to your email'),
+          )
+        }
+      } catch (e) {
+        if (!cancelled) {
+          toast.error(
+            e instanceof Error
+              ? e.message
+              : t('تعذر إرسال الرمز — جرّب إعادة الإرسال', 'Could not send code — try resend'),
+          )
+        }
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- send once when email is loaded
+  }, [email])
+
+  React.useEffect(() => {
     if (cooldown <= 0) return
     const timer = window.setInterval(() => setCooldown((s) => Math.max(0, s - 1)), 1000)
     return () => window.clearInterval(timer)
@@ -138,8 +165,8 @@ export function AuthVerifyForm() {
             <br />
             <span className="text-xs">
               {t(
-                'تحقق من Spam أيضاً — المرسل غالباً auth@mail.myneon.app أو Resend',
-                'Also check Spam — sender is usually auth@mail.myneon.app or Resend',
+                'تحقق من Spam — المرسل: auth@mail.myneon.app',
+                'Check Spam — sender: auth@mail.myneon.app',
               )}
             </span>
           </CardDescription>
@@ -153,18 +180,18 @@ export function AuthVerifyForm() {
               placeholder="••••••"
               inputMode="numeric"
               autoFocus
-              className="text-center text-2xl tracking-[0.5em]"
+              className="h-12 w-full min-w-0 text-center text-xl tracking-[0.35em] sm:text-2xl sm:tracking-[0.5em]"
               onKeyDown={(e) => {
                 if (e.key === 'Enter') verify()
               }}
             />
           </div>
 
-          <Button className="w-full" onClick={verify} disabled={loading || code.trim().length < 4}>
+          <Button className="h-11 w-full text-base" onClick={verify} disabled={loading || code.trim().length < 4}>
             {loading ? t('جارٍ التحقق...', 'Verifying...') : t('تأكيد', 'Confirm')}
           </Button>
 
-          <Button variant="outline" className="w-full" onClick={resend} disabled={loading || cooldown > 0}>
+          <Button variant="outline" className="h-11 w-full text-base" onClick={resend} disabled={loading || cooldown > 0}>
             {cooldown > 0
               ? t(`إعادة الإرسال بعد ${cooldown}ث`, `Resend in ${cooldown}s`)
               : t('إعادة إرسال الرمز', 'Resend code')}
@@ -172,7 +199,7 @@ export function AuthVerifyForm() {
 
           <Button
             variant="ghost"
-            className="w-full"
+            className="h-11 w-full text-base"
             onClick={() => router.push(adminOnly ? '/admin/login' : '/auth/login')}
             disabled={loading}
           >

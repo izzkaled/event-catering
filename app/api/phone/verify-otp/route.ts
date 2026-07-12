@@ -101,14 +101,14 @@ export async function POST(req: Request) {
       .update(users)
       .set({
         ...(providedName ? { name: providedName } : {}),
-        role: role === 'admin' ? 'admin' : user.role,
+        role,
         updated_at: new Date(),
       })
       .where(eq(users.id, user.id))
       .returning()
   }
 
-  await clearRateLimit(`phone-verify:${ip}`)
+  // Keep verify rate limits — only clear send-for-phone so a verified user can request a new code later if needed.
   await clearRateLimit(`phone-send:${phone}`)
 
   const token = await createSessionToken(user.id, user.role as 'user' | 'admin')

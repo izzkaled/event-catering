@@ -157,7 +157,7 @@ export default function MySubscriptionsPage() {
                         </Badge>
                       )}
                       {(statusKey === 'confirmed' || statusKey === 'active') && (
-                        <Badge variant="outline" className="mt-2 border-emerald-300 text-emerald-800">
+                        <Badge variant="outline" className="mt-2 border-primary/30 text-primary">
                           {t('تم تأكيد حجز الاشتراك', 'Subscription booking confirmed')}
                         </Badge>
                       )}

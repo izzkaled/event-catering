@@ -58,11 +58,11 @@ export async function PATCH(request: Request, context: RouteContext) {
 
     // On confirmation, send customer a "confirmed" PDF invoice
     if (becameConfirmed) {
-      triggerOrderConfirmation(new URL(request.url).origin, order.id, 'confirmed')
+      triggerOrderConfirmation(order.id, 'confirmed')
     }
 
     if (becameCancelled) {
-      triggerOrderConfirmation(new URL(request.url).origin, order.id, 'cancelled')
+      triggerOrderConfirmation(order.id, 'cancelled')
     }
 
     return NextResponse.json(order)

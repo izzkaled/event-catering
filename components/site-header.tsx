@@ -2,13 +2,14 @@
 
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
-import { Sparkles, Menu, X, User } from 'lucide-react'
+import { User } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { BrandLogo } from '@/components/brand-logo'
 import { LanguageSwitcher } from '@/components/language-switcher'
 import { useLanguage } from '@/components/language-provider'
 
+/** Top bar: desktop full nav; mobile = logo + language only (tabs live in MobileBottomNav). */
 export function SiteHeader() {
-  const [open, setOpen] = useState(false)
   const [loggedIn, setLoggedIn] = useState(false)
   const { t } = useLanguage()
 
@@ -17,13 +18,6 @@ export function SiteHeader() {
       .then((res) => setLoggedIn(res.ok))
       .catch(() => setLoggedIn(false))
   }, [])
-
-  useEffect(() => {
-    document.body.style.overflow = open ? 'hidden' : ''
-    return () => {
-      document.body.style.overflow = ''
-    }
-  }, [open])
 
   const navLinks = [
     { href: '/#services', label: t('nav.services') },
@@ -35,16 +29,8 @@ export function SiteHeader() {
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border bg-background/90 backdrop-blur-md pt-safe">
       <div className="mx-auto flex h-14 min-h-14 w-full max-w-6xl items-center justify-between gap-2 px-3 sm:h-16 sm:gap-4 sm:px-4">
-        <Link href="/" className="flex min-w-0 items-center gap-2">
-          <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground">
-            <Sparkles className="size-5" />
-          </span>
-          <div className="min-w-0 flex flex-col leading-tight">
-            <span className="truncate text-sm font-extrabold tracking-tight">Speedy Cleaning</span>
-            <span className="hidden truncate text-xs text-muted-foreground sm:block">
-              نظافة بلس · Muscat
-            </span>
-          </div>
+        <Link href="/" className="flex min-w-0 max-w-[75%] items-center gap-2 sm:max-w-none">
+          <BrandLogo subtitle="نظافة بلس · Muscat" className="min-w-0" />
         </Link>
 
         <nav className="hidden items-center gap-1 md:flex">
@@ -59,93 +45,25 @@ export function SiteHeader() {
           ))}
         </nav>
 
-        <div className="hidden items-center gap-2 md:flex">
-          <LanguageSwitcher />
-          {loggedIn ? (
-            <Button render={<Link href="/profile" />} nativeButton={false} variant="outline" size="sm">
-              <User className="size-4" />
-              {t('nav.profile')}
-            </Button>
-          ) : (
-            <Button render={<Link href="/auth/login" />} nativeButton={false} variant="outline" size="sm">
-              {t('nav.login')}
-            </Button>
-          )}
-          <Button render={<Link href="/booking" />} nativeButton={false} size="sm">
-            {t('nav.booking')}
-          </Button>
-        </div>
-
-        <button
-          type="button"
-          aria-label="القائمة"
-          aria-expanded={open}
-          onClick={() => setOpen((v) => !v)}
-          className="touch-target flex shrink-0 items-center justify-center rounded-xl text-foreground active:bg-secondary md:hidden"
-        >
-          {open ? <X className="size-6" /> : <Menu className="size-6" />}
-        </button>
-      </div>
-
-      {open && (
-        <div className="fixed inset-0 top-14 z-40 md:hidden">
-          <button
-            type="button"
-            aria-label="Close menu"
-            className="absolute inset-0 bg-foreground/40"
-            onClick={() => setOpen(false)}
-          />
-          <nav className="relative flex max-h-[calc(100dvh-3.5rem)] flex-col gap-1 overflow-y-auto border-t border-border bg-background px-3 py-4 pb-safe shadow-xl">
-            {navLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                onClick={() => setOpen(false)}
-                className="touch-target flex items-center rounded-xl px-4 py-3.5 text-base font-medium text-foreground active:bg-secondary"
-              >
-                {link.label}
-              </Link>
-            ))}
-
-            <div className="my-3 border-t border-border pt-4">
-              <LanguageSwitcher />
-            </div>
-
-            <div className="flex flex-col gap-2">
-              {loggedIn ? (
-                <Button
-                  render={<Link href="/profile" />}
-                  nativeButton={false}
-                  variant="outline"
-                  className="h-12 w-full text-base"
-                  onClick={() => setOpen(false)}
-                >
-                  <User className="size-4" />
-                  {t('nav.profile')}
-                </Button>
-              ) : (
-                <Button
-                  render={<Link href="/auth/login" />}
-                  nativeButton={false}
-                  variant="outline"
-                  className="h-12 w-full text-base"
-                  onClick={() => setOpen(false)}
-                >
-                  {t('nav.login')}
-                </Button>
-              )}
-              <Button
-                render={<Link href="/booking" />}
-                nativeButton={false}
-                className="h-12 w-full text-base"
-                onClick={() => setOpen(false)}
-              >
-                {t('nav.booking')}
+        <div className="flex items-center gap-2">
+          <LanguageSwitcher className="md:flex" />
+          <div className="hidden items-center gap-2 md:flex">
+            {loggedIn ? (
+              <Button render={<Link href="/profile" />} nativeButton={false} variant="outline" size="sm">
+                <User className="size-4" />
+                {t('nav.profile')}
               </Button>
-            </div>
-          </nav>
+            ) : (
+              <Button render={<Link href="/auth/login" />} nativeButton={false} variant="outline" size="sm">
+                {t('nav.login')}
+              </Button>
+            )}
+            <Button render={<Link href="/booking" />} nativeButton={false} size="sm">
+              {t('nav.booking')}
+            </Button>
+          </div>
         </div>
-      )}
+      </div>
     </header>
   )
 }

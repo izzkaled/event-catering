@@ -15,11 +15,11 @@ import {
   LogOut,
   Menu,
   Package,
-  Sparkles,
   Users,
   X,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { BrandLogo } from '@/components/brand-logo'
 import { useLanguage } from '@/components/language-provider'
 import { authClient } from '@/lib/auth-client'
 
@@ -81,10 +81,7 @@ export function AdminAppShell({ children }: { children: ReactNode }) {
     <div className="flex min-h-screen bg-background" dir={dir}>
       <aside className="hidden w-72 shrink-0 flex-col border-l border-sidebar-border bg-sidebar p-4 lg:flex">
         <Link href="/" className="mb-6 flex items-center gap-2 px-2">
-          <span className="flex size-9 items-center justify-center rounded-xl bg-primary text-primary-foreground">
-            <Sparkles className="size-5" />
-          </span>
-          <span className="text-lg font-extrabold">Speedy Cleaning</span>
+          <BrandLogo size="md" subtitle="Admin" />
         </Link>
         {Nav}
         <div className="mt-auto flex flex-col gap-2 pt-4">
@@ -109,12 +106,7 @@ export function AdminAppShell({ children }: { children: ReactNode }) {
           />
           <aside className="absolute inset-y-0 right-0 flex w-72 flex-col border-l border-sidebar-border bg-sidebar p-4">
             <div className="mb-6 flex items-center justify-between px-2">
-              <span className="flex items-center gap-2">
-                <span className="flex size-9 items-center justify-center rounded-xl bg-primary text-primary-foreground">
-                  <Sparkles className="size-5" />
-                </span>
-                <span className="text-lg font-extrabold">Speedy Cleaning</span>
-              </span>
+              <BrandLogo size="md" subtitle="Admin" />
               <button type="button" onClick={() => setOpen(false)} aria-label="Close">
                 <X className="size-5" />
               </button>

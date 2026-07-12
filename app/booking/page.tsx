@@ -27,12 +27,14 @@ export default async function BookingPage() {
   return (
     <div className="flex min-h-screen flex-col">
       <SiteHeader />
-      <main className="flex-1">
+      <main className="flex-1 pb-24 sm:pb-0">
         <Suspense>
           <BookingFlow packages={activePackages} />
         </Suspense>
       </main>
-      <SiteFooter />
+      <div className="hidden sm:block">
+        <SiteFooter />
+      </div>
     </div>
   )
 }

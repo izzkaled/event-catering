@@ -20,7 +20,7 @@ export function PackagesPreview({ packages }: { packages: Package[] }) {
       <div className="mx-auto w-full max-w-6xl px-4">
         <div className="mb-10 flex flex-col items-center gap-3 text-center sm:flex-row sm:items-end sm:justify-between sm:text-right">
           <div>
-            <h2 className="text-3xl font-extrabold tracking-tight">{t('packages.title')}</h2>
+            <h2 className="text-2xl font-extrabold tracking-tight sm:text-3xl">{t('packages.title')}</h2>
             <p className="mt-2 text-muted-foreground">{t('packages.subtitle')}</p>
           </div>
           <Button render={<Link href="/booking" />} nativeButton={false} variant="outline">
@@ -39,7 +39,7 @@ export function PackagesPreview({ packages }: { packages: Package[] }) {
                 className="group relative flex flex-col gap-3 rounded-2xl border border-border bg-card p-5 shadow-sm transition-all hover:border-primary/40 hover:shadow-md"
               >
                 {pkg.is_featured && (
-                  <Badge className="absolute -top-2.5 left-4 gap-1 bg-accent text-accent-foreground">
+                  <Badge className="absolute -top-2.5 start-4 gap-1 bg-primary text-primary-foreground">
                     <Star className="size-3 fill-current" />
                     {t('booking.featured')}
                   </Badge>

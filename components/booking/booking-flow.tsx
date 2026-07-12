@@ -27,6 +27,8 @@ import {
 } from '@/lib/auth/session-storage'
 import { normalizePhone } from '@/lib/auth/phone'
 import type { Package } from '@/lib/db/schema'
+
+const stripeEnabled = Boolean(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY?.trim())
 import {
   MUSCAT_AREAS,
   MUSCAT_AREAS_EN,
@@ -263,7 +265,26 @@ export function BookingFlow({ packages }: { packages: Package[] }) {
         const err = (await res.json().catch(() => null)) as { error?: string } | null
         throw new Error(err?.error || 'Failed')
       }
-      const order = await res.json()
+      const order = (await res.json()) as { id: string; order_number: string; stripeCheckout?: boolean }
+
+      if (order.stripeCheckout || stripeEnabled) {
+        const checkoutRes = await fetch('/api/stripe/checkout', {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ orderId: order.id }),
+        })
+        const checkoutData = (await checkoutRes.json().catch(() => null)) as {
+          url?: string
+          error?: string
+        } | null
+        if (!checkoutRes.ok || !checkoutData?.url) {
+          throw new Error(checkoutData?.error || (lang === 'ar' ? 'فشل فتح الدفع' : 'Payment checkout failed'))
+        }
+        window.location.href = checkoutData.url
+        return
+      }
+
       router.push(`/booking/success?order=${order.order_number}`)
     } catch (e) {
       toast.error(e instanceof Error ? e.message : lang === 'ar' ? 'فشل إرسال الطلب' : 'Failed to submit order')
@@ -376,7 +397,7 @@ export function BookingFlow({ packages }: { packages: Package[] }) {
                       className={cn(
                         'flex size-10 shrink-0 items-center justify-center rounded-full text-sm font-bold transition-all sm:size-11',
                         i < step
-                          ? 'bg-accent text-accent-foreground shadow-sm'
+                          ? 'bg-primary text-primary-foreground shadow-sm'
                           : i === step
                             ? 'bg-primary text-primary-foreground shadow-md shadow-primary/25'
                             : 'border border-border bg-card text-muted-foreground',
@@ -397,7 +418,7 @@ export function BookingFlow({ packages }: { packages: Package[] }) {
                     <div
                       className={cn(
                         'mx-1 h-0.5 min-w-[12px] flex-1 rounded-full sm:mx-2',
-                        i < step ? 'bg-accent' : 'bg-border',
+                        i < step ? 'bg-primary/50' : 'bg-border',
                       )}
                     />
                   )}
@@ -641,7 +662,11 @@ export function BookingFlow({ packages }: { packages: Package[] }) {
                     className="h-12 gap-2 px-8 shadow-md shadow-primary/15"
                   >
                     {submitting && <Loader2 className="size-4 animate-spin" />}
-                    {step === 3 ? t('booking.confirm') : t('booking.next')}
+                    {step === 3
+                      ? stripeEnabled
+                        ? t('booking.pay_stripe')
+                        : t('booking.confirm')
+                      : t('booking.next')}
                     {!submitting && <NextIcon className="size-4" />}
                   </Button>
                 </div>
@@ -734,7 +759,11 @@ export function BookingFlow({ packages }: { packages: Package[] }) {
             className="h-11 min-w-[7.5rem] flex-1 gap-1 text-base shadow-md"
           >
             {submitting && <Loader2 className="size-4 animate-spin" />}
-            {step === 3 ? t('booking.confirm') : t('booking.next')}
+            {step === 3
+              ? stripeEnabled
+                ? t('booking.pay_stripe')
+                : t('booking.confirm')
+              : t('booking.next')}
             {!submitting && <NextIcon className="size-4" />}
           </Button>
         </div>

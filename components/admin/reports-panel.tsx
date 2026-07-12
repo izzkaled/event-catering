@@ -125,7 +125,7 @@ export function ReportsPanel() {
                   <th className="p-2 text-right">الشهر</th>
                   <th className="p-2 text-right">الإيراد</th>
                   <th className="p-2 text-right text-red-600">العمولة 15%</th>
-                  <th className="p-2 text-right text-green-600">الصافي 85%</th>
+                  <th className="p-2 text-right text-primary">الصافي 85%</th>
                 </tr>
               </thead>
               <tbody>
@@ -134,7 +134,7 @@ export function ReportsPanel() {
                     <td className="p-2">{row.month}</td>
                     <td className="p-2">{row.revenue.toFixed(2)} OMR</td>
                     <td className="p-2 text-red-600">{row.commission.toFixed(2)} OMR</td>
-                    <td className="p-2 text-green-600">{row.net.toFixed(2)} OMR</td>
+                    <td className="p-2 text-primary">{row.net.toFixed(2)} OMR</td>
                   </tr>
                 ))}
               </tbody>

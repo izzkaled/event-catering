@@ -63,7 +63,7 @@ export function PackageSelector({
                     )}
                   >
                     {pkg.is_featured && (
-                      <Badge className="absolute -top-2.5 start-4 gap-1 bg-accent text-accent-foreground shadow-sm">
+                      <Badge className="absolute -top-2.5 start-4 gap-1 bg-primary text-primary-foreground shadow-sm">
                         <Star className="size-3 fill-current" />
                         {t('booking.featured')}
                       </Badge>

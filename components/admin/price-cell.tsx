@@ -70,7 +70,7 @@ export function PriceCell({
     >
       {parseFloat(value).toFixed(2)} OMR
       {loading && <Loader2 className="size-3 animate-spin" />}
-      {saved && <Check className="size-3 text-green-600" />}
+      {saved && <Check className="size-3 text-primary" />}
     </button>
   )
 }

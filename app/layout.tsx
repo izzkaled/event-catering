@@ -4,6 +4,7 @@ import { Toaster } from '@/components/ui/sonner'
 import { LanguageProvider } from '@/components/language-provider'
 import { VisitorTracker } from '@/components/visitor-tracker'
 import { WhatsAppButton } from '@/components/whatsapp-button'
+import { MobileBottomNav } from '@/components/mobile-bottom-nav'
 import './globals.css'
 
 const cairo = Cairo({
@@ -22,6 +23,10 @@ export const metadata: Metadata = {
     'Speedy Cleaning Services — خدمة تنظيف منزلي احترافية في مسقط، عُمان. باقات مرنة بالريال العُماني. احجز الآن!',
   keywords: ['cleaning Muscat', 'تنظيف منازل مسقط', 'Speedy Cleaning', 'نظافة بلس', 'Oman cleaning'],
   manifest: '/manifest.json',
+  icons: {
+    icon: [{ url: '/logo.png', type: 'image/png' }],
+    apple: [{ url: '/logo.png', type: 'image/png' }],
+  },
 }
 
 export const viewport: Viewport = {
@@ -42,6 +47,7 @@ export default function RootLayout({
         <LanguageProvider>
           {children}
           <VisitorTracker />
+          <MobileBottomNav />
           <WhatsAppButton />
         </LanguageProvider>
         <Toaster position="top-center" richColors />

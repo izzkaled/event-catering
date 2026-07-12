@@ -177,7 +177,7 @@ export function PackagesPanel() {
                   <button
                     type="button"
                     onClick={() => patch(pkg.id, { is_active: !pkg.is_active })}
-                    className={pkg.is_active ? 'text-green-600' : 'text-muted-foreground'}
+                    className={pkg.is_active ? 'text-primary' : 'text-muted-foreground'}
                   >
                     {pkg.is_active ? '✅ فعال' : '❌ معطل'}
                   </button>

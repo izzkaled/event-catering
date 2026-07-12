@@ -12,7 +12,7 @@ const features = [
     titleEn: '2–5 Hours',
     descAr: 'باقات مرنة حسب حجم منزلك',
     descEn: 'Flexible packages for your home',
-    color: 'bg-blue-500/10 text-blue-600',
+    color: 'bg-primary/10 text-primary',
   },
   {
     icon: Calendar,
@@ -20,7 +20,7 @@ const features = [
     titleEn: '1–5 Visits/Week',
     descAr: 'جدول يناسب احتياجك',
     descEn: 'A schedule that fits your needs',
-    color: 'bg-violet-500/10 text-violet-600',
+    color: 'bg-sky-500/10 text-sky-600',
   },
   {
     icon: Banknote,
@@ -28,7 +28,7 @@ const features = [
     titleEn: 'Prices in OMR',
     descAr: 'بدون مفاجآت — سعر شهري واضح',
     descEn: 'No surprises — clear monthly pricing',
-    color: 'bg-amber-500/10 text-amber-600',
+    color: 'bg-blue-500/10 text-blue-600',
   },
   {
     icon: Sparkles,
@@ -36,7 +36,7 @@ const features = [
     titleEn: 'Professional Team',
     descAr: 'تنظيف موثوق في مسقط',
     descEn: 'Trusted cleaning in Muscat',
-    color: 'bg-emerald-500/10 text-emerald-600',
+    color: 'bg-indigo-500/10 text-indigo-600',
   },
 ]
 

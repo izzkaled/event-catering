@@ -190,7 +190,7 @@ export default function ProfilePage() {
       icon: CalendarDays,
       title: t('احجز خدمة', 'Book a service'),
       desc: t('اختر باقة وحدّد الموعد', 'Pick a package and schedule'),
-      accent: 'bg-accent/15 text-accent-foreground',
+      accent: 'bg-primary/10 text-primary',
     },
   ]
 

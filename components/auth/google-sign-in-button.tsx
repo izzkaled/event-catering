@@ -77,7 +77,7 @@ export function GoogleSignInButton({ callbackURL, adminOnly = false }: GoogleSig
     <Button
       type="button"
       variant="outline"
-      className="w-full gap-2"
+      className="w-full gap-2 h-11 text-base"
       onClick={signInWithGoogle}
       disabled={loading}
     >

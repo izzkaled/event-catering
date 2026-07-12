@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
-import { Resend } from 'resend'
 import { sendOtpSms } from '@/lib/auth/sms'
+import { sendOtpEmail } from '@/lib/email/send-otp-email'
 import { checkRateLimit, getClientIp } from '@/lib/auth/rate-limit'
 import { verifyNeonAuthWebhook } from '@/lib/security/verify-webhook'
 
@@ -28,44 +28,15 @@ function extractPhone(payload: WebhookPayload): string | null {
   return payload.user?.phone_number || payload.event_data?.phone_number || null
 }
 
-async function sendOtpEmail(to: string, code: string, appName: string) {
-  const apiKey = process.env.RESEND_API_KEY?.trim()
-  if (!apiKey) {
-    throw new Error('RESEND_API_KEY is required to deliver email OTP')
-  }
-
-  const from =
-    process.env.RESEND_FROM_EMAIL?.trim() ||
-    'Speedy Cleaning <onboarding@resend.dev>'
-
-  const resend = new Resend(apiKey)
-  const { error } = await resend.emails.send({
-    from,
-    to,
-    subject: `${appName}: verification code ${code}`,
-    html: `
-      <div style="font-family:sans-serif;line-height:1.5">
-        <h2>${appName}</h2>
-        <p>Your verification code is:</p>
-        <p style="font-size:28px;font-weight:700;letter-spacing:0.2em">${code}</p>
-        <p>This code expires in 15 minutes.</p>
-      </div>
-    `,
-    text: `${appName} verification code: ${code}\nThis code expires in 15 minutes.`,
-  })
-
-  if (error) {
-    throw new Error(error.message || 'Failed to send email via Resend')
-  }
-}
-
 /**
  * Neon Auth webhook.
  * IMPORTANT: when `send.otp` is subscribed, Neon skips its shared email provider.
  * This handler must deliver email OTPs (Resend) and optional phone OTPs (Twilio).
  */
 export async function POST(req: Request) {
-  const denied = verifyNeonAuthWebhook(req)
+  const rawBody = await req.text()
+
+  const denied = await verifyNeonAuthWebhook(req, rawBody)
   if (denied) return denied
 
   const ip = getClientIp(req)
@@ -73,7 +44,6 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
   }
 
-  const rawBody = await req.text()
   let payload: WebhookPayload | null = null
 
   try {

@@ -71,6 +71,10 @@ export const orders = pgTable('orders', {
 
   status: text('status').default('pending').notNull(),
 
+  payment_method: text('payment_method').default('bank_transfer').notNull(),
+  payment_status: text('payment_status').default('unpaid').notNull(),
+  stripe_checkout_session_id: text('stripe_checkout_session_id'),
+
   created_at: timestamp('created_at').defaultNow(),
   updated_at: timestamp('updated_at').defaultNow(),
 }, (table) => [

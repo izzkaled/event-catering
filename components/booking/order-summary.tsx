@@ -13,6 +13,8 @@ import { useLanguage } from '@/components/language-provider'
 import type { Package as Pkg } from '@/lib/db/schema'
 import { cn } from '@/lib/utils'
 
+const stripeEnabled = Boolean(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY?.trim())
+
 type OrderSummaryProps = {
   pkg: Pkg
   customerName?: string
@@ -117,8 +119,12 @@ export function OrderSummary({
           <div className="mt-3 flex items-start gap-2 border-t border-primary/15 pt-3 text-xs text-muted-foreground">
             <CreditCard className="mt-0.5 size-3.5 shrink-0" />
             <div>
-              <p className="font-medium text-foreground">{t('booking.payment_method')}</p>
-              <p className="mt-0.5">{t('booking.payment_info')}</p>
+              <p className="font-medium text-foreground">
+                {stripeEnabled ? t('booking.payment_stripe') : t('booking.payment_method')}
+              </p>
+              <p className="mt-0.5">
+                {stripeEnabled ? t('booking.payment_stripe_info') : t('booking.payment_info')}
+              </p>
             </div>
           </div>
         )}

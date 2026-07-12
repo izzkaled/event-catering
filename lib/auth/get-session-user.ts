@@ -45,7 +45,13 @@ export async function getSessionUser(): Promise<SessionUser | null> {
         .where(eq(users.auth_user_id, neonUser.id))
         .limit(1)
 
-      const role = isAdminUser(neonUser) ? 'admin' : (profile?.role ?? 'user')
+      // Allowlist only — recompute every request so demotions take effect.
+      const role = isAdminUser({
+        email: neonUser.email,
+        phoneNumber: neonUser.phoneNumber,
+      })
+        ? 'admin'
+        : 'user'
 
       if (!profile) {
         ;[profile] = await db
@@ -58,13 +64,17 @@ export async function getSessionUser(): Promise<SessionUser | null> {
             role,
           })
           .returning()
-      } else {
+      } else if (
+        profile.role !== role ||
+        (neonUser.name && neonUser.name !== profile.name) ||
+        (neonUser.email && neonUser.email !== profile.email)
+      ) {
         ;[profile] = await db
           .update(users)
           .set({
             name: neonUser.name ?? profile.name,
             email: neonUser.email ?? profile.email,
-            role: role === 'admin' ? 'admin' : profile.role,
+            role,
             updated_at: new Date(),
           })
           .where(eq(users.id, profile.id))
@@ -77,7 +87,7 @@ export async function getSessionUser(): Promise<SessionUser | null> {
         phone: profile.phone,
         name: profile.name,
         email: profile.email,
-        role: profile.role,
+        role,
         area: profile.area,
         address: profile.address,
         source: 'neon',
@@ -100,13 +110,14 @@ export async function getSessionUser(): Promise<SessionUser | null> {
 }
 
 function toSessionUser(user: User, source: 'neon' | 'phone'): SessionUser {
+  const role = isAdminUser({ email: user.email, phone: user.phone }) ? 'admin' : 'user'
   return {
     id: user.id,
     profileId: user.id,
     phone: user.phone,
     name: user.name,
     email: user.email,
-    role: user.role,
+    role,
     area: user.area,
     address: user.address,
     source,

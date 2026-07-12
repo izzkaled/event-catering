@@ -2,6 +2,7 @@ import { jsPDF } from 'jspdf'
 import type { Order } from '@/lib/db/schema'
 import fs from 'node:fs'
 import path from 'node:path'
+import { getLogoBase64 } from '@/lib/invoices/logo'
 
 type InvoiceKind = 'requested' | 'confirmed'
 type InvoiceAudience = 'customer' | 'admin'
@@ -100,28 +101,39 @@ export function buildInvoicePdfBuffer(
   const left = 40
   const right = pageW - 40
 
-  doc.setFont('helvetica', 'bold')
-  doc.setFontSize(18)
-  doc.text('Speedy Cleaning', left, 50)
+  const logo = getLogoBase64()
+  if (logo) {
+    doc.addImage(`data:image/png;base64,${logo}`, 'PNG', left, 18, 52, 52)
+    doc.setFont('helvetica', 'bold')
+    doc.setFontSize(18)
+    doc.text('Speedy Cleaning', left + 62, 42)
+    doc.setFont('helvetica', 'normal')
+    doc.setFontSize(10)
+    doc.text('Clean Plus · Muscat', left + 62, 58)
+  } else {
+    doc.setFont('helvetica', 'bold')
+    doc.setFontSize(18)
+    doc.text('Speedy Cleaning', left, 50)
+  }
 
   doc.setFont('helvetica', 'normal')
   doc.setFontSize(11)
-  doc.text(titleEn, left, 72)
+  doc.text(titleEn, left, logo ? 82 : 72)
   ensureArabicFont(doc)
   doc.setFont('Amiri', 'normal')
   doc.setFontSize(12)
-  doc.text(kind === 'confirmed' ? 'فاتورة اشتراك (تم التأكيد)' : 'فاتورة طلب اشتراك (بانتظار التأكيد)', right, 72, {
+  doc.text(kind === 'confirmed' ? 'فاتورة اشتراك (تم التأكيد)' : 'فاتورة طلب اشتراك (بانتظار التأكيد)', right, logo ? 82 : 72, {
     align: 'right',
   })
 
   doc.setDrawColor(220)
-  doc.line(left, 90, right, 90)
+  doc.line(left, logo ? 98 : 90, right, logo ? 98 : 90)
 
   // Excel-like table layout (clear + printable)
   const col1 = 190
   const col2 = right - left - col1
   const rowH = 28
-  let y = 110
+  let y = logo ? 118 : 110
 
   // Table header
   drawCellBilingual(doc, left, y, col1, rowH, 'Field', 'الحقل', { bold: true })

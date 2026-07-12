@@ -9,6 +9,7 @@ import { validateOrderPayload } from '@/lib/security/order-validation'
 import { triggerOrderConfirmation } from '@/lib/security/trigger-confirmation'
 import { checkRateLimit, getClientIp } from '@/lib/auth/rate-limit'
 import { requireTurnstile } from '@/lib/cloudflare/turnstile'
+import { isStripeEnabled } from '@/lib/stripe/config'
 
 export const dynamic = 'force-dynamic'
 
@@ -49,6 +50,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Invalid phone number' }, { status: 400 })
     }
 
+    const stripeCheckout = isStripeEnabled()
+
     // Retry on order_number unique collision (two orders arriving at once).
     let order: typeof orders.$inferSelect | undefined
     for (let attempt = 0; attempt < 3 && !order; attempt++) {
@@ -82,6 +85,8 @@ export async function POST(request: Request) {
             preferred_time: validated.data.preferred_time,
             preferred_days: validated.data.preferred_days,
             status: 'pending',
+            payment_method: stripeCheckout ? 'stripe' : 'bank_transfer',
+            payment_status: stripeCheckout ? 'unpaid' : 'not_required',
           })
           .returning()
       } catch (e) {
@@ -111,9 +116,11 @@ export async function POST(request: Request) {
       console.error('Failed to sync profile from order:', profileError)
     }
 
-    triggerOrderConfirmation(new URL(request.url).origin, order.id, 'created')
+    if (!stripeCheckout) {
+      triggerOrderConfirmation(order.id, 'created')
+    }
 
-    return NextResponse.json(order, { status: 201 })
+    return NextResponse.json({ ...order, stripeCheckout }, { status: 201 })
   } catch (error) {
     console.error('POST /api/orders:', error)
     return NextResponse.json({ error: 'Failed to create order' }, { status: 500 })

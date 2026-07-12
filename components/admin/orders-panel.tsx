@@ -215,7 +215,7 @@ export function OrdersPanel() {
                         target="_blank"
                         rel="noopener noreferrer"
                       >
-                        <MessageCircle className="size-3 text-green-600" />
+                        <MessageCircle className="size-3 text-primary" />
                       </a>
                     </div>
                   </div>
@@ -239,7 +239,7 @@ export function OrdersPanel() {
                 <TableCell className={order.status === 'cancelled' ? 'text-muted-foreground' : 'text-red-600'}>
                   {order.commission_omr}
                 </TableCell>
-                <TableCell className={order.status === 'cancelled' ? 'text-muted-foreground' : 'text-green-600'}>
+                <TableCell className={order.status === 'cancelled' ? 'text-muted-foreground' : 'text-primary'}>
                   {order.net_revenue_omr}
                 </TableCell>
                 <TableCell>
@@ -294,7 +294,7 @@ export function OrdersPanel() {
         <span className="text-red-600">
           العمولات: <strong>{totals.commission.toFixed(2)} OMR</strong>
         </span>
-        <span className="text-green-600">
+        <span className="text-primary">
           الصافي: <strong>{totals.net.toFixed(2)} OMR</strong>
         </span>
         <span>{filtered.length} اشتراك</span>

@@ -45,10 +45,10 @@ export function ServicesSection() {
 
   return (
     <section id="services" className="scroll-mt-20 border-t border-border bg-secondary/40 py-16">
-      <div className="mx-auto w-full max-w-6xl px-4">
+      <div className="site-container">
         <div className="mb-10 text-center">
           <h2 className="text-3xl font-extrabold tracking-tight">{t('nav.services')}</h2>
-          <p className="mx-auto mt-2 max-w-2xl text-muted-foreground">{t('services.subtitle')}</p>
+          <p className="content-max mt-2 text-muted-foreground">{t('services.subtitle')}</p>
         </div>
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {features.map((f) => {

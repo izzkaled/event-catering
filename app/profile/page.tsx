@@ -56,7 +56,7 @@ function getInitials(name: string) {
 
 function ProfileSkeleton() {
   return (
-    <div className="mx-auto w-full max-w-5xl animate-pulse space-y-6 px-4 py-10">
+    <div className="site-container-wide animate-pulse space-y-6 py-10">
       <div className="h-36 rounded-2xl bg-muted" />
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="h-96 rounded-2xl bg-muted lg:col-span-2" />
@@ -164,9 +164,9 @@ export default function ProfilePage() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen flex-col">
+      <div className="page-shell flex min-h-screen flex-col">
         <SiteHeader />
-        <main className="relative flex-1 overflow-hidden">
+        <main className="relative min-w-0 flex-1 overflow-x-clip">
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/10 via-background to-background" />
           <ProfileSkeleton />
         </main>
@@ -195,13 +195,13 @@ export default function ProfilePage() {
   ]
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="page-shell flex min-h-screen flex-col">
       <SiteHeader />
-      <main dir={dir} className="relative flex-1">
+      <main dir={dir} className="relative min-w-0 flex-1 overflow-x-clip">
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/10 via-background to-background" />
         <div className="pointer-events-none absolute -start-20 top-24 size-64 rounded-full bg-accent/10 blur-3xl" />
 
-        <div className="relative mx-auto w-full max-w-5xl px-3 py-6 sm:px-4 sm:py-10">
+        <div className="site-container-wide relative py-6 sm:py-10">
           <Button
             variant="ghost"
             size="sm"

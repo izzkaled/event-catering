@@ -51,8 +51,20 @@ async function callModel(apiKey: string, model: string, prompt: string) {
     return { ok: false as const, status: res.status, error: parseApiError(errText) }
   }
 
-  const data = await res.json()
-  const text = data?.candidates?.[0]?.content?.parts?.[0]?.text
+  const raw = await res.text()
+  if (!raw.trim()) {
+    return { ok: false as const, status: 502, error: 'Gemini returned an empty response' }
+  }
+
+  let data: unknown
+  try {
+    data = JSON.parse(raw)
+  } catch {
+    return { ok: false as const, status: 502, error: 'Gemini returned invalid JSON' }
+  }
+
+  const text = (data as { candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }> })
+    ?.candidates?.[0]?.content?.parts?.[0]?.text
   if (!text) {
     return { ok: false as const, status: 502, error: 'No content returned from Gemini' }
   }

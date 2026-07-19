@@ -123,7 +123,7 @@ export function CustomersPanel() {
                     <div>
                       <p className="font-medium">{customer.name || '—'}</p>
                       {customer.address && (
-                        <p className="max-w-[200px] truncate text-xs text-muted-foreground">
+                        <p className="truncate-cell-md truncate text-xs text-muted-foreground">
                           {customer.address}
                         </p>
                       )}
@@ -173,7 +173,7 @@ export function CustomersPanel() {
                     <Badge variant="outline">{t('admin.customers.unknownAuth')}</Badge>
                   )}
                   {customer.auth_user_id && (
-                    <p className="mt-1 max-w-[120px] truncate font-mono text-[10px] text-muted-foreground">
+                    <p className="truncate-cell-sm mt-1 truncate font-mono text-[10px] text-muted-foreground">
                       {customer.auth_user_id}
                     </p>
                   )}

@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import { Home, Layers, CalendarPlus, UserRound } from 'lucide-react'
+import { CalendarPlus, Home, Layers, UserRound } from 'lucide-react'
 import { useLanguage } from '@/components/language-provider'
 import { cn } from '@/lib/utils'
 
@@ -11,7 +11,7 @@ const HIDDEN_PREFIXES = ['/admin', '/auth', '/booking']
 
 export function MobileBottomNav() {
   const pathname = usePathname()
-  const { t } = useLanguage()
+  const { t, dir, lang } = useLanguage()
   const [loggedIn, setLoggedIn] = useState(false)
 
   useEffect(() => {
@@ -24,7 +24,7 @@ export function MobileBottomNav() {
   if (hidden) return null
 
   const accountHref = loggedIn ? '/profile' : '/auth/login'
-  const accountLabel = loggedIn ? t('nav.profile') : t('nav.login')
+  const accountLabel = loggedIn ? t('nav.profile') : t('nav.loginShort')
 
   const items = [
     {
@@ -35,62 +35,64 @@ export function MobileBottomNav() {
     },
     {
       href: '/#packages',
-      label: t('packages.title'),
+      label: t('nav.packages'),
       icon: Layers,
       active: false,
     },
     {
       href: '/booking',
-      label: t('nav.booking'),
+      label: t('nav.bookingShort'),
       icon: CalendarPlus,
       active: pathname?.startsWith('/booking'),
-      primary: true,
+      highlight: true,
     },
     {
       href: accountHref,
       label: accountLabel,
       icon: UserRound,
-      active: pathname?.startsWith('/profile') || pathname?.startsWith('/subscriptions'),
+      active:
+        pathname?.startsWith('/profile') ||
+        pathname?.startsWith('/subscriptions') ||
+        pathname?.startsWith('/auth'),
     },
   ]
 
   return (
     <>
-      {/* Spacer so page content clears the bar */}
-      <div className="h-[calc(3.75rem+env(safe-area-inset-bottom))] md:hidden" aria-hidden />
+      <div className="h-[calc(4rem+env(safe-area-inset-bottom))] md:hidden" aria-hidden />
 
       <nav
-        aria-label="التنقل السفلي"
-        className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-background/95 pb-safe shadow-[0_-8px_30px_rgba(15,23,42,0.08)] backdrop-blur-md md:hidden"
+        dir={dir}
+        aria-label={lang === 'ar' ? 'التنقل السفلي' : 'Bottom navigation'}
+        className="fixed inset-x-0 bottom-0 z-50 border-t border-border/80 bg-background/95 pb-[env(safe-area-inset-bottom)] shadow-[0_-2px_16px_rgba(15,23,42,0.06)] backdrop-blur-md md:hidden"
       >
-        <ul className="mx-auto flex h-[3.75rem] max-w-lg items-stretch justify-between px-1">
+        <ul className="grid h-16 grid-cols-4">
           {items.map((item) => {
             const Icon = item.icon
             return (
-              <li key={item.href + item.label} className="flex flex-1">
+              <li key={item.href} className="min-w-0">
                 <Link
                   href={item.href}
                   className={cn(
-                    'relative flex min-h-11 w-full flex-col items-center justify-center gap-0.5 px-1 text-[10px] font-semibold transition-colors',
-                    item.active ? 'text-primary' : 'text-muted-foreground active:text-foreground',
+                    'flex h-full min-w-0 flex-col items-center justify-center gap-1 px-1 py-2 transition-colors',
+                    item.active
+                      ? 'text-primary'
+                      : 'text-muted-foreground active:text-foreground',
                   )}
                 >
-                  {item.primary ? (
-                    <span
-                      className={cn(
-                        'mb-0.5 flex size-10 items-center justify-center rounded-2xl shadow-md shadow-primary/25',
-                        item.active ? 'bg-primary text-primary-foreground' : 'bg-primary/90 text-primary-foreground',
-                      )}
-                    >
-                      <Icon className="size-5" strokeWidth={2.25} />
-                    </span>
-                  ) : (
-                    <Icon
-                      className={cn('size-5', item.active && 'stroke-[2.5]')}
-                      strokeWidth={item.active ? 2.5 : 2}
-                    />
-                  )}
-                  <span className="max-w-full truncate leading-tight">{item.label}</span>
+                  <span
+                    className={cn(
+                      'flex size-9 shrink-0 items-center justify-center rounded-xl',
+                      item.highlight &&
+                        'bg-primary text-primary-foreground shadow-sm shadow-primary/20',
+                      item.active && !item.highlight && 'bg-primary/10',
+                    )}
+                  >
+                    <Icon className="size-5" strokeWidth={item.active ? 2.5 : 2} />
+                  </span>
+                  <span className="w-full truncate text-center text-[11px] font-semibold leading-none">
+                    {item.label}
+                  </span>
                 </Link>
               </li>
             )

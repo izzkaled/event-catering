@@ -123,17 +123,81 @@
 @layer base {
   * {
     @apply border-border outline-ring/50;
+    box-sizing: border-box;
   }
   html {
-    @apply font-sans;
+    @apply font-sans overflow-x-clip;
+    max-width: 100%;
     -webkit-text-size-adjust: 100%;
   }
   body {
-    @apply bg-background text-foreground overflow-x-hidden;
+    @apply bg-background text-foreground min-w-0 overflow-x-clip;
+    max-width: 100%;
+  }
+  img,
+  svg,
+  video {
+    max-width: 100%;
+    height: auto;
   }
 }
 
 @layer utilities {
+  .page-shell {
+    @apply min-w-0 w-full max-w-full overflow-x-clip;
+  }
+  .text-safe {
+    @apply min-w-0 break-words [overflow-wrap:anywhere];
+  }
+  /* w-full + max-width cap + fluid inline padding (vw/rem mix) */
+  .site-container {
+    @apply mx-auto w-full min-w-0 max-w-6xl;
+    padding-inline: clamp(0.75rem, 4vw, 1rem);
+  }
+  .site-container-narrow {
+    @apply mx-auto w-full min-w-0 max-w-3xl;
+    padding-inline: clamp(0.75rem, 4vw, 1rem);
+  }
+  .site-container-wide {
+    @apply mx-auto w-full min-w-0 max-w-5xl;
+    padding-inline: clamp(0.75rem, 4vw, 1rem);
+  }
+  .site-container-tight {
+    @apply mx-auto w-full min-w-0 max-w-lg;
+    padding-inline: clamp(0.75rem, 4vw, 1rem);
+  }
+  .site-container-compact {
+    @apply mx-auto w-full min-w-0 max-w-md;
+    padding-inline: clamp(0.75rem, 4vw, 1rem);
+  }
+  .site-container-xl {
+    @apply mx-auto w-full min-w-0 max-w-4xl;
+    padding-inline: clamp(0.75rem, 4vw, 1rem);
+  }
+  .content-max {
+    @apply mx-auto w-full min-w-0 max-w-2xl;
+  }
+  .layout-with-sidebar {
+    @apply grid w-full min-w-0 gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,min(20rem,32vw))];
+  }
+  .layout-with-sidebar-wide {
+    @apply grid w-full min-w-0 gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,min(21.25rem,34vw))];
+  }
+  .flex-fluid-btn {
+    @apply min-w-0 w-full max-w-[45%] flex-1 sm:max-w-none sm:min-w-[7.5rem];
+  }
+  .day-chip {
+    @apply min-h-11 min-w-[18%] max-w-[3.5rem] sm:min-w-[2.75rem] sm:max-w-none;
+  }
+  .truncate-cell-sm {
+    @apply min-w-0 max-w-[35%] sm:max-w-[7.5rem];
+  }
+  .truncate-cell-md {
+    @apply min-w-0 max-w-[55%] sm:max-w-[12.5rem];
+  }
+  .truncate-cell-lg {
+    @apply min-w-0 max-w-[30%] sm:max-w-[8rem];
+  }
   .pb-safe {
     padding-bottom: max(1rem, env(safe-area-inset-bottom));
   }

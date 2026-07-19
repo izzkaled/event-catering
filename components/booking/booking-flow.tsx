@@ -26,9 +26,8 @@ import {
   saveReturnTo,
 } from '@/lib/auth/session-storage'
 import { normalizePhone } from '@/lib/auth/phone'
-import type { Package } from '@/lib/db/schema'
+import type { PackageWithSection } from '@/lib/packages/types'
 
-const stripeEnabled = Boolean(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY?.trim())
 import {
   MUSCAT_AREAS,
   MUSCAT_AREAS_EN,
@@ -44,6 +43,8 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { cn } from '@/lib/utils'
 import { TurnstileWidget, isTurnstileConfigured } from '@/components/cloudflare/turnstile-widget'
+import { formatBookingDate, subscriptionEndDate } from '@/lib/booking/schedule'
+import { Badge } from '@/components/ui/badge'
 
 type BookingDraft = {
   step: number
@@ -96,7 +97,7 @@ function StepHeader({
   )
 }
 
-export function BookingFlow({ packages }: { packages: Package[] }) {
+export function BookingFlow({ packages }: { packages: PackageWithSection[] }) {
   const router = useRouter()
   const { lang, t, dir } = useLanguage()
 
@@ -115,7 +116,7 @@ export function BookingFlow({ packages }: { packages: Package[] }) {
   ]
 
   const [step, setStep] = useState(0)
-  const [selectedPkg, setSelectedPkg] = useState<Package | null>(null)
+  const [selectedPkg, setSelectedPkg] = useState<PackageWithSection | null>(null)
   const [name, setName] = useState('')
   const [phone, setPhone] = useState('')
   const [email, setEmail] = useState('')
@@ -192,15 +193,42 @@ export function BookingFlow({ packages }: { packages: Package[] }) {
   const today = new Date().toISOString().split('T')[0]
 
   const toggleDay = (day: string) => {
-    setPreferredDays((prev) =>
-      prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day],
-    )
+    const maxDays = selectedPkg?.visits_per_week ?? 0
+    if (!maxDays) return
+
+    setPreferredDays((prev) => {
+      if (prev.includes(day)) return prev.filter((d) => d !== day)
+      if (prev.length >= maxDays) {
+        toast.error(
+          lang === 'ar'
+            ? `هذه الباقة ${maxDays} ${maxDays === 1 ? 'يوم' : 'أيام'} في الأسبوع فقط`
+            : `This package includes ${maxDays} day(s) per week only`,
+        )
+        return prev
+      }
+      return [...prev, day]
+    })
   }
+
+  const selectPackage = (pkg: PackageWithSection) => {
+    setSelectedPkg(pkg)
+    setPreferredDays((prev) => prev.slice(0, pkg.visits_per_week))
+  }
+
+  const requiredDays = selectedPkg?.visits_per_week ?? 0
+  const endDate = startDate ? subscriptionEndDate(startDate) : ''
 
   const canProceed = () => {
     if (step === 0) return !!selectedPkg
     if (step === 1) return name.trim() && phone.trim() && area && address.trim()
-    if (step === 2) return startDate && preferredTime && preferredDays.length > 0
+    if (step === 2) {
+      return (
+        startDate &&
+        preferredTime &&
+        !!selectedPkg &&
+        preferredDays.length === selectedPkg.visits_per_week
+      )
+    }
     return true
   }
 
@@ -265,27 +293,15 @@ export function BookingFlow({ packages }: { packages: Package[] }) {
         const err = (await res.json().catch(() => null)) as { error?: string } | null
         throw new Error(err?.error || 'Failed')
       }
-      const order = (await res.json()) as { id: string; order_number: string; stripeCheckout?: boolean }
-
-      if (order.stripeCheckout || stripeEnabled) {
-        const checkoutRes = await fetch('/api/stripe/checkout', {
-          method: 'POST',
-          credentials: 'include',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ orderId: order.id }),
-        })
-        const checkoutData = (await checkoutRes.json().catch(() => null)) as {
-          url?: string
-          error?: string
-        } | null
-        if (!checkoutRes.ok || !checkoutData?.url) {
-          throw new Error(checkoutData?.error || (lang === 'ar' ? 'فشل فتح الدفع' : 'Payment checkout failed'))
-        }
-        window.location.href = checkoutData.url
-        return
+      const order = (await res.json()) as {
+        id: string
+        order_number: string
+        needsPayment?: boolean
       }
 
-      router.push(`/booking/success?order=${order.order_number}`)
+      // Always go to payment method picker (Paymob card / bank transfer)
+      router.push(`/booking/payment?order=${encodeURIComponent(order.order_number)}`)
+      return
     } catch (e) {
       toast.error(e instanceof Error ? e.message : lang === 'ar' ? 'فشل إرسال الطلب' : 'Failed to submit order')
       setSubmitting(false)
@@ -294,7 +310,15 @@ export function BookingFlow({ packages }: { packages: Package[] }) {
 
   const next = async () => {
     if (!canProceed()) {
-      toast.error(t('booking.required'))
+      if (
+        step === 2 &&
+        selectedPkg &&
+        preferredDays.length !== selectedPkg.visits_per_week
+      ) {
+        toast.error(t('booking.selectExactDays'))
+      } else {
+        toast.error(t('booking.required'))
+      }
       return
     }
 
@@ -347,7 +371,7 @@ export function BookingFlow({ packages }: { packages: Package[] }) {
 
   if (!packages.length) {
     return (
-      <div className="mx-auto max-w-3xl px-4 py-20 text-center">
+      <div className="site-container-narrow py-20 text-center">
         <p className="text-lg text-muted-foreground">
           {lang === 'ar' ? 'لا توجد باقات متاحة حالياً' : 'No packages available'}
         </p>
@@ -356,7 +380,7 @@ export function BookingFlow({ packages }: { packages: Package[] }) {
   }
 
   return (
-    <div className="relative min-h-[calc(100vh-4rem)]">
+    <div className="relative min-h-[calc(100vh-4rem)] overflow-x-clip">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/10 via-background to-background" />
       <div className="pointer-events-none absolute -start-32 top-20 size-96 rounded-full bg-accent/10 blur-3xl" />
       <div className="pointer-events-none absolute -end-32 bottom-0 size-80 rounded-full bg-primary/10 blur-3xl" />
@@ -365,7 +389,7 @@ export function BookingFlow({ packages }: { packages: Package[] }) {
 
       {/* Hero */}
       <div className="relative border-b border-border/60 bg-card/40 backdrop-blur-sm">
-        <div className="mx-auto max-w-6xl px-3 py-6 sm:px-4 sm:py-12">
+        <div className="site-container py-6 sm:py-12">
           <span className="mb-2 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-semibold text-primary sm:mb-3 sm:px-4 sm:py-1.5 sm:text-sm">
             <Sparkles className="size-3.5 sm:size-4" />
             {lang === 'ar' ? 'حجز سريع وآمن' : 'Fast & secure booking'}
@@ -381,7 +405,7 @@ export function BookingFlow({ packages }: { packages: Package[] }) {
         </div>
       </div>
 
-      <div className="relative mx-auto grid max-w-6xl gap-6 px-3 py-6 pb-28 sm:gap-8 sm:px-4 sm:py-8 sm:pb-8 lg:grid-cols-[1fr_320px] lg:py-10">
+      <div className="site-container relative layout-with-sidebar py-6 pb-28 sm:py-8 sm:pb-8 lg:py-10">
         {/* Main column */}
         <div className="min-w-0">
           {/* Stepper */}
@@ -389,7 +413,7 @@ export function BookingFlow({ packages }: { packages: Package[] }) {
             <p className="mb-3 text-center text-sm font-bold text-foreground sm:hidden">
               {steps[step]} · {step + 1}/{steps.length}
             </p>
-            <div className="flex items-center">
+            <div className="flex min-w-0 items-center overflow-x-clip">
               {steps.map((label, i) => (
                 <Fragment key={label}>
                   <div className="flex min-w-0 flex-col items-center gap-2">
@@ -407,7 +431,7 @@ export function BookingFlow({ packages }: { packages: Package[] }) {
                     </span>
                     <span
                       className={cn(
-                        'hidden max-w-[4.5rem] truncate text-center text-[11px] sm:block sm:max-w-none sm:text-xs',
+                        'hidden max-w-[22%] truncate text-center text-[11px] sm:block sm:max-w-none sm:text-xs',
                         i === step ? 'font-bold text-foreground' : 'text-muted-foreground',
                       )}
                     >
@@ -417,7 +441,7 @@ export function BookingFlow({ packages }: { packages: Package[] }) {
                   {i < steps.length - 1 && (
                     <div
                       className={cn(
-                        'mx-1 h-0.5 min-w-[12px] flex-1 rounded-full sm:mx-2',
+                        'mx-1 h-0.5 min-w-[3%] max-w-8 flex-1 rounded-full sm:mx-2',
                         i < step ? 'bg-primary/50' : 'bg-border',
                       )}
                     />
@@ -465,7 +489,31 @@ export function BookingFlow({ packages }: { packages: Package[] }) {
               />
 
               {step === 0 && (
-                <PackageSelector packages={packages} selected={selectedPkg} onSelect={setSelectedPkg} />
+                <>
+                  <PackageSelector
+                    packages={packages}
+                    selected={selectedPkg}
+                    onSelect={selectPackage}
+                  />
+                  {selectedPkg && (
+                    <div className="mt-6 rounded-2xl border border-primary/25 bg-primary/5 p-4 sm:p-5">
+                      <p className="text-sm font-bold text-primary">{t('booking.packageWeeklyVisits')}</p>
+                      <p className="mt-2 text-2xl font-extrabold tabular-nums text-foreground">
+                        {selectedPkg.visits_per_week}
+                        <span className="ms-2 text-base font-semibold text-muted-foreground">
+                          {lang === 'ar'
+                            ? selectedPkg.visits_per_week === 1
+                              ? 'يوم / أسبوع'
+                              : 'أيام / أسبوع'
+                            : selectedPkg.visits_per_week === 1
+                              ? 'day / week'
+                              : 'days / week'}
+                        </span>
+                      </p>
+                      <p className="mt-2 text-sm text-muted-foreground">{t('booking.daysPerWeekHint')}</p>
+                    </div>
+                  )}
+                </>
               )}
 
               {step === 1 && (
@@ -550,8 +598,17 @@ export function BookingFlow({ packages }: { packages: Package[] }) {
                 </div>
               )}
 
-              {step === 2 && (
+              {step === 2 && selectedPkg && (
                 <div className="flex flex-col gap-6">
+                  <div className="rounded-xl border border-border/80 bg-secondary/30 p-4 text-sm">
+                    <p className="font-bold">{t('booking.packageWeeklyVisits')}</p>
+                    <p className="mt-1 text-muted-foreground">
+                      {lang === 'ar'
+                        ? `اختر ${requiredDays} ${requiredDays === 1 ? 'يوم' : 'أيام'} في الأسبوع — كما في الباقة (${selectedPkg.visits_per_month} زيارة/شهر)`
+                        : `Pick ${requiredDays} day(s) per week — as included (${selectedPkg.visits_per_month} visits/month)`}
+                    </p>
+                  </div>
+
                   <div className="space-y-2">
                     <Label htmlFor="date">{t('booking.date')}</Label>
                     <Input
@@ -563,6 +620,27 @@ export function BookingFlow({ packages }: { packages: Package[] }) {
                       className="h-11 w-full max-w-full sm:max-w-xs"
                     />
                   </div>
+
+                  {startDate && (
+                    <div className="rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/10 to-primary/5 p-4 sm:p-5">
+                      <p className="text-xs font-bold uppercase tracking-wide text-primary">
+                        {t('booking.subscriptionPeriod')}
+                      </p>
+                      <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                        <div className="rounded-xl bg-background/80 p-3">
+                          <p className="text-xs text-muted-foreground">{t('booking.date')}</p>
+                          <p className="mt-1 text-sm font-bold">{formatBookingDate(startDate, lang)}</p>
+                        </div>
+                        <div className="rounded-xl bg-background/80 p-3">
+                          <p className="text-xs text-muted-foreground">{t('booking.endDate')}</p>
+                          <p className="mt-1 text-sm font-bold">{formatBookingDate(endDate, lang)}</p>
+                        </div>
+                      </div>
+                      <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
+                        {t('booking.subscriptionHint')}
+                      </p>
+                    </div>
+                  )}
 
                   <div className="space-y-3">
                     <Label>{t('booking.time')}</Label>
@@ -589,21 +667,33 @@ export function BookingFlow({ packages }: { packages: Package[] }) {
                   </div>
 
                   <div className="space-y-3">
-                    <Label>{t('booking.days')}</Label>
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <Label>{t('booking.daysRequired')}</Label>
+                      <Badge
+                        variant={preferredDays.length === requiredDays ? 'default' : 'secondary'}
+                        className="tabular-nums"
+                      >
+                        {preferredDays.length} / {requiredDays}
+                      </Badge>
+                    </div>
+                    <p className="text-sm text-muted-foreground">{t('booking.selectExactDays')}</p>
                     <div className="flex flex-wrap gap-2">
                       {days.map((day, i) => {
                         const arDay = WEEK_DAYS_AR[i]
                         const active = preferredDays.includes(arDay)
+                        const disabled = !active && preferredDays.length >= requiredDays
                         return (
                           <button
                             key={day}
                             type="button"
+                            disabled={disabled}
                             onClick={() => toggleDay(arDay)}
                             className={cn(
-                              'min-h-[44px] min-w-[2.75rem] rounded-xl border px-3 py-2.5 text-sm font-medium transition-all active:scale-[0.98] sm:px-4',
+                              'day-chip rounded-xl border px-3 py-2.5 text-sm font-medium transition-all active:scale-[0.98] sm:px-4',
                               active
                                 ? 'border-primary bg-primary text-primary-foreground shadow-sm'
                                 : 'border-border bg-card hover:border-primary/40',
+                              disabled && 'cursor-not-allowed opacity-40 hover:border-border',
                             )}
                           >
                             {day}
@@ -611,8 +701,11 @@ export function BookingFlow({ packages }: { packages: Package[] }) {
                         )
                       })}
                     </div>
-                    {preferredDays.length === 0 && (
-                      <p className="text-xs text-muted-foreground">{t('booking.selectDays')}</p>
+                    {preferredDays.length < requiredDays && (
+                      <p className="text-xs text-amber-700 dark:text-amber-300">
+                        {t('booking.selectDays')} ({requiredDays - preferredDays.length}{' '}
+                        {lang === 'ar' ? 'متبقي' : 'remaining'})
+                      </p>
                     )}
                   </div>
                 </div>
@@ -663,9 +756,7 @@ export function BookingFlow({ packages }: { packages: Package[] }) {
                   >
                     {submitting && <Loader2 className="size-4 animate-spin" />}
                     {step === 3
-                      ? stripeEnabled
-                        ? t('booking.pay_stripe')
-                        : t('booking.confirm')
+                      ? t('booking.continue_payment')
                       : t('booking.next')}
                     {!submitting && <NextIcon className="size-4" />}
                   </Button>
@@ -756,13 +847,11 @@ export function BookingFlow({ packages }: { packages: Package[] }) {
           <Button
             onClick={next}
             disabled={submitting}
-            className="h-11 min-w-[7.5rem] flex-1 gap-1 text-base shadow-md"
+            className="flex-fluid-btn h-11 gap-1 text-base shadow-md"
           >
             {submitting && <Loader2 className="size-4 animate-spin" />}
             {step === 3
-              ? stripeEnabled
-                ? t('booking.pay_stripe')
-                : t('booking.confirm')
+              ? t('booking.continue_payment')
               : t('booking.next')}
             {!submitting && <NextIcon className="size-4" />}
           </Button>

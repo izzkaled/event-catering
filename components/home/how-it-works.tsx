@@ -46,8 +46,8 @@ export function HowItWorks() {
 
   return (
     <section id="how" className="scroll-mt-20 border-t border-border py-16">
-      <div className="mx-auto w-full max-w-6xl px-4">
-        <div className="mx-auto max-w-2xl text-center">
+      <div className="site-container">
+        <div className="content-max text-center">
           <h2 className="text-balance text-3xl font-extrabold tracking-tight sm:text-4xl">
             {t('how.title')}
           </h2>
@@ -55,7 +55,7 @@ export function HowItWorks() {
         </div>
 
         <div className="relative mt-12">
-          <div className="absolute top-8 right-8 left-8 hidden h-0.5 bg-border lg:block" />
+          <div className="absolute inset-x-8 top-8 hidden h-0.5 bg-border lg:block" />
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-5">
             {steps.map((step, i) => {
               const Icon = step.icon

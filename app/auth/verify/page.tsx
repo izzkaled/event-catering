@@ -7,9 +7,9 @@ import { AuthVerifyForm } from '@/components/auth/auth-verify-form'
 
 export default function AuthVerifyPage() {
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="page-shell flex min-h-screen flex-col">
       <SiteHeader />
-      <main className="flex flex-1 items-center justify-center">
+      <main className="flex min-w-0 flex-1 items-center justify-center overflow-x-clip px-3">
         <Suspense>
           <AuthVerifyForm />
         </Suspense>

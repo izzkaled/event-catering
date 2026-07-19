@@ -1,0 +1,424 @@
+'use client'
+
+import { useCallback, useEffect, useRef, useState } from 'react'
+import {
+  CheckSquare,
+  FolderPlus,
+  Plus,
+  Square,
+  Trash2,
+  Upload,
+  X,
+} from 'lucide-react'
+import { toast } from 'sonner'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+
+type CollectionSummary = {
+  id: string
+  name: string
+  description: string | null
+  contact_count: number
+}
+
+type Contact = {
+  id: string
+  email: string
+  company_name: string | null
+}
+
+export function OutreachRecipients({
+  emails,
+  onEmailsChange,
+  companyName,
+  onCompanyNameChange,
+}: {
+  emails: string[]
+  onEmailsChange: (emails: string[]) => void
+  companyName: string
+  onCompanyNameChange: (name: string) => void
+}) {
+  const [collections, setCollections] = useState<CollectionSummary[]>([])
+  const [selectedCollectionId, setSelectedCollectionId] = useState('')
+  const [contacts, setContacts] = useState<Contact[]>([])
+  const [emailDraft, setEmailDraft] = useState('')
+  const [newCollectionName, setNewCollectionName] = useState('')
+  const [loadingCollections, setLoadingCollections] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [importing, setImporting] = useState(false)
+  const fileRef = useRef<HTMLInputElement>(null)
+
+  const loadCollections = useCallback(async () => {
+    const res = await fetch('/api/admin/email-collections')
+    if (!res.ok) {
+      setLoadingCollections(false)
+      return
+    }
+    const data = (await res.json()) as CollectionSummary[]
+    setCollections(data)
+    setLoadingCollections(false)
+  }, [])
+
+  useEffect(() => {
+    loadCollections()
+  }, [loadCollections])
+
+  const loadCollection = async (id: string) => {
+    setSelectedCollectionId(id)
+    if (!id) {
+      setContacts([])
+      return
+    }
+    const res = await fetch(`/api/admin/email-collections/${id}`)
+    if (!res.ok) {
+      toast.error('فشل تحميل المجموعة')
+      return
+    }
+    const data = await res.json()
+    setContacts(data.contacts || [])
+  }
+
+  const addEmail = async () => {
+    const value = emailDraft.trim().toLowerCase()
+    if (!value) return
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+      toast.error('صيغة الإيميل غير صحيحة')
+      return
+    }
+    if (!emails.includes(value)) {
+      onEmailsChange([...emails, value])
+    }
+    setEmailDraft('')
+
+    if (selectedCollectionId) {
+      const res = await fetch(`/api/admin/email-collections/${selectedCollectionId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          mode: 'merge',
+          emails: [{ email: value, company_name: companyName || undefined }],
+        }),
+      })
+      if (res.ok) {
+        const data = await res.json()
+        setContacts(data.contacts || [])
+        loadCollections()
+        toast.success('حُفظ في المجموعة')
+      }
+    }
+  }
+
+  const createCollection = async () => {
+    const name = newCollectionName.trim()
+    if (!name) {
+      toast.error('أدخل اسم المجموعة')
+      return
+    }
+    setSaving(true)
+    try {
+      const res = await fetch('/api/admin/email-collections', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name,
+          emails: emails.map((email) => ({ email, company_name: companyName || undefined })),
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'فشل الإنشاء')
+      toast.success('تم إنشاء المجموعة وحفظ الإيميلات')
+      setNewCollectionName('')
+      await loadCollections()
+      await loadCollection(data.id)
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'فشل الإنشاء')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const saveToSelected = async () => {
+    if (!selectedCollectionId) {
+      toast.error('اختر مجموعة أولاً أو أنشئ واحدة جديدة')
+      return
+    }
+    if (!emails.length) {
+      toast.error('لا توجد إيميلات للحفظ')
+      return
+    }
+    setSaving(true)
+    try {
+      const res = await fetch(`/api/admin/email-collections/${selectedCollectionId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          mode: 'merge',
+          emails: emails.map((email) => ({ email, company_name: companyName || undefined })),
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'فشل الحفظ')
+      setContacts(data.contacts || [])
+      await loadCollections()
+      toast.success('تم حفظ الإيميلات في المجموعة')
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'فشل الحفظ')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const importCsv = async (file: File) => {
+    let collectionId = selectedCollectionId
+    if (!collectionId) {
+      const name = newCollectionName.trim() || file.name.replace(/\.csv$/i, '') || 'مجموعة CSV'
+      const createRes = await fetch('/api/admin/email-collections', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name }),
+      })
+      const created = await createRes.json()
+      if (!createRes.ok) {
+        toast.error(created.error || 'فشل إنشاء مجموعة للاستيراد')
+        return
+      }
+      collectionId = created.id
+      setNewCollectionName('')
+      await loadCollections()
+    }
+
+    setImporting(true)
+    try {
+      const form = new FormData()
+      form.append('file', file)
+      form.append('mode', 'merge')
+      const res = await fetch(`/api/admin/email-collections/${collectionId}/import`, {
+        method: 'POST',
+        body: form,
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'فشل الاستيراد')
+      toast.success(`تم استيراد ${data.imported} إيميل (تم تخطي ${data.skipped})`)
+      await loadCollection(collectionId)
+      await loadCollections()
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'فشل الاستيراد')
+    } finally {
+      setImporting(false)
+    }
+  }
+
+  const toggleContact = (email: string) => {
+    if (emails.includes(email)) {
+      onEmailsChange(emails.filter((e) => e !== email))
+    } else {
+      onEmailsChange([...emails, email])
+    }
+  }
+
+  const selectAllContacts = () => {
+    const all = contacts.map((c) => c.email)
+    onEmailsChange([...new Set([...emails, ...all])])
+  }
+
+  const clearSelectionFromCollection = () => {
+    const set = new Set(contacts.map((c) => c.email))
+    onEmailsChange(emails.filter((e) => !set.has(e)))
+  }
+
+  const deleteCollection = async () => {
+    if (!selectedCollectionId) return
+    if (!confirm('حذف هذه المجموعة وكل إيميلاتها؟')) return
+    const res = await fetch(`/api/admin/email-collections/${selectedCollectionId}`, {
+      method: 'DELETE',
+    })
+    if (!res.ok) {
+      toast.error('فشل الحذف')
+      return
+    }
+    toast.success('تم حذف المجموعة')
+    setSelectedCollectionId('')
+    setContacts([])
+    loadCollections()
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-col gap-2">
+        <Label>اسم الشركة (اختياري)</Label>
+        <Input
+          value={companyName}
+          onChange={(e) => onCompanyNameChange(e.target.value)}
+          placeholder="مثال: شركة النور للعقارات"
+        />
+      </div>
+
+      <div className="rounded-xl border border-border bg-muted/20 p-3 space-y-3">
+        <div className="flex items-center justify-between gap-2">
+          <Label className="font-bold">المجموعات المحفوظة</Label>
+          {loadingCollections && <span className="text-xs text-muted-foreground">…</span>}
+        </div>
+
+        <select
+          className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+          value={selectedCollectionId}
+          onChange={(e) => loadCollection(e.target.value)}
+        >
+          <option value="">— اختر مجموعة —</option>
+          {collections.map((c) => (
+            <option key={c.id} value={c.id}>
+              {c.name} ({c.contact_count})
+            </option>
+          ))}
+        </select>
+
+        <div className="flex flex-col gap-2 sm:flex-row">
+          <Input
+            value={newCollectionName}
+            onChange={(e) => setNewCollectionName(e.target.value)}
+            placeholder="اسم مجموعة جديدة"
+            className="flex-1"
+          />
+          <Button type="button" variant="outline" disabled={saving} onClick={createCollection}>
+            <FolderPlus className="size-4" />
+            إنشاء وحفظ
+          </Button>
+        </div>
+
+        <div className="flex flex-wrap gap-2">
+          <Button type="button" size="sm" variant="secondary" disabled={saving} onClick={saveToSelected}>
+            حفظ المستلمين الحاليين في المجموعة
+          </Button>
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            disabled={importing}
+            onClick={() => fileRef.current?.click()}
+          >
+            <Upload className="size-3.5" />
+            {importing ? 'جاري الرفع…' : 'رفع CSV'}
+          </Button>
+          {selectedCollectionId && (
+            <Button type="button" size="sm" variant="ghost" className="text-destructive" onClick={deleteCollection}>
+              <Trash2 className="size-3.5" />
+              حذف المجموعة
+            </Button>
+          )}
+          <input
+            ref={fileRef}
+            type="file"
+            accept=".csv,text/csv"
+            className="hidden"
+            onChange={(e) => {
+              const file = e.target.files?.[0]
+              if (file) importCsv(file)
+              e.target.value = ''
+            }}
+          />
+        </div>
+
+        <p className="text-[11px] text-muted-foreground">
+          CSV: عمود <code>email</code> مطلوب، واختياري <code>company</code> / <code>notes</code>. إذا لم تختر
+          مجموعة، يُنشئ واحدة تلقائياً من اسم الملف.
+        </p>
+
+        {contacts.length > 0 && (
+          <div className="space-y-2">
+            <div className="flex flex-wrap gap-2">
+              <Button type="button" size="sm" variant="outline" onClick={selectAllContacts}>
+                <CheckSquare className="size-3.5" />
+                اختيار الكل ({contacts.length})
+              </Button>
+              <Button type="button" size="sm" variant="ghost" onClick={clearSelectionFromCollection}>
+                <Square className="size-3.5" />
+                إلغاء اختيار المجموعة
+              </Button>
+            </div>
+            <div className="max-h-40 overflow-y-auto rounded-lg border border-border bg-background p-2">
+              {contacts.map((c) => {
+                const selected = emails.includes(c.email)
+                return (
+                  <button
+                    key={c.id}
+                    type="button"
+                    onClick={() => toggleContact(c.email)}
+                    className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-start text-sm hover:bg-muted"
+                  >
+                    <span
+                      className={`flex size-4 shrink-0 items-center justify-center rounded border ${
+                        selected ? 'border-primary bg-primary text-primary-foreground' : 'border-input'
+                      }`}
+                    >
+                      {selected ? '✓' : ''}
+                    </span>
+                    <span className="min-w-0 flex-1 truncate" dir="ltr">
+                      {c.email}
+                    </span>
+                    {c.company_name && (
+                      <span className="truncate text-xs text-muted-foreground">{c.company_name}</span>
+                    )}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div className="flex flex-col gap-2">
+        <Label>إضافة إيميل الآن</Label>
+        <div className="flex gap-2">
+          <Input
+            dir="ltr"
+            type="email"
+            value={emailDraft}
+            onChange={(e) => setEmailDraft(e.target.value)}
+            placeholder="company@example.com"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault()
+                addEmail()
+              }
+            }}
+          />
+          <Button type="button" variant="outline" onClick={addEmail}>
+            <Plus className="size-4" />
+          </Button>
+        </div>
+        {selectedCollectionId && (
+          <p className="text-[11px] text-muted-foreground">يُحفظ تلقائياً في المجموعة المختارة.</p>
+        )}
+      </div>
+
+      <div className="flex min-h-[72px] flex-wrap gap-2 rounded-xl border border-dashed border-border p-3">
+        {emails.length === 0 && (
+          <p className="w-full self-center text-center text-xs text-muted-foreground">
+            لا مستلمين بعد — أضف أو اختر من مجموعة
+          </p>
+        )}
+        {emails.map((email) => (
+          <Badge key={email} variant="secondary" className="gap-1 font-normal" dir="ltr">
+            {email}
+            <button
+              type="button"
+              className="ms-0.5 rounded-full p-0.5 hover:bg-muted"
+              onClick={() => onEmailsChange(emails.filter((e) => e !== email))}
+            >
+              <X className="size-3" />
+            </button>
+          </Badge>
+        ))}
+      </div>
+
+      {emails.length > 0 && (
+        <Button type="button" variant="ghost" size="sm" className="text-destructive" onClick={() => onEmailsChange([])}>
+          <Trash2 className="size-3.5" />
+          مسح المستلمين الحاليين (بدون حذف من المجموعة)
+        </Button>
+      )}
+    </div>
+  )
+}

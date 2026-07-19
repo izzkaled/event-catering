@@ -369,7 +369,7 @@ export function AuthEmailForm({ mode = 'login', adminOnly = false }: AuthEmailFo
 
   if (mode === 'signup' && !adminOnly) {
     return (
-      <div dir={dir} className="mx-auto grid w-full max-w-4xl gap-6 lg:grid-cols-[1fr_1.1fr] lg:gap-8">
+      <div dir={dir} className="site-container-xl grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
         <Card className="hidden border-primary/15 bg-primary/5 lg:flex lg:flex-col lg:justify-center">
           <CardContent className="space-y-6 p-8">
             <div className="space-y-2">
@@ -407,7 +407,7 @@ export function AuthEmailForm({ mode = 'login', adminOnly = false }: AuthEmailFo
   }
 
   return (
-    <div dir={dir} className="mx-auto w-full max-w-md">
+    <div dir={dir} className="site-container-compact py-10">
       {formCard}
     </div>
   )

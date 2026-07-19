@@ -12,8 +12,9 @@ import {
 import { useLanguage } from '@/components/language-provider'
 import type { Package as Pkg } from '@/lib/db/schema'
 import { cn } from '@/lib/utils'
+import { formatBookingDate, subscriptionEndDate } from '@/lib/booking/schedule'
 
-const stripeEnabled = Boolean(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY?.trim())
+const paymobEnabled = Boolean(process.env.NEXT_PUBLIC_PAYMOB_PUBLIC_KEY?.trim())
 
 type OrderSummaryProps = {
   pkg: Pkg
@@ -41,6 +42,7 @@ export function OrderSummary({
   const { lang, t } = useLanguage()
   const name = lang === 'ar' ? pkg.name_ar : pkg.name_en
   const price = parseFloat(pkg.price_omr).toFixed(2)
+  const endDate = startDate ? subscriptionEndDate(startDate) : null
 
   const sections = [
     {
@@ -50,7 +52,7 @@ export function OrderSummary({
         { label: lang === 'ar' ? 'الباقة' : 'Package', value: name },
         {
           label: lang === 'ar' ? 'التفاصيل' : 'Details',
-          value: `${pkg.hours_per_visit} ${t('booking.hours')} · ${pkg.visits_per_week} ${t('booking.visitsPerWeek')}`,
+          value: `${pkg.hours_per_visit} ${t('booking.hours')} · ${pkg.visits_per_week} ${t('booking.visitsPerWeek')} · ${pkg.visits_per_month} ${t('booking.visitsPerMonth')}`,
         },
       ],
     },
@@ -74,10 +76,22 @@ export function OrderSummary({
             title: lang === 'ar' ? 'الموعد' : 'Schedule',
             icon: Calendar,
             rows: [
-              ...(startDate ? [{ label: t('booking.date'), value: startDate }] : []),
+              ...(startDate
+                ? [
+                    { label: t('booking.date'), value: formatBookingDate(startDate, lang) },
+                    ...(endDate
+                      ? [{ label: t('booking.endDate'), value: formatBookingDate(endDate, lang) }]
+                      : []),
+                  ]
+                : []),
               ...(preferredTime ? [{ label: t('booking.time'), value: preferredTime }] : []),
               ...(preferredDays?.length
-                ? [{ label: t('booking.days'), value: preferredDays.join(' · ') }]
+                ? [
+                    {
+                      label: t('booking.daysRequired'),
+                      value: `${preferredDays.join(' · ')} (${preferredDays.length}/${pkg.visits_per_week})`,
+                    },
+                  ]
                 : []),
             ],
           },
@@ -97,9 +111,9 @@ export function OrderSummary({
             </div>
             <div className="space-y-2 rounded-xl bg-secondary/40 p-3">
               {section.rows.map((row) => (
-                <div key={row.label} className="flex items-start justify-between gap-3 text-sm">
+                <div key={row.label} className="flex min-w-0 items-start justify-between gap-3 text-sm">
                   <span className="shrink-0 text-muted-foreground">{row.label}</span>
-                  <span className="text-end font-medium leading-snug">{row.value}</span>
+                  <span className="text-safe text-end font-medium leading-snug">{row.value}</span>
                 </div>
               ))}
             </div>
@@ -120,10 +134,10 @@ export function OrderSummary({
             <CreditCard className="mt-0.5 size-3.5 shrink-0" />
             <div>
               <p className="font-medium text-foreground">
-                {stripeEnabled ? t('booking.payment_stripe') : t('booking.payment_method')}
+                {paymobEnabled ? t('booking.payment_stripe') : t('booking.payment_method')}
               </p>
               <p className="mt-0.5">
-                {stripeEnabled ? t('booking.payment_stripe_info') : t('booking.payment_info')}
+                {paymobEnabled ? t('booking.payment_stripe_info') : t('booking.payment_info')}
               </p>
             </div>
           </div>

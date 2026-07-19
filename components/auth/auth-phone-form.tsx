@@ -83,7 +83,7 @@ export function AuthPhoneForm({ mode = 'login', adminOnly = false }: AuthPhoneFo
   }
 
   return (
-    <div dir={dir} className="mx-auto w-full max-w-lg px-4 py-10">
+    <div dir={dir} className="site-container-tight py-10">
       <Card>
         <CardHeader>
           <CardTitle>

@@ -10,8 +10,8 @@ export function AreasSection() {
 
   return (
     <section className="border-t border-border bg-primary/5 py-14">
-      <div className="mx-auto w-full max-w-6xl px-4 text-center">
-        <div className="mx-auto mb-8 max-w-2xl">
+      <div className="site-container text-center">
+        <div className="content-max mb-8">
           <h2 className="text-2xl font-extrabold sm:text-3xl">{t('areas.title')}</h2>
           <p className="mt-2 text-muted-foreground">{t('areas.subtitle')}</p>
         </div>

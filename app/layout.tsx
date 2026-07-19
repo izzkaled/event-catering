@@ -42,8 +42,12 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="ar" dir="rtl" className={`${cairo.variable} ${geistMono.variable} bg-background`}>
-      <body className="font-sans antialiased">
+    <html
+      lang="ar"
+      dir="rtl"
+      className={`${cairo.variable} ${geistMono.variable} bg-background overflow-x-clip`}
+    >
+      <body className="font-sans antialiased min-w-0 overflow-x-clip">
         <LanguageProvider>
           {children}
           <VisitorTracker />

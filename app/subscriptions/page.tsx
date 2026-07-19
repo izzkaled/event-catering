@@ -40,9 +40,9 @@ export default function MySubscriptionsPage() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen flex-col">
+      <div className="page-shell flex min-h-screen flex-col">
         <SiteHeader />
-        <main className="flex flex-1 items-center justify-center p-8 text-muted-foreground">
+        <main className="flex min-w-0 flex-1 items-center justify-center overflow-x-clip p-8 text-muted-foreground">
           {t('جاري التحميل...', 'Loading...')}
         </main>
         <SiteFooter />
@@ -51,9 +51,9 @@ export default function MySubscriptionsPage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="page-shell flex min-h-screen flex-col">
       <SiteHeader />
-      <main dir={dir} className="mx-auto w-full max-w-3xl flex-1 px-3 py-6 pb-24 sm:px-4 sm:py-10 sm:pb-10">
+      <main dir={dir} className="site-container-narrow min-w-0 flex-1 overflow-x-clip py-6 pb-24 sm:py-10 sm:pb-10">
         <div className="mb-6 flex flex-col gap-3 sm:mb-8 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between">
           <div>
             <h1 className="text-xl font-bold tracking-tight sm:text-2xl">{t('اشتراكاتي', 'My subscriptions')}</h1>

@@ -153,7 +153,7 @@ export function AuthVerifyForm() {
   if (!email) return null
 
   return (
-    <div dir={dir} className="mx-auto w-full max-w-lg px-4 py-10">
+    <div dir={dir} className="site-container-tight py-10">
       <Card>
         <CardHeader>
           <CardTitle>{t('رمز التحقق', 'Verification code')}</CardTitle>

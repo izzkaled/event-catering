@@ -12,11 +12,11 @@ export function Hero() {
   return (
     <section className="relative overflow-hidden">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-primary/10 via-background to-background" />
-      <div className="pointer-events-none absolute -left-32 top-20 size-96 rounded-full bg-accent/10 blur-3xl" />
-      <div className="pointer-events-none absolute -right-32 bottom-0 size-80 rounded-full bg-primary/10 blur-3xl" />
+      <div className="pointer-events-none absolute -start-32 top-20 size-96 rounded-full bg-accent/10 blur-3xl" />
+      <div className="pointer-events-none absolute -end-32 bottom-0 size-80 rounded-full bg-primary/10 blur-3xl" />
 
-      <div className="relative mx-auto grid w-full max-w-6xl items-center gap-8 px-4 py-10 sm:gap-10 sm:py-14 lg:grid-cols-2 lg:gap-12 lg:py-24">
-        <div className={`flex flex-col gap-5 sm:gap-6 ${dir === 'rtl' ? 'text-center lg:text-right' : 'text-center lg:text-left'}`}>
+      <div className="site-container relative grid items-center gap-8 py-10 sm:gap-10 sm:py-14 lg:grid-cols-2 lg:gap-12 lg:py-24">
+        <div className={`flex flex-col gap-5 sm:gap-6 ${dir === 'rtl' ? 'text-center lg:text-end' : 'text-center lg:text-start'}`}>
           <span className="mx-auto inline-flex w-fit items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-3 py-1.5 text-xs font-semibold text-primary sm:px-4 sm:text-sm lg:mx-0">
             <MapPin className="size-4" />
             {t('hero.badge')}
@@ -72,7 +72,7 @@ export function Hero() {
           </div>
         </div>
 
-        <div className="relative mx-auto w-full max-w-md lg:max-w-none">
+        <div className="relative mx-auto w-full max-w-[min(28rem,90vw)] lg:max-w-none">
           <div className="overflow-hidden rounded-3xl border border-border/80 shadow-2xl shadow-primary/10">
             <Image
               src="/images/hero-cleaning.png"

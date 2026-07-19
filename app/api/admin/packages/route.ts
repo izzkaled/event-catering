@@ -3,6 +3,7 @@ import { asc } from 'drizzle-orm'
 import { verifyAdmin } from '@/lib/admin-auth'
 import { db } from '@/lib/db'
 import { packages } from '@/lib/db/schema'
+import { visitsPerMonthFromWeekly } from '@/lib/booking/schedule'
 
 export const dynamic = 'force-dynamic'
 
@@ -32,12 +33,24 @@ export async function POST(request: Request) {
       visits_per_week,
       visits_per_month,
       price_omr,
+      section_id,
+      is_popular,
       sort_order = 0,
     } = body
 
-    if (!name_ar || !name_en || !hours_per_visit || !visits_per_week || !visits_per_month || !price_omr) {
+    if (!name_ar || !name_en || !hours_per_visit || !visits_per_week || !price_omr) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
     }
+
+    const weekly = Number.parseInt(String(visits_per_week), 10)
+    if (!Number.isFinite(weekly) || weekly < 1 || weekly > 7) {
+      return NextResponse.json({ error: 'visits_per_week must be between 1 and 7' }, { status: 400 })
+    }
+
+    const monthly =
+      visits_per_month != null && visits_per_month !== ''
+        ? Number.parseInt(String(visits_per_month), 10)
+        : visitsPerMonthFromWeekly(weekly)
 
     const [pkg] = await db
       .insert(packages)
@@ -45,8 +58,11 @@ export async function POST(request: Request) {
         name_ar,
         name_en,
         hours_per_visit,
-        visits_per_week,
-        visits_per_month,
+        visits_per_week: weekly,
+        visits_per_month: monthly,
+        section_id: section_id || null,
+        is_popular: Boolean(is_popular),
+        is_featured: Boolean(is_popular),
         price_omr: parseFloat(String(price_omr)).toFixed(2),
         sort_order,
       })

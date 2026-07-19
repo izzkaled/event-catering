@@ -1,4 +1,3 @@
-import { asc, eq } from 'drizzle-orm'
 import { SiteHeader } from '@/components/site-header'
 import { SiteFooter } from '@/components/site-footer'
 import { Hero } from '@/components/home/hero'
@@ -7,18 +6,13 @@ import { PackagesPreview } from '@/components/home/packages-preview'
 import { AreasSection } from '@/components/home/areas-section'
 import { HowItWorks } from '@/components/home/how-it-works'
 import { CtaBanner } from '@/components/home/cta-banner'
-import { db } from '@/lib/db'
-import { packages } from '@/lib/db/schema'
+import { getActivePackagesWithSections } from '@/lib/packages/queries'
 
 export const dynamic = 'force-dynamic'
 
 async function getPackages() {
   try {
-    return await db
-      .select()
-      .from(packages)
-      .where(eq(packages.is_active, true))
-      .orderBy(asc(packages.sort_order))
+    return await getActivePackagesWithSections()
   } catch {
     return []
   }
@@ -28,9 +22,9 @@ export default async function HomePage() {
   const activePackages = await getPackages()
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="page-shell flex min-h-screen flex-col">
       <SiteHeader />
-      <main className="flex-1">
+      <main className="min-w-0 flex-1 overflow-x-clip">
         <Hero />
         <ServicesSection />
         <PackagesPreview packages={activePackages} />

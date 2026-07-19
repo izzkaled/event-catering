@@ -78,7 +78,13 @@ export function validateOrderPayload(
     return { ok: false, error: 'Invalid preferred time' }
   }
   if (!preferred_days.length) {
-    return { ok: false, error: 'Select at least one preferred day' }
+    return { ok: false, error: 'Select preferred days' }
+  }
+  if (preferred_days.length !== pkg.visits_per_week) {
+    return {
+      ok: false,
+      error: `Select exactly ${pkg.visits_per_week} preferred day(s) for this package`,
+    }
   }
   if (!preferred_days.every((d) => WEEK_DAYS_AR.includes(d as (typeof WEEK_DAYS_AR)[number]))) {
     return { ok: false, error: 'Invalid preferred days' }

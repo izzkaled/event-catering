@@ -8,6 +8,34 @@
       "when": 1782334869662,
       "tag": "0000_demonic_baron_strucker",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1782335000000,
+      "tag": "0001_subscriptions_fields",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1784140000000,
+      "tag": "0002_payment_system",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1785000000000,
+      "tag": "0003_package_sections",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1785100000000,
+      "tag": "0004_email_collections",
+      "breakpoints": true
     }
   ]
 }

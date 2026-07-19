@@ -8,10 +8,26 @@ import {
   timestamp,
   boolean,
   index,
+  uniqueIndex,
 } from 'drizzle-orm/pg-core'
+
+/** Service category — cleaning today; laundry, deep clean, etc. later. */
+export const packageSections = pgTable('package_sections', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  slug: text('slug').unique().notNull(),
+  name_ar: text('name_ar').notNull(),
+  name_en: text('name_en').notNull(),
+  description_ar: text('description_ar'),
+  description_en: text('description_en'),
+  sort_order: integer('sort_order').default(0).notNull(),
+  is_active: boolean('is_active').default(true).notNull(),
+  created_at: timestamp('created_at').defaultNow(),
+  updated_at: timestamp('updated_at').defaultNow(),
+})
 
 export const packages = pgTable('packages', {
   id: uuid('id').defaultRandom().primaryKey(),
+  section_id: uuid('section_id').references(() => packageSections.id),
   name_ar: text('name_ar').notNull(),
   name_en: text('name_en').notNull(),
   hours_per_visit: integer('hours_per_visit').notNull(),
@@ -19,11 +35,16 @@ export const packages = pgTable('packages', {
   visits_per_month: integer('visits_per_month').notNull(),
   price_omr: decimal('price_omr', { precision: 10, scale: 2 }).notNull(),
   is_active: boolean('is_active').default(true).notNull(),
+  /** Green “most popular” badge in storefront */
+  is_popular: boolean('is_popular').default(false).notNull(),
+  /** @deprecated use is_popular — kept for backward compatibility */
   is_featured: boolean('is_featured').default(false),
   sort_order: integer('sort_order').default(0),
   created_at: timestamp('created_at').defaultNow(),
   updated_at: timestamp('updated_at').defaultNow(),
-})
+}, (table) => [
+  index('packages_section_id_idx').on(table.section_id),
+])
 
 export const users = pgTable('users', {
   id: uuid('id').defaultRandom().primaryKey(),
@@ -71,15 +92,27 @@ export const orders = pgTable('orders', {
 
   status: text('status').default('pending').notNull(),
 
+  /** paymob | bank_transfer | stripe (legacy) */
   payment_method: text('payment_method').default('bank_transfer').notNull(),
+  /** unpaid | pending_verification | paid | failed | refunded | partially_refunded */
   payment_status: text('payment_status').default('unpaid').notNull(),
   stripe_checkout_session_id: text('stripe_checkout_session_id'),
+  paymob_intention_id: text('paymob_intention_id'),
+  paymob_transaction_id: text('paymob_transaction_id'),
+  payment_reference: text('payment_reference'),
+  paid_at: timestamp('paid_at'),
+  refund_status: text('refund_status'),
+  refund_amount_omr: decimal('refund_amount_omr', { precision: 10, scale: 2 }),
+  invoice_url: text('invoice_url'),
+  transfer_receipt_url: text('transfer_receipt_url'),
+  verification_notes: text('verification_notes'),
 
   created_at: timestamp('created_at').defaultNow(),
   updated_at: timestamp('updated_at').defaultNow(),
 }, (table) => [
   index('orders_user_id_idx').on(table.user_id),
   index('orders_status_idx').on(table.status),
+  index('orders_payment_status_idx').on(table.payment_status),
   index('orders_created_at_idx').on(table.created_at),
 ])
 
@@ -120,9 +153,44 @@ export const otpCodes = pgTable('otp_codes', {
   index('otp_codes_phone_idx').on(table.phone),
 ])
 
+/** Named email lists for AI outreach (companies, partners, etc.) */
+export const emailCollections = pgTable('email_collections', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  name: text('name').notNull(),
+  description: text('description'),
+  created_at: timestamp('created_at').defaultNow(),
+  updated_at: timestamp('updated_at').defaultNow(),
+})
+
+export const emailContacts = pgTable('email_contacts', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  collection_id: uuid('collection_id')
+    .notNull()
+    .references(() => emailCollections.id, { onDelete: 'cascade' }),
+  email: text('email').notNull(),
+  company_name: text('company_name'),
+  notes: text('notes'),
+  created_at: timestamp('created_at').defaultNow(),
+}, (table) => [
+  index('email_contacts_collection_id_idx').on(table.collection_id),
+  uniqueIndex('email_contacts_collection_email_uidx').on(table.collection_id, table.email),
+])
+
+export type PackageSection = typeof packageSections.$inferSelect
 export type Package = typeof packages.$inferSelect
 export type Order = typeof orders.$inferSelect
 export type ScheduleEvent = typeof schedule_events.$inferSelect
 export type User = typeof users.$inferSelect
+export type EmailCollection = typeof emailCollections.$inferSelect
+export type EmailContact = typeof emailContacts.$inferSelect
 export type UserRole = 'user' | 'admin'
 export type OrderStatus = 'pending' | 'confirmed' | 'active' | 'cancelled' | 'completed'
+export type PaymentMethod = 'paymob' | 'bank_transfer' | 'stripe'
+export type PaymentStatus =
+  | 'unpaid'
+  | 'pending_verification'
+  | 'paid'
+  | 'failed'
+  | 'refunded'
+  | 'partially_refunded'
+  | 'not_required'

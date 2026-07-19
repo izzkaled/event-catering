@@ -9,6 +9,7 @@ import {
   Bot,
   CalendarDays,
   ClipboardList,
+  CreditCard,
   FileText,
   Home,
   LayoutDashboard,
@@ -26,6 +27,7 @@ import { authClient } from '@/lib/auth-client'
 const nav = [
   { href: '/admin', key: 'admin.nav.dashboard' as const, icon: LayoutDashboard },
   { href: '/admin/orders', key: 'admin.nav.orders' as const, icon: ClipboardList },
+  { href: '/admin/payments', key: 'admin.nav.payments' as const, icon: CreditCard },
   { href: '/admin/customers', key: 'admin.nav.customers' as const, icon: Users },
   { href: '/admin/packages', key: 'admin.nav.packages' as const, icon: Package },
   { href: '/admin/content-studio', key: 'admin.nav.contentStudio' as const, icon: FileText },
@@ -78,8 +80,8 @@ export function AdminAppShell({ children }: { children: ReactNode }) {
   )
 
   return (
-    <div className="flex min-h-screen bg-background" dir={dir}>
-      <aside className="hidden w-72 shrink-0 flex-col border-l border-sidebar-border bg-sidebar p-4 lg:flex">
+    <div className="page-shell flex min-h-screen bg-background" dir={dir}>
+      <aside className="hidden w-full max-w-72 shrink-0 flex-col border-e border-sidebar-border bg-sidebar p-4 lg:flex">
         <Link href="/" className="mb-6 flex items-center gap-2 px-2">
           <BrandLogo size="md" subtitle="Admin" />
         </Link>
@@ -104,7 +106,7 @@ export function AdminAppShell({ children }: { children: ReactNode }) {
             className="absolute inset-0 bg-foreground/40"
             onClick={() => setOpen(false)}
           />
-          <aside className="absolute inset-y-0 right-0 flex w-72 flex-col border-l border-sidebar-border bg-sidebar p-4">
+          <aside className="absolute inset-y-0 end-0 flex w-full max-w-[min(18rem,85vw)] flex-col border-s border-sidebar-border bg-sidebar p-4">
             <div className="mb-6 flex items-center justify-between px-2">
               <BrandLogo size="md" subtitle="Admin" />
               <button type="button" onClick={() => setOpen(false)} aria-label="Close">
@@ -144,7 +146,7 @@ export function AdminAppShell({ children }: { children: ReactNode }) {
             <span className="hidden text-sm text-muted-foreground sm:inline">{t('admin.title')}</span>
           </div>
         </header>
-        <main className="flex-1 overflow-x-hidden p-4 lg:p-8">{children}</main>
+        <main className="flex-1 overflow-x-clip p-4 lg:p-8">{children}</main>
       </div>
     </div>
   )

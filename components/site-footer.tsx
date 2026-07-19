@@ -16,8 +16,8 @@ export function SiteFooter() {
       : 'Professional home cleaning in Muscat. Flexible packages with transparent OMR pricing.'
 
   return (
-    <footer className="border-t border-border bg-secondary/40">
-      <div className="mx-auto grid w-full max-w-6xl gap-8 px-4 py-12 sm:grid-cols-2 lg:grid-cols-3">
+    <footer className="min-w-0 w-full overflow-x-clip border-t border-border bg-secondary/40">
+      <div className="site-container grid gap-8 py-12 sm:grid-cols-2 lg:grid-cols-3">
         <div className="flex flex-col gap-3">
           <Link href="/" className="flex items-center gap-2">
             <BrandLogo subtitle="نظافة بلس · Muscat" />
@@ -57,7 +57,7 @@ export function SiteFooter() {
         </div>
       </div>
       <div className="border-t border-border">
-        <div className="mx-auto w-full max-w-6xl px-4 py-4 text-center text-sm text-muted-foreground">
+        <div className="site-container py-4 text-center text-sm text-muted-foreground">
           © 2026 Speedy Cleaning Services. جميع الحقوق محفوظة.
         </div>
       </div>

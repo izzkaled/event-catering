@@ -8,9 +8,9 @@ import { AuthPageShell } from '@/components/auth/auth-page-shell'
 
 export default function AuthLoginPage() {
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="page-shell flex min-h-screen flex-col">
       <SiteHeader />
-      <main className="flex flex-1 flex-col">
+      <main className="flex min-w-0 flex-1 flex-col overflow-x-clip">
         <AuthPageShell>
           <Suspense>
             <AuthEmailForm mode="login" />

@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react'
 import { CalendarPlus, User } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { BrandLogo } from '@/components/brand-logo'
+import { HeaderBrandMotion } from '@/components/header-brand-motion'
 import { LanguageSwitcher } from '@/components/language-switcher'
 import { useLanguage } from '@/components/language-provider'
 import { cn } from '@/lib/utils'
@@ -38,18 +39,21 @@ export function SiteHeader() {
   ]
 
   return (
-    <header className="sticky top-0 z-50 w-full min-w-0 overflow-x-clip border-b border-border/80 bg-background/90 pt-safe shadow-sm backdrop-blur-md">
-      <div className="site-container grid h-14 min-h-14 grid-cols-[minmax(0,1fr)_auto] items-center gap-2 sm:h-16 md:grid-cols-[minmax(0,1fr)_auto_auto] md:gap-3">
+    <header className="relative sticky top-0 z-50 w-full min-w-0 overflow-x-clip border-b border-brand-sand/25 bg-brand-cream/92 pt-safe shadow-[0_1px_0_color-mix(in_srgb,var(--brand-palm)_4%,transparent)] backdrop-blur-md">
+      <HeaderBrandMotion />
+
+      <div className="site-container relative z-10 grid h-14 min-h-14 grid-cols-[minmax(0,1fr)_auto] items-center gap-2 sm:h-[4.25rem] md:grid-cols-[minmax(0,1fr)_auto_auto] md:gap-3">
         <Link
           href="/"
-          className="flex min-w-0 items-center gap-2 overflow-hidden rounded-xl transition-opacity hover:opacity-90"
+          className="flex min-w-0 items-center gap-2 overflow-hidden rounded-lg transition-opacity hover:opacity-90"
+          aria-label="خوصة · KHOUSA"
         >
-          <BrandLogo showText={false} className="min-w-0 sm:hidden" />
-          <BrandLogo subtitle="نظافة بلس · Muscat" className="hidden min-w-0 sm:flex" />
+          <BrandLogo size="sm" className="min-w-0 sm:hidden" />
+          <BrandLogo size="md" className="hidden min-w-0 sm:flex" />
         </Link>
 
         <nav
-          className="hidden min-w-0 items-center gap-0.5 overflow-x-auto rounded-xl border border-border/60 bg-secondary/40 p-1 [-ms-overflow-style:none] [scrollbar-width:none] md:flex [&::-webkit-scrollbar]:hidden"
+          className="hidden min-w-0 items-center gap-0.5 overflow-x-auto rounded-xl border border-brand-sand/30 bg-secondary/50 p-1 [-ms-overflow-style:none] [scrollbar-width:none] md:flex [&::-webkit-scrollbar]:hidden"
           aria-label={lang === 'ar' ? 'القائمة الرئيسية' : 'Main navigation'}
         >
           {navLinks.map((link) => {
@@ -61,8 +65,8 @@ export function SiteHeader() {
                 className={cn(
                   'shrink-0 whitespace-nowrap rounded-lg px-3 py-1.5 text-sm font-semibold transition-colors',
                   active
-                    ? 'bg-background text-primary shadow-sm ring-1 ring-primary/15'
-                    : 'text-muted-foreground hover:bg-background/70 hover:text-foreground',
+                    ? 'bg-card text-brand-palm shadow-sm ring-1 ring-brand-sand/35'
+                    : 'text-muted-foreground hover:bg-card/80 hover:text-brand-palm',
                 )}
               >
                 {link.label}
@@ -81,8 +85,8 @@ export function SiteHeader() {
                 variant="outline"
                 size="sm"
                 className={cn(
-                  'gap-1.5 border-border/80 bg-background/80',
-                  pathname?.startsWith('/profile') && 'border-primary/30 bg-primary/5 text-primary',
+                  'gap-1.5 border-brand-sand/35 bg-card/80',
+                  pathname?.startsWith('/profile') && 'border-brand-sand/50 bg-brand-sand/10 text-brand-palm',
                 )}
               >
                 <User className="size-4 shrink-0" />
@@ -94,7 +98,7 @@ export function SiteHeader() {
                 nativeButton={false}
                 variant="outline"
                 size="sm"
-                className="border-border/80 bg-background/80 whitespace-nowrap"
+                className="border-brand-sand/35 bg-card/80 whitespace-nowrap"
               >
                 {t('nav.login')}
               </Button>
@@ -103,7 +107,7 @@ export function SiteHeader() {
               render={<Link href="/booking" />}
               nativeButton={false}
               size="sm"
-              className="gap-1.5 whitespace-nowrap shadow-md shadow-primary/15"
+              className="gap-1.5 whitespace-nowrap bg-brand-palm text-brand-cream shadow-md shadow-brand-palm/20 hover:bg-brand-palm/90"
             >
               <CalendarPlus className="size-4 shrink-0" />
               {t('nav.booking')}

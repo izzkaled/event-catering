@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { CalendarPlus, Home, Layers, UserRound } from 'lucide-react'
 import { useLanguage } from '@/components/language-provider'
 import { cn } from '@/lib/utils'
@@ -13,6 +13,7 @@ export function MobileBottomNav() {
   const pathname = usePathname()
   const { t, dir, lang } = useLanguage()
   const [loggedIn, setLoggedIn] = useState(false)
+  const navRef = useRef<HTMLElement>(null)
 
   useEffect(() => {
     fetch('/api/profile')
@@ -21,6 +22,52 @@ export function MobileBottomNav() {
   }, [pathname])
 
   const hidden = HIDDEN_PREFIXES.some((p) => pathname?.startsWith(p))
+
+  /** Keep bar stuck to the visible screen bottom (mobile browser chrome / keyboard). */
+  useEffect(() => {
+    if (hidden) return
+
+    let disposed = false
+    let sync: (() => void) | null = null
+    let nav: HTMLElement | null = null
+
+    const attach = () => {
+      if (disposed) return
+      nav = navRef.current
+      if (!nav) return
+
+      sync = () => {
+        if (!nav) return
+        const vv = window.visualViewport
+        if (!vv) {
+          nav.style.removeProperty('transform')
+          return
+        }
+        const shift = Math.round(window.innerHeight - vv.height - vv.offsetTop)
+        nav.style.transform = shift ? `translate3d(0, ${-shift}px, 0)` : 'translate3d(0, 0, 0)'
+      }
+
+      sync()
+      window.visualViewport?.addEventListener('resize', sync)
+      window.visualViewport?.addEventListener('scroll', sync)
+      window.addEventListener('resize', sync)
+      window.addEventListener('orientationchange', sync)
+    }
+
+    const raf = window.requestAnimationFrame(attach)
+
+    return () => {
+      disposed = true
+      window.cancelAnimationFrame(raf)
+      if (sync) {
+        window.visualViewport?.removeEventListener('resize', sync)
+        window.visualViewport?.removeEventListener('scroll', sync)
+        window.removeEventListener('resize', sync)
+        window.removeEventListener('orientationchange', sync)
+      }
+    }
+  }, [hidden])
+
   if (hidden) return null
 
   const accountHref = loggedIn ? '/profile' : '/auth/login'
@@ -59,12 +106,13 @@ export function MobileBottomNav() {
 
   return (
     <>
-      <div className="h-[calc(4rem+env(safe-area-inset-bottom))] md:hidden" aria-hidden />
+      <div className="h-[calc(4rem+env(safe-area-inset-bottom,0px))] md:hidden" aria-hidden />
 
       <nav
+        ref={navRef}
         dir={dir}
         aria-label={lang === 'ar' ? 'التنقل السفلي' : 'Bottom navigation'}
-        className="fixed inset-x-0 bottom-0 z-50 border-t border-border/80 bg-background/95 pb-[env(safe-area-inset-bottom)] shadow-[0_-2px_16px_rgba(15,23,42,0.06)] backdrop-blur-md md:hidden"
+        className="fixed inset-x-0 bottom-0 z-50 border-t border-border/80 bg-background/95 pb-[env(safe-area-inset-bottom,0px)] shadow-[0_-2px_16px_color-mix(in_srgb,#223826_8%,transparent)] backdrop-blur-md md:hidden [transform:translate3d(0,0,0)] [backface-visibility:hidden]"
       >
         <ul className="grid h-16 grid-cols-4">
           {items.map((item) => {

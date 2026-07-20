@@ -20,13 +20,13 @@ export function SiteFooter() {
       <div className="site-container grid gap-8 py-12 sm:grid-cols-2 lg:grid-cols-3">
         <div className="flex flex-col gap-3">
           <Link href="/" className="flex items-center gap-2">
-            <BrandLogo subtitle="نظافة بلس · Muscat" />
+            <BrandLogo size="md" />
           </Link>
           <p className="text-sm leading-relaxed text-muted-foreground">{desc}</p>
         </div>
 
         <div className="flex flex-col gap-3">
-          <h3 className="text-sm font-bold">روابط سريعة</h3>
+          <h3 className="text-sm font-bold text-brand-palm">روابط سريعة</h3>
           <Link href="/#services" className="touch-target flex min-h-10 items-center text-sm text-muted-foreground hover:text-foreground">
             {t('nav.services')}
           </Link>
@@ -36,29 +36,29 @@ export function SiteFooter() {
         </div>
 
         <div className="flex flex-col gap-3">
-          <h3 className="text-sm font-bold">تواصل معنا</h3>
+          <h3 className="text-sm font-bold text-brand-palm">تواصل معنا</h3>
           <a
             href={`https://wa.me/${WHATSAPP}`}
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
           >
-            <Phone className="size-4 text-primary" />
+            <Phone className="size-4 text-brand-terracotta" />
             {t('footer.whatsapp')}: 77222432
           </a>
           <span className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Mail className="size-4 text-primary" />
+            <Mail className="size-4 text-brand-terracotta" />
             Izzkaled@gmail.com
           </span>
           <span className="flex items-center gap-2 text-sm text-muted-foreground">
-            <MapPin className="size-4 text-primary" />
+            <MapPin className="size-4 text-brand-terracotta" />
             {t('footer.location')}
           </span>
         </div>
       </div>
       <div className="border-t border-border">
         <div className="site-container py-4 text-center text-sm text-muted-foreground">
-          © 2026 Speedy Cleaning Services. جميع الحقوق محفوظة.
+          © 2026 خوصة · KHOUSA Oman. جميع الحقوق محفوظة.
         </div>
       </div>
     </footer>

@@ -1,7 +1,7 @@
 'use client'
 
 import { Fragment, useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import {
   CalendarDays,
   Check,
@@ -99,6 +99,7 @@ function StepHeader({
 
 export function BookingFlow({ packages }: { packages: PackageWithSection[] }) {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { lang, t, dir } = useLanguage()
 
   const steps = [
@@ -137,6 +138,7 @@ export function BookingFlow({ packages }: { packages: PackageWithSection[] }) {
 
     async function hydrate() {
       const draft = getCheckoutDraft<BookingDraft>()
+      let appliedFromDraft = false
 
       if (draft) {
         setStep(draft.step)
@@ -151,9 +153,21 @@ export function BookingFlow({ packages }: { packages: PackageWithSection[] }) {
         setPreferredDays(draft.preferredDays)
         if (draft.selectedPackageId) {
           const pkg = packages.find((p) => p.id === draft.selectedPackageId)
-          if (pkg) setSelectedPkg(pkg)
+          if (pkg) {
+            setSelectedPkg(pkg)
+            appliedFromDraft = true
+          }
         }
         clearCheckoutDraft()
+      }
+
+      // Deep-link from chat: /booking?package=<id>
+      if (!appliedFromDraft) {
+        const packageId = searchParams.get('package')?.trim()
+        if (packageId) {
+          const pkg = packages.find((p) => p.id === packageId)
+          if (pkg) setSelectedPkg(pkg)
+        }
       }
 
       try {
@@ -185,7 +199,7 @@ export function BookingFlow({ packages }: { packages: PackageWithSection[] }) {
     return () => {
       cancelled = true
     }
-  }, [packages])
+  }, [packages, searchParams])
 
   const areas = lang === 'ar' ? MUSCAT_AREAS : MUSCAT_AREAS_EN
   const times = lang === 'ar' ? PREFERRED_TIMES : PREFERRED_TIMES_EN

@@ -20,7 +20,7 @@ const features = [
     titleEn: '1–5 Visits/Week',
     descAr: 'جدول يناسب احتياجك',
     descEn: 'A schedule that fits your needs',
-    color: 'bg-sky-500/10 text-sky-600',
+    color: 'bg-brand-sand/15 text-brand-sand',
   },
   {
     icon: Banknote,
@@ -28,7 +28,7 @@ const features = [
     titleEn: 'Prices in OMR',
     descAr: 'بدون مفاجآت — سعر شهري واضح',
     descEn: 'No surprises — clear monthly pricing',
-    color: 'bg-blue-500/10 text-blue-600',
+    color: 'bg-brand-terracotta/15 text-brand-terracotta',
   },
   {
     icon: Sparkles,
@@ -36,7 +36,7 @@ const features = [
     titleEn: 'Professional Team',
     descAr: 'تنظيف موثوق في مسقط',
     descEn: 'Trusted cleaning in Muscat',
-    color: 'bg-indigo-500/10 text-indigo-600',
+    color: 'bg-brand-palm/10 text-brand-palm',
   },
 ]
 

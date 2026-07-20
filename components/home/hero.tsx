@@ -4,29 +4,34 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { ShieldCheck, Clock, MapPin, UserCheck } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { BrandLogo } from '@/components/brand-logo'
 import { useLanguage } from '@/components/language-provider'
 
 export function Hero() {
-  const { t, dir } = useLanguage()
+  const { t, dir, lang } = useLanguage()
 
   return (
     <section className="relative overflow-hidden">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-primary/10 via-background to-background" />
-      <div className="pointer-events-none absolute -start-32 top-20 size-96 rounded-full bg-accent/10 blur-3xl" />
-      <div className="pointer-events-none absolute -end-32 bottom-0 size-80 rounded-full bg-primary/10 blur-3xl" />
+      <div className="pointer-events-none absolute inset-0 glow-sand" />
+      <div className="pointer-events-none absolute -start-28 top-24 size-[28rem] rounded-full bg-brand-sand/15 blur-3xl" />
+      <div className="pointer-events-none absolute -end-24 bottom-0 size-80 rounded-full bg-brand-palm/10 blur-3xl" />
 
       <div className="site-container relative grid items-center gap-8 py-10 sm:gap-10 sm:py-14 lg:grid-cols-2 lg:gap-12 lg:py-24">
-        <div className={`flex flex-col gap-5 sm:gap-6 ${dir === 'rtl' ? 'text-center lg:text-end' : 'text-center lg:text-start'}`}>
-          <span className="mx-auto inline-flex w-fit items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-3 py-1.5 text-xs font-semibold text-primary sm:px-4 sm:text-sm lg:mx-0">
-            <MapPin className="size-4" />
+        <div
+          className={`flex flex-col gap-5 sm:gap-6 ${dir === 'rtl' ? 'text-center lg:text-end' : 'text-center lg:text-start'}`}
+        >
+          <div className={`mx-auto lg:mx-0 ${dir === 'rtl' ? 'lg:ms-auto lg:me-0' : ''}`}>
+            <BrandLogo size="xl" className="justify-center lg:justify-start" />
+          </div>
+
+          <span className="mx-auto inline-flex w-fit items-center gap-2 rounded-full border border-brand-sand/40 bg-brand-sand/10 px-3 py-1.5 text-xs font-semibold text-brand-palm sm:px-4 sm:text-sm lg:mx-0">
+            <MapPin className="size-4 text-brand-terracotta" />
             {t('hero.badge')}
           </span>
 
-          <div className="space-y-2">
-            <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground sm:text-sm">
-              Speedy Cleaning · نظافة بلس
-            </p>
-            <h1 className="text-balance text-3xl font-extrabold leading-[1.2] tracking-tight sm:text-4xl sm:leading-[1.15] lg:text-[3.25rem]">
+          <div className="space-y-3">
+            <p className="brand-kicker">KHOUSA · OMAN</p>
+            <h1 className="text-balance text-2xl font-bold leading-snug tracking-tight text-brand-palm sm:text-3xl lg:text-4xl">
               {t('hero.title')}
             </h1>
           </div>
@@ -35,12 +40,14 @@ export function Hero() {
             {t('hero.subtitle')}. {t('hero.desc')}
           </p>
 
-          <div className={`flex flex-col gap-3 sm:flex-row ${dir === 'rtl' ? 'sm:justify-center lg:justify-start' : 'sm:justify-center lg:justify-start'}`}>
+          <div
+            className={`flex flex-col gap-3 sm:flex-row ${dir === 'rtl' ? 'sm:justify-center lg:justify-start' : 'sm:justify-center lg:justify-start'}`}
+          >
             <Button
               render={<Link href="/booking" />}
               nativeButton={false}
               size="lg"
-              className="h-12 w-full px-8 text-base shadow-lg shadow-primary/20 sm:w-auto"
+              className="h-12 w-full bg-brand-palm px-8 text-base text-brand-cream shadow-lg shadow-brand-palm/25 hover:bg-brand-palm/90 sm:w-auto"
             >
               {t('hero.cta')}
             </Button>
@@ -49,7 +56,7 @@ export function Hero() {
               nativeButton={false}
               size="lg"
               variant="outline"
-              className="h-12 w-full px-8 text-base sm:w-auto"
+              className="h-12 w-full border-brand-sand/50 bg-brand-sand/10 px-8 text-base text-brand-palm hover:bg-brand-sand/20 sm:w-auto"
             >
               {t('nav.services')}
             </Button>
@@ -63,9 +70,9 @@ export function Hero() {
             ].map(({ icon: Icon, label }) => (
               <div
                 key={label}
-                className="flex shrink-0 items-center gap-1.5 rounded-full border border-border bg-card/80 px-2.5 py-1.5 text-xs text-muted-foreground backdrop-blur-sm sm:gap-2 sm:px-3 sm:text-sm"
+                className="flex shrink-0 items-center gap-1.5 border-b border-brand-sand/40 px-1 py-1.5 text-xs text-muted-foreground sm:gap-2 sm:px-2 sm:text-sm"
               >
-                <Icon className="size-3.5 text-primary sm:size-4" />
+                <Icon className="size-3.5 text-brand-terracotta sm:size-4" />
                 {label}
               </div>
             ))}
@@ -73,7 +80,8 @@ export function Hero() {
         </div>
 
         <div className="relative mx-auto w-full max-w-[min(28rem,90vw)] lg:max-w-none">
-          <div className="overflow-hidden rounded-3xl border border-border/80 shadow-2xl shadow-primary/10">
+          <div className="absolute -inset-3 -z-10 rounded-[2rem] bg-[linear-gradient(145deg,var(--brand-palm),var(--brand-sand),var(--brand-terracotta))] opacity-20 blur-sm" />
+          <div className="overflow-hidden rounded-3xl border border-brand-sand/35 shadow-2xl shadow-brand-palm/15">
             <Image
               src="/images/hero-cleaning.png"
               alt={t('hero.imageAlt')}
@@ -83,6 +91,9 @@ export function Hero() {
               className="h-auto w-full object-cover"
             />
           </div>
+          <p className="mt-3 text-center text-xs font-medium tracking-wide text-muted-foreground lg:text-start">
+            {lang === 'ar' ? 'خوصة · عُمان' : 'KHOUSA · Oman'}
+          </p>
         </div>
       </div>
     </section>

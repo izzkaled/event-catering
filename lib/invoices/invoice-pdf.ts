@@ -106,14 +106,14 @@ export function buildInvoicePdfBuffer(
     doc.addImage(`data:image/png;base64,${logo}`, 'PNG', left, 18, 52, 52)
     doc.setFont('helvetica', 'bold')
     doc.setFontSize(18)
-    doc.text('Speedy Cleaning', left + 62, 42)
+    doc.text('KHOUSA', left + 62, 42)
     doc.setFont('helvetica', 'normal')
     doc.setFontSize(10)
-    doc.text('Clean Plus · Muscat', left + 62, 58)
+    doc.text('Oman · Muscat', left + 62, 58)
   } else {
     doc.setFont('helvetica', 'bold')
     doc.setFontSize(18)
-    doc.text('Speedy Cleaning', left, 50)
+    doc.text('KHOUSA', left, 50)
   }
 
   doc.setFont('helvetica', 'normal')

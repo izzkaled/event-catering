@@ -69,7 +69,7 @@ export async function POST(req: Request) {
   const phone = extractPhone(payload)
   const email = payload.user?.email?.trim().toLowerCase()
   const preferSms = payload.event_data?.delivery_preference === 'sms'
-  const appName = payload.context?.project_name?.trim() || 'Speedy Cleaning'
+  const appName = payload.context?.project_name?.trim() || 'KHOUSA'
 
   try {
     // Phone OTP (Neon Phone plugin)

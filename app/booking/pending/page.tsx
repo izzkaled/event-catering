@@ -3,9 +3,9 @@
 import { Suspense } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
-import { Clock, Loader2 } from 'lucide-react'
 import { SiteHeader } from '@/components/site-header'
 import { SiteFooter } from '@/components/site-footer'
+import { CinematicWaiting } from '@/components/cinematic-waiting'
 import { useLanguage } from '@/components/language-provider'
 import { Button } from '@/components/ui/button'
 
@@ -15,44 +15,53 @@ function PendingInner() {
   const { t, lang } = useLanguage()
 
   return (
-    <main className="flex flex-1 flex-col items-center justify-center px-4 py-16 text-center">
-      <span className="mb-6 flex size-20 items-center justify-center rounded-full bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-200">
-        <Clock className="size-10" />
-      </span>
-      <h1 className="text-2xl font-extrabold">{t('payment.pending_title')}</h1>
-      <p className="mt-2 max-w-md text-muted-foreground">{t('payment.pending_msg')}</p>
-      <p className="mt-4 text-sm">
-        {t('booking.success_msg')}{' '}
-        <span className="font-bold text-foreground">{orderNumber}</span>
-      </p>
-      <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-        <Button render={<Link href="/subscriptions" />} nativeButton={false}>
-          {t('nav.subscriptions')}
-        </Button>
-        <Button render={<Link href="/" />} nativeButton={false} variant="outline">
-          {t('nav.home')}
-        </Button>
+    <CinematicWaiting
+      variant="full"
+      title={t('payment.pending_title')}
+      subtitle={t('payment.pending_msg')}
+      className="min-h-[calc(100dvh-8rem)]"
+    >
+      <div className="mx-auto flex w-full max-w-sm flex-col items-center gap-5">
+        <p className="rounded-full border border-brand-sand/35 bg-white/70 px-4 py-2 text-sm text-brand-palm">
+          {t('booking.success_msg')}{' '}
+          <span className="font-bold tracking-wide" dir="ltr">
+            {orderNumber}
+          </span>
+        </p>
+
+        <div className="flex w-full flex-col gap-2.5 sm:flex-row sm:justify-center">
+          <Button
+            render={<Link href="/subscriptions" />}
+            nativeButton={false}
+            className="h-11 bg-brand-palm text-brand-cream hover:bg-brand-palm/90"
+          >
+            {t('nav.subscriptions')}
+          </Button>
+          <Button
+            render={<Link href="/" />}
+            nativeButton={false}
+            variant="outline"
+            className="h-11 border-brand-sand/40"
+          >
+            {t('nav.home')}
+          </Button>
+        </div>
+
+        <p className="max-w-xs text-xs leading-relaxed text-muted-foreground">
+          {lang === 'ar'
+            ? 'سنُعلمك فور التحقق من التحويل.'
+            : 'We’ll notify you once the transfer is verified.'}
+        </p>
       </div>
-      <p className="mt-6 max-w-sm text-xs text-muted-foreground">
-        {lang === 'ar'
-          ? 'سيتم إشعارك عند التحقق من التحويل.'
-          : 'We will notify you once the transfer is verified.'}
-      </p>
-    </main>
+    </CinematicWaiting>
   )
 }
 
 export default function BookingPendingPage() {
   return (
-    <div className="page-shell flex min-h-screen flex-col">
+    <div className="page-shell flex min-h-screen flex-col bg-brand-cream">
       <SiteHeader />
-      <Suspense
-        fallback={
-          <div className="flex flex-1 items-center justify-center">
-            <Loader2 className="size-10 animate-spin text-primary" />
-          </div>
-        }
-      >
+      <Suspense fallback={<CinematicWaiting title="لحظة…" subtitle="نتحقق من طلبك" />}>
         <PendingInner />
       </Suspense>
       <SiteFooter />

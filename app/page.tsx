@@ -6,6 +6,7 @@ import { PackagesPreview } from '@/components/home/packages-preview'
 import { AreasSection } from '@/components/home/areas-section'
 import { HowItWorks } from '@/components/home/how-it-works'
 import { CtaBanner } from '@/components/home/cta-banner'
+import { HomeChatbot } from '@/components/home/home-chatbot'
 import { getActivePackagesWithSections } from '@/lib/packages/queries'
 
 export const dynamic = 'force-dynamic'
@@ -33,6 +34,7 @@ export default async function HomePage() {
         <CtaBanner />
       </main>
       <SiteFooter />
+      <HomeChatbot />
     </div>
   )
 }

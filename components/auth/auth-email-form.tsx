@@ -298,7 +298,17 @@ export function AuthEmailForm({ mode = 'login', adminOnly = false }: AuthEmailFo
         </div>
 
         <div className="space-y-1.5">
-          <Label htmlFor="auth-password">{t('كلمة المرور', 'Password')}</Label>
+          <div className="flex items-center justify-between gap-2">
+            <Label htmlFor="auth-password">{t('كلمة المرور', 'Password')}</Label>
+            {mode === 'login' && (
+              <Link
+                href="/auth/forgot"
+                className="text-xs font-semibold text-brand-terracotta underline-offset-4 hover:underline"
+              >
+                {t('نسيت كلمة المرور؟', 'Forgot password?')}
+              </Link>
+            )}
+          </div>
           <div className="relative">
             <FieldIcon>
               <Lock className="size-4" />

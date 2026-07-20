@@ -1,16 +1,16 @@
 {
-  "name": "Speedy Cleaning | نظافة بلس",
-  "short_name": "Clean Plus",
+  "name": "خوصة | KHOUSA Oman",
+  "short_name": "KHOUSA",
   "description": "منصة حجز خدمات التنظيف المنزلي في مسقط",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#f7fbfe",
-  "theme_color": "#2f7fd1",
+  "background_color": "#f7f2eb",
+  "theme_color": "#223826",
   "dir": "rtl",
   "lang": "ar",
   "icons": [
     {
-      "src": "/logo.png",
+      "src": "/logo-icon.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"

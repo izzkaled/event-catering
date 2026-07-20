@@ -4,52 +4,62 @@ import { cn } from '@/lib/utils'
 type BrandLogoProps = {
   className?: string
   imageClassName?: string
+  /** Show wordmark text beside the mark. Logo already includes خوصة/KHOUSA — default off for clarity. */
   showText?: boolean
   subtitle?: string
-  size?: 'sm' | 'md' | 'lg'
+  size?: 'sm' | 'md' | 'lg' | 'xl'
+  /** onLight = palm mark on transparent (nav/cream). onDark = sand mark (dark banners). */
+  variant?: 'onLight' | 'onDark'
 }
 
 const sizes = {
-  sm: { box: 'size-9', img: 36, text: 'text-sm' },
-  md: { box: 'size-11', img: 44, text: 'text-base' },
-  lg: { box: 'size-14', img: 56, text: 'text-lg' },
+  sm: { height: 40, width: 54, text: 'text-sm' },
+  md: { height: 48, width: 64, text: 'text-base' },
+  lg: { height: 72, width: 96, text: 'text-lg' },
+  xl: { height: 96, width: 128, text: 'text-xl' },
 } as const
 
 export function BrandLogo({
   className,
   imageClassName,
-  showText = true,
+  showText = false,
   subtitle,
-  size = 'sm',
+  size = 'md',
+  variant = 'onLight',
 }: BrandLogoProps) {
   const s = sizes[size]
+  const src = variant === 'onDark' ? '/logo-sand.png' : '/logo-transparent.png'
 
   return (
-    <span className={cn('flex min-w-0 items-center gap-2', className)}>
+    <span className={cn('flex min-w-0 items-center gap-2.5', className)}>
       <span
         className={cn(
-          'relative flex shrink-0 items-center justify-center overflow-hidden rounded-xl bg-background shadow-sm ring-1 ring-border/60',
-          s.box,
+          'relative flex shrink-0 items-center justify-center',
           imageClassName,
         )}
+        style={{ height: s.height, width: s.width }}
       >
         <Image
-          src="/logo.png"
-          alt="Speedy Cleaning"
-          width={s.img}
-          height={s.img}
-          className="size-full object-cover"
+          src={src}
+          alt="خوصة · KHOUSA Oman"
+          width={s.width}
+          height={s.height}
+          className="h-full w-full object-contain"
           priority
         />
       </span>
-      {showText && (
+      {(showText || subtitle) && (
         <span className="min-w-0 flex flex-col leading-tight">
-          <span className={cn('truncate font-extrabold tracking-tight', s.text)}>
-            <span className="sm:hidden">Speedy</span>
-            <span className="hidden sm:inline">Speedy Cleaning</span>
+          <span className={cn('font-brand truncate font-extrabold tracking-tight text-brand-palm', s.text)}>
+            خوصة
+          </span>
+          <span className="font-brand text-[0.65rem] font-semibold uppercase tracking-[0.28em] text-brand-sand">
+            KHOUSA
           </span>
           {subtitle && (
-            <span className="hidden truncate text-xs text-muted-foreground sm:block">{subtitle}</span>
+            <span className="mt-0.5 hidden truncate text-[0.7rem] text-muted-foreground sm:block">
+              {subtitle}
+            </span>
           )}
         </span>
       )}

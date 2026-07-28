@@ -9,11 +9,14 @@ export function AreasSection() {
   const areas = lang === 'ar' ? MUSCAT_AREAS : MUSCAT_AREAS_EN
 
   return (
-    <section className="border-t border-border bg-primary/5 py-14">
+    <section id="areas" className="border-t border-border bg-primary/5 py-14">
       <div className="site-container text-center">
         <div className="content-max mb-8">
           <h2 className="text-2xl font-extrabold sm:text-3xl">{t('areas.title')}</h2>
           <p className="mt-2 text-muted-foreground">{t('areas.subtitle')}</p>
+          <p className="mx-auto mt-4 max-w-2xl text-sm leading-relaxed text-muted-foreground">
+            {t('areas.seo')}
+          </p>
         </div>
         <div className="flex flex-wrap justify-center gap-3">
           {areas.map((area) => (

@@ -6,6 +6,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const paths = [
     '',
     '/booking',
+    '/faq',
     '/auth/login',
     '/auth/signup',
     '/subscriptions',
@@ -15,7 +16,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   return paths.map((path) => ({
     url: `${SITE_URL}${path || '/'}`,
     lastModified: now,
-    changeFrequency: path === '' ? 'weekly' : 'monthly',
-    priority: path === '' ? 1 : path === '/booking' ? 0.9 : 0.6,
+    changeFrequency: path === '' || path === '/faq' ? 'weekly' : 'monthly',
+    priority: path === '' ? 1 : path === '/booking' ? 0.9 : path === '/faq' ? 0.85 : 0.6,
   }))
 }

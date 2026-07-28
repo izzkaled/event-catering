@@ -12,8 +12,8 @@ export function SiteFooter() {
 
   const desc =
     lang === 'ar'
-      ? 'خدمة تنظيف منزلي احترافية في مسقط وضواحيها. باقات مرنة بأسعار شفافة بالريال العُماني.'
-      : 'Professional home cleaning in Muscat. Flexible packages with transparent OMR pricing.'
+      ? 'خوصة — خدمة تنظيف منازل ومكاتب في مسقط (بوشر، السيب، مطرح والمزيد). باقات شهرية مرنة بالريال العُماني.'
+      : 'KHOUSA — home & office cleaning in Muscat (Bawshar, Seeb, Muttrah & more). Flexible monthly packages in OMR.'
 
   return (
     <footer className="min-w-0 w-full overflow-x-clip border-t border-border bg-secondary/40">
@@ -26,12 +26,20 @@ export function SiteFooter() {
         </div>
 
         <div className="flex flex-col gap-3">
-          <h3 className="text-sm font-bold text-brand-palm">روابط سريعة</h3>
+          <h3 className="text-sm font-bold text-brand-palm">
+            {lang === 'ar' ? 'روابط سريعة' : 'Quick links'}
+          </h3>
           <Link href="/#services" className="touch-target flex min-h-10 items-center text-sm text-muted-foreground hover:text-foreground">
             {t('nav.services')}
           </Link>
           <Link href="/booking" className="touch-target flex min-h-10 items-center text-sm text-muted-foreground hover:text-foreground">
             {t('nav.booking')}
+          </Link>
+          <Link href="/faq" className="touch-target flex min-h-10 items-center text-sm text-muted-foreground hover:text-foreground">
+            {t('faq.nav')}
+          </Link>
+          <Link href="/#areas" className="touch-target flex min-h-10 items-center text-sm text-muted-foreground hover:text-foreground">
+            {t('areas.title')}
           </Link>
         </div>
 
@@ -58,7 +66,7 @@ export function SiteFooter() {
       </div>
       <div className="border-t border-border">
         <div className="site-container py-4 text-center text-sm text-muted-foreground">
-          © 2026 خوصة · KHOUSA Oman. جميع الحقوق محفوظة.
+          © 2026 خوصة · KHOUSA Oman — Home cleaning Muscat. {lang === 'ar' ? 'جميع الحقوق محفوظة.' : 'All rights reserved.'}
         </div>
       </div>
     </footer>

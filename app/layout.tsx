@@ -6,6 +6,17 @@ import { VisitorTracker } from '@/components/visitor-tracker'
 import { WhatsAppButton } from '@/components/whatsapp-button'
 import { MobileBottomNav } from '@/components/mobile-bottom-nav'
 import { SplashScreen } from '@/components/splash-screen'
+import {
+  OG_IMAGE,
+  SEO_DESCRIPTION,
+  SEO_DESCRIPTION_AR,
+  SEO_DESCRIPTION_EN,
+  SEO_KEYWORDS,
+  SEO_TITLE_DEFAULT,
+  SEO_TITLE_EN,
+  SITE_NAME,
+  SITE_URL,
+} from '@/lib/seo'
 import './globals.css'
 
 const cairo = Cairo({
@@ -19,10 +30,61 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: 'خوصة | KHOUSA Oman — تنظيف منزلي في مسقط',
-  description:
-    'خوصة KHOUSA — خدمة تنظيف منزلي احترافية في مسقط، عُمان. باقات مرنة بالريال العُماني. احجز الآن!',
-  keywords: ['cleaning Muscat', 'تنظيف منازل مسقط', 'خوصة', 'KHOUSA', 'Oman cleaning'],
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: SEO_TITLE_DEFAULT,
+    template: `%s | ${SITE_NAME}`,
+  },
+  description: SEO_DESCRIPTION,
+  keywords: SEO_KEYWORDS,
+  applicationName: SITE_NAME,
+  authors: [{ name: SITE_NAME, url: SITE_URL }],
+  creator: SITE_NAME,
+  publisher: SITE_NAME,
+  category: 'home cleaning',
+  classification: 'Home Cleaning Service — Muscat, Oman',
+  alternates: {
+    canonical: '/',
+    languages: {
+      'ar-OM': '/',
+      'en-OM': '/',
+      'x-default': '/',
+    },
+  },
+  openGraph: {
+    type: 'website',
+    locale: 'ar_OM',
+    alternateLocale: ['en_OM'],
+    url: SITE_URL,
+    siteName: SITE_NAME,
+    title: SEO_TITLE_DEFAULT,
+    description: `${SEO_DESCRIPTION_AR} — ${SEO_DESCRIPTION_EN}`,
+    images: [
+      {
+        url: OG_IMAGE,
+        width: 1200,
+        height: 630,
+        alt: 'KHOUSA home cleaning in Muscat | خوصة تنظيف منازل مسقط',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: SEO_TITLE_EN,
+    description: SEO_DESCRIPTION_EN,
+    images: [OG_IMAGE],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+      'max-video-preview': -1,
+    },
+  },
   manifest: '/manifest.json',
   icons: {
     icon: [{ url: '/logo-icon.png', type: 'image/png' }],

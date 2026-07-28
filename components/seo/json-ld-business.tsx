@@ -1,0 +1,98 @@
+import {
+  SEO_DESCRIPTION_AR,
+  SEO_DESCRIPTION_EN,
+  SITE_NAME,
+  SITE_NAME_AR,
+  SITE_NAME_EN,
+  SITE_URL,
+} from '@/lib/seo'
+
+/** LocalBusiness + Organization JSON-LD for Google (AR + EN). */
+export function JsonLdBusiness() {
+  const data = {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'Organization',
+        '@id': `${SITE_URL}/#organization`,
+        name: SITE_NAME,
+        alternateName: [SITE_NAME_AR, SITE_NAME_EN, 'KHOUSA Oman'],
+        url: SITE_URL,
+        logo: `${SITE_URL}/logo-icon.png`,
+        email: 'izzkaled@gmail.com',
+        telephone: '+96877222432',
+        sameAs: [`https://wa.me/96877222432`],
+        areaServed: {
+          '@type': 'City',
+          name: 'Muscat',
+          containedInPlace: { '@type': 'Country', name: 'Oman' },
+        },
+      },
+      {
+        '@type': 'LocalBusiness',
+        '@id': `${SITE_URL}/#localbusiness`,
+        name: SITE_NAME,
+        alternateName: [SITE_NAME_AR, SITE_NAME_EN],
+        description: `${SEO_DESCRIPTION_AR} ${SEO_DESCRIPTION_EN}`,
+        url: SITE_URL,
+        image: `${SITE_URL}/images/hero-cleaning.png`,
+        telephone: '+96877222432',
+        email: 'izzkaled@gmail.com',
+        priceRange: 'OMR',
+        currenciesAccepted: 'OMR',
+        address: {
+          '@type': 'PostalAddress',
+          addressLocality: 'Muscat',
+          addressCountry: 'OM',
+        },
+        geo: {
+          '@type': 'GeoCoordinates',
+          latitude: 23.588,
+          longitude: 58.3829,
+        },
+        areaServed: [
+          'Muscat',
+          'Muttrah',
+          'Bawshar',
+          'Al Amarat',
+          'Seeb',
+          'Qurayyat',
+        ],
+        openingHoursSpecification: {
+          '@type': 'OpeningHoursSpecification',
+          dayOfWeek: [
+            'Sunday',
+            'Monday',
+            'Tuesday',
+            'Wednesday',
+            'Thursday',
+            'Saturday',
+          ],
+          opens: '08:00',
+          closes: '20:00',
+        },
+        parentOrganization: { '@id': `${SITE_URL}/#organization` },
+      },
+      {
+        '@type': 'WebSite',
+        '@id': `${SITE_URL}/#website`,
+        url: SITE_URL,
+        name: SITE_NAME,
+        inLanguage: ['ar', 'en'],
+        publisher: { '@id': `${SITE_URL}/#organization` },
+        potentialAction: {
+          '@type': 'ReserveAction',
+          target: `${SITE_URL}/booking`,
+          name: 'Book home cleaning | احجز تنظيف منزلي',
+        },
+      },
+    ],
+  }
+
+  return (
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(data) }}
+    />
+  )
+}

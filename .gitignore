@@ -9,11 +9,12 @@ out/
 build/
 dist/
 
-# Env & secrets
+# Env & secrets — only .env.example is committed
 .env
 .env.local
 .env.*.local
 .env.neon-new
+!.env.example
 
 # Debug
 npm-debug.log*

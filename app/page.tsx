@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import { SiteHeader } from '@/components/site-header'
 import { SiteFooter } from '@/components/site-footer'
 import { Hero } from '@/components/home/hero'
@@ -7,9 +8,17 @@ import { AreasSection } from '@/components/home/areas-section'
 import { HowItWorks } from '@/components/home/how-it-works'
 import { CtaBanner } from '@/components/home/cta-banner'
 import { HomeChatbot } from '@/components/home/home-chatbot'
+import { JsonLdBusiness } from '@/components/seo/json-ld-business'
 import { getActivePackagesWithSections } from '@/lib/packages/queries'
+import { SEO_DESCRIPTION, SEO_TITLE_DEFAULT, SITE_URL } from '@/lib/seo'
 
 export const dynamic = 'force-dynamic'
+
+export const metadata: Metadata = {
+  title: { absolute: SEO_TITLE_DEFAULT },
+  description: SEO_DESCRIPTION,
+  alternates: { canonical: SITE_URL },
+}
 
 async function getPackages() {
   try {
@@ -24,6 +33,7 @@ export default async function HomePage() {
 
   return (
     <div className="page-shell flex min-h-screen flex-col">
+      <JsonLdBusiness />
       <SiteHeader />
       <main className="min-w-0 flex-1 overflow-x-clip">
         <Hero />

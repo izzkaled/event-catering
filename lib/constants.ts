@@ -20,14 +20,16 @@ export const PREFERRED_TIMES = [
   'صباح 8-10',
   'صباح 10-12',
   'ظهر 12-2',
-  'عصر 2-4',
+  'عصر 2-5',
+  'مساء 5-8',
 ] as const
 
 export const PREFERRED_TIMES_EN = [
   'Morning 8-10',
   'Morning 10-12',
   'Noon 12-2',
-  'Afternoon 2-4',
+  'Afternoon 2-5',
+  'Evening 5-8',
 ] as const
 
 export const WEEK_DAYS_AR = [
@@ -51,11 +53,11 @@ export const WEEK_DAYS_EN = [
 ] as const
 
 export const ORDER_STATUS_LABELS: Record<string, { ar: string; en: string }> = {
-  pending: { ar: 'بانتظار التأكيد', en: 'Pending confirmation' },
-  confirmed: { ar: 'تم تأكيد الاشتراك', en: 'Subscription confirmed' },
-  active: { ar: 'اشتراك نشط', en: 'Active subscription' },
+  pending: { ar: 'بانتظار المراجعة', en: 'Pending review' },
+  confirmed: { ar: 'تم تأكيد العرض', en: 'Quote confirmed' },
+  active: { ar: 'قيد التنفيذ', en: 'In progress' },
   cancelled: { ar: 'ملغي', en: 'Cancelled' },
-  completed: { ar: 'منتهي', en: 'Completed' },
+  completed: { ar: 'مكتمل', en: 'Completed' },
 }
 
 /** Tailwind classes for subscription/order status badges */

@@ -1,9 +1,8 @@
 import type { Metadata, Viewport } from 'next'
-import { Cairo, Geist_Mono } from 'next/font/google'
+import { IBM_Plex_Sans_Arabic, Geist_Mono } from 'next/font/google'
 import { Toaster } from '@/components/ui/sonner'
 import { LanguageProvider } from '@/components/language-provider'
 import { VisitorTracker } from '@/components/visitor-tracker'
-import { WhatsAppButton } from '@/components/whatsapp-button'
 import { MobileBottomNav } from '@/components/mobile-bottom-nav'
 import { SplashScreen } from '@/components/splash-screen'
 import {
@@ -19,11 +18,14 @@ import {
 } from '@/lib/seo'
 import './globals.css'
 
-const cairo = Cairo({
-  variable: '--font-cairo',
+/** Clean bilingual face — SF-like weights, excellent Arabic. */
+const plex = IBM_Plex_Sans_Arabic({
+  variable: '--font-plex',
   subsets: ['arabic', 'latin'],
-  weight: ['300', '400', '500', '600', '700', '800'],
+  weight: ['300', '400', '500', '600', '700'],
+  display: 'swap',
 })
+
 const geistMono = Geist_Mono({
   variable: '--font-geist-mono',
   subsets: ['latin'],
@@ -41,8 +43,8 @@ export const metadata: Metadata = {
   authors: [{ name: SITE_NAME, url: SITE_URL }],
   creator: SITE_NAME,
   publisher: SITE_NAME,
-  category: 'home cleaning',
-  classification: 'Home Cleaning Service — Muscat, Oman',
+  category: 'hospitality catering',
+  classification: 'Event Catering — Hospitality Packages Oman',
   alternates: {
     canonical: '/',
     languages: {
@@ -64,7 +66,7 @@ export const metadata: Metadata = {
         url: OG_IMAGE,
         width: 1200,
         height: 630,
-        alt: 'KHOUSA home cleaning in Muscat | خوصة تنظيف منازل مسقط',
+        alt: 'Event Catering | إيفنت كاترينج — ضيافة بالباقات',
       },
     ],
   },
@@ -87,8 +89,11 @@ export const metadata: Metadata = {
   },
   manifest: '/manifest.json',
   icons: {
-    icon: [{ url: '/logo-icon.png', type: 'image/png' }],
-    apple: [{ url: '/logo-icon.png', type: 'image/png' }],
+    icon: [
+      { url: '/icon.svg', type: 'image/svg+xml' },
+      { url: '/images/brand/logo-mark.webp', type: 'image/webp' },
+    ],
+    apple: [{ url: '/images/brand/logo-mark.webp', type: 'image/webp' }],
   },
 }
 
@@ -96,7 +101,7 @@ export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   viewportFit: 'cover',
-  themeColor: '#223826',
+  themeColor: '#4a234a',
 }
 
 export default function RootLayout({
@@ -108,7 +113,7 @@ export default function RootLayout({
     <html
       lang="ar"
       dir="rtl"
-      className={`${cairo.variable} ${geistMono.variable} bg-background`}
+      className={`${plex.variable} ${geistMono.variable} bg-background`}
     >
       <body className="font-sans antialiased min-w-0">
         <LanguageProvider>
@@ -116,7 +121,6 @@ export default function RootLayout({
           {children}
           <VisitorTracker />
           <MobileBottomNav />
-          <WhatsAppButton />
         </LanguageProvider>
         <Toaster position="top-center" richColors />
       </body>

@@ -2,17 +2,18 @@
 
 import {
   Calendar,
-  Clock,
   CreditCard,
   MapPin,
   Package,
   Phone,
   User,
+  Users,
 } from 'lucide-react'
 import { useLanguage } from '@/components/language-provider'
 import type { Package as Pkg } from '@/lib/db/schema'
 import { cn } from '@/lib/utils'
-import { formatBookingDate, subscriptionEndDate } from '@/lib/booking/schedule'
+import { formatBookingDate } from '@/lib/booking/schedule'
+import { formatGuests, formatServiceHours } from '@/lib/packages/semantics'
 
 const paymobEnabled = Boolean(process.env.NEXT_PUBLIC_PAYMOB_PUBLIC_KEY?.trim())
 
@@ -42,24 +43,23 @@ export function OrderSummary({
   const { lang, t } = useLanguage()
   const name = lang === 'ar' ? pkg.name_ar : pkg.name_en
   const price = parseFloat(pkg.price_omr).toFixed(2)
-  const endDate = startDate ? subscriptionEndDate(startDate) : null
 
   const sections = [
     {
-      title: lang === 'ar' ? 'الاشتراك' : 'Subscription',
+      title: lang === 'ar' ? 'الباقة' : 'Package',
       icon: Package,
       rows: [
         { label: lang === 'ar' ? 'الباقة' : 'Package', value: name },
         {
           label: lang === 'ar' ? 'التفاصيل' : 'Details',
-          value: `${pkg.hours_per_visit} ${t('booking.hours')} · ${pkg.visits_per_week} ${t('booking.visitsPerWeek')} · ${pkg.visits_per_month} ${t('booking.visitsPerMonth')}`,
+          value: `${formatGuests(pkg.visits_per_week, lang)} · ${formatServiceHours(pkg.hours_per_visit, lang)}`,
         },
       ],
     },
     ...(customerName || customerPhone || customerArea || customerAddress
       ? [
           {
-            title: lang === 'ar' ? 'العميل' : 'Customer',
+            title: lang === 'ar' ? 'الجهة / المسؤول' : 'Organization / contact',
             icon: User,
             rows: [
               ...(customerName ? [{ label: t('booking.name'), value: customerName }] : []),
@@ -73,25 +73,15 @@ export function OrderSummary({
     ...(startDate || preferredTime || preferredDays?.length
       ? [
           {
-            title: lang === 'ar' ? 'الموعد' : 'Schedule',
+            title: lang === 'ar' ? 'المناسبة' : 'Event',
             icon: Calendar,
             rows: [
               ...(startDate
-                ? [
-                    { label: t('booking.date'), value: formatBookingDate(startDate, lang) },
-                    ...(endDate
-                      ? [{ label: t('booking.endDate'), value: formatBookingDate(endDate, lang) }]
-                      : []),
-                  ]
+                ? [{ label: t('booking.date'), value: formatBookingDate(startDate, lang) }]
                 : []),
               ...(preferredTime ? [{ label: t('booking.time'), value: preferredTime }] : []),
               ...(preferredDays?.length
-                ? [
-                    {
-                      label: t('booking.daysRequired'),
-                      value: `${preferredDays.join(' · ')} (${preferredDays.length}/${pkg.visits_per_week})`,
-                    },
-                  ]
+                ? [{ label: t('booking.days'), value: preferredDays.join(' · ') }]
                 : []),
             ],
           },
@@ -121,65 +111,58 @@ export function OrderSummary({
         )
       })}
 
-      <div className="rounded-xl border border-primary/20 bg-primary/5 p-4">
-        <div className="flex items-center justify-between">
-          <span className="font-bold">{t('booking.total')}</span>
-          <div>
-            <span className="text-2xl font-extrabold tabular-nums text-primary">{price}</span>
-            <span className="ms-1 text-sm font-semibold text-muted-foreground">OMR</span>
-          </div>
-        </div>
-        {!compact && (
-          <div className="mt-3 flex items-start gap-2 border-t border-primary/15 pt-3 text-xs text-muted-foreground">
-            <CreditCard className="mt-0.5 size-3.5 shrink-0" />
-            <div>
-              <p className="font-medium text-foreground">
-                {paymobEnabled ? t('booking.payment_stripe') : t('booking.payment_method')}
-              </p>
-              <p className="mt-0.5">
-                {paymobEnabled ? t('booking.payment_stripe_info') : t('booking.payment_info')}
-              </p>
-            </div>
-          </div>
-        )}
+      <div className="flex items-center justify-between rounded-xl border border-primary/20 bg-primary/5 px-4 py-3">
+        <span className="flex items-center gap-2 text-sm font-semibold text-muted-foreground">
+          <Users className="size-4" />
+          {t('booking.total')}
+        </span>
+        <span className="text-xl font-extrabold tabular-nums text-primary">
+          {price} <span className="text-sm font-semibold">OMR</span>
+        </span>
       </div>
+
+      {!compact && (
+        <p className="flex items-start gap-2 text-xs text-muted-foreground">
+          <CreditCard className="mt-0.5 size-3.5 shrink-0" />
+          {paymobEnabled
+            ? t('booking.payment_info')
+            : lang === 'ar'
+              ? 'بعد المراجعة نؤكد العرض النهائي وطريقة الدفع.'
+              : 'After review we confirm the final quote and payment method.'}
+        </p>
+      )}
+
+      {!compact && customerArea && (
+        <p className="flex items-start gap-2 text-xs text-muted-foreground">
+          <MapPin className="mt-0.5 size-3.5 shrink-0" />
+          {customerArea}
+          {customerAddress ? ` · ${customerAddress}` : ''}
+        </p>
+      )}
+
+      {!compact && customerPhone && (
+        <p className="flex items-start gap-2 text-xs text-muted-foreground">
+          <Phone className="mt-0.5 size-3.5 shrink-0" />
+          {customerPhone}
+        </p>
+      )}
     </div>
   )
 }
 
 export function BookingTrustBadges() {
   const { lang } = useLanguage()
-  const items = [
-    {
-      icon: MapPin,
-      ar: 'مسقط وضواحيها',
-      en: 'Muscat & suburbs',
-    },
-    {
-      icon: Clock,
-      ar: 'مواعيد مرنة',
-      en: 'Flexible schedule',
-    },
-    {
-      icon: Phone,
-      ar: 'تواصل خلال 24 ساعة',
-      en: 'Contact within 24h',
-    },
-  ]
-
   return (
-    <ul className="space-y-3">
-      {items.map((item) => {
-        const Icon = item.icon
-        return (
-          <li key={item.en} className="flex items-center gap-3 text-sm text-muted-foreground">
-            <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-secondary">
-              <Icon className="size-4 text-primary" />
-            </span>
-            {lang === 'ar' ? item.ar : item.en}
-          </li>
-        )
-      })}
-    </ul>
+    <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
+      <span className="rounded-full border border-border px-2.5 py-1">
+        {lang === 'ar' ? 'رد خلال 24 ساعة' : 'Reply within 24h'}
+      </span>
+      <span className="rounded-full border border-border px-2.5 py-1">
+        {lang === 'ar' ? 'تنسيق احترافي' : 'Pro coordination'}
+      </span>
+      <span className="rounded-full border border-border px-2.5 py-1">
+        {lang === 'ar' ? 'عرض واضح' : 'Clear quote'}
+      </span>
+    </div>
   )
 }

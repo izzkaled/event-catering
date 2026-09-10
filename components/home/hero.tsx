@@ -2,98 +2,75 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
-import { ShieldCheck, Clock, MapPin, UserCheck } from 'lucide-react'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { BrandLogo } from '@/components/brand-logo'
 import { useLanguage } from '@/components/language-provider'
+import { cn } from '@/lib/utils'
 
 export function Hero() {
   const { t, dir, lang } = useLanguage()
+  const isRtl = dir === 'rtl'
+  const Chevron = isRtl ? ChevronLeft : ChevronRight
 
   return (
-    <section className="relative overflow-hidden">
-      <div className="pointer-events-none absolute inset-0 glow-sand" />
-      <div className="pointer-events-none absolute -start-28 top-24 size-[28rem] rounded-full bg-brand-sand/15 blur-3xl" />
-      <div className="pointer-events-none absolute -end-24 bottom-0 size-80 rounded-full bg-brand-palm/10 blur-3xl" />
+    <section className="relative min-h-[min(100svh,52rem)] overflow-hidden">
+      <Image
+        src="/images/brand/brand-table.webp"
+        alt={t('hero.imageAlt')}
+        fill
+        priority
+        className="object-cover object-[68%_center] sm:object-center"
+        sizes="100vw"
+      />
 
-      <div className="site-container relative grid items-center gap-8 py-10 sm:gap-10 sm:py-14 lg:grid-cols-2 lg:gap-12 lg:py-24">
+      {/* Light-to-medium veil on text side only — keeps photo open on the other side */}
+      <div
+        className={cn(
+          'pointer-events-none absolute inset-0',
+          isRtl
+            ? 'bg-[linear-gradient(270deg,rgba(28,12,28,0.72)_0%,rgba(42,18,42,0.45)_32%,rgba(42,18,42,0.12)_58%,transparent_78%)]'
+            : 'bg-[linear-gradient(90deg,rgba(28,12,28,0.72)_0%,rgba(42,18,42,0.45)_32%,rgba(42,18,42,0.12)_58%,transparent_78%)]',
+        )}
+      />
+
+      <div className="site-container relative flex min-h-[min(100svh,52rem)] items-end pb-16 pt-28 sm:pb-20 sm:pt-32 lg:items-center lg:pb-28 lg:pt-28">
         <div
-          className={`flex flex-col gap-5 sm:gap-6 ${dir === 'rtl' ? 'text-center lg:text-end' : 'text-center lg:text-start'}`}
+          className={cn(
+            'w-full max-w-lg space-y-8',
+            isRtl ? 'ms-0 me-auto text-start' : 'ms-0 me-auto text-start',
+          )}
         >
-          <div className={`mx-auto lg:mx-0 ${dir === 'rtl' ? 'lg:ms-auto lg:me-0' : ''}`}>
-            <BrandLogo size="xl" className="justify-center lg:justify-start" />
-          </div>
-
-          <span className="mx-auto inline-flex w-fit items-center gap-2 rounded-full border border-brand-sand/40 bg-brand-sand/10 px-3 py-1.5 text-xs font-semibold text-brand-palm sm:px-4 sm:text-sm lg:mx-0">
-            <MapPin className="size-4 text-brand-terracotta" />
-            {t('hero.badge')}
-          </span>
-
-          <div className="space-y-3">
-            <p className="brand-kicker">KHOUSA · OMAN</p>
-            <h1 className="text-balance text-2xl font-bold leading-snug tracking-tight text-brand-palm sm:text-3xl lg:text-4xl">
-              {t('hero.title')}
-            </h1>
-          </div>
-
-          <p className="text-pretty text-base leading-relaxed text-muted-foreground sm:text-lg">
-            {t('hero.subtitle')}. {t('hero.desc')}
-          </p>
-
-          <div
-            className={`flex flex-col gap-3 sm:flex-row ${dir === 'rtl' ? 'sm:justify-center lg:justify-start' : 'sm:justify-center lg:justify-start'}`}
+          <h1
+            className={cn(
+              'animate-[fade-up_0.75s_ease-out_both] text-balance font-ios text-[2.15rem] font-semibold leading-[1.18]',
+              'text-white drop-shadow-[0_2px_24px_rgba(0,0,0,0.35)]',
+              'sm:text-[2.85rem] lg:text-[3.25rem]',
+              lang === 'ar' ? 'tracking-normal' : 'tracking-[-0.025em]',
+            )}
           >
+            {t('hero.title')}
+          </h1>
+
+          <div className="flex animate-[fade-up_0.75s_ease-out_0.12s_both] flex-col gap-3 sm:flex-row sm:items-center sm:justify-start">
             <Button
               render={<Link href="/booking" />}
               nativeButton={false}
               size="lg"
-              className="h-12 w-full bg-brand-palm px-8 text-base text-brand-cream shadow-lg shadow-brand-palm/25 hover:bg-brand-palm/90 sm:w-auto"
+              className="h-12 min-h-12 w-full gap-1.5 rounded-full border-0 bg-[#c9a86c] px-8 font-ios text-[0.95rem] font-semibold text-[#2a122a] shadow-[0_10px_28px_-8px_rgba(0,0,0,0.45)] transition hover:bg-[#d4b57a] active:scale-[0.98] sm:w-auto"
             >
               {t('hero.cta')}
+              <Chevron className="size-[1.125rem]" strokeWidth={1.75} />
             </Button>
             <Button
               render={<Link href="/#packages" />}
               nativeButton={false}
               size="lg"
               variant="outline"
-              className="h-12 w-full border-brand-sand/50 bg-brand-sand/10 px-8 text-base text-brand-palm hover:bg-brand-sand/20 sm:w-auto"
+              className="h-12 min-h-12 w-full rounded-full border-white/55 bg-white/10 px-8 font-ios text-[0.95rem] font-medium text-white backdrop-blur-md transition hover:border-white/80 hover:bg-white/18 active:scale-[0.98] sm:w-auto"
             >
-              {t('nav.services')}
+              {t('nav.packages')}
             </Button>
           </div>
-
-          <div className="flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] sm:flex-wrap sm:justify-center sm:overflow-visible lg:justify-start [&::-webkit-scrollbar]:hidden">
-            {[
-              { icon: ShieldCheck, label: t('hero.trust1') },
-              { icon: Clock, label: t('hero.trust2') },
-              { icon: UserCheck, label: t('hero.trust3') },
-            ].map(({ icon: Icon, label }) => (
-              <div
-                key={label}
-                className="flex shrink-0 items-center gap-1.5 border-b border-brand-sand/40 px-1 py-1.5 text-xs text-muted-foreground sm:gap-2 sm:px-2 sm:text-sm"
-              >
-                <Icon className="size-3.5 text-brand-terracotta sm:size-4" />
-                {label}
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="relative mx-auto w-full max-w-[min(28rem,90vw)] lg:max-w-none">
-          <div className="absolute -inset-3 -z-10 rounded-[2rem] bg-[linear-gradient(145deg,var(--brand-palm),var(--brand-sand),var(--brand-terracotta))] opacity-20 blur-sm" />
-          <div className="overflow-hidden rounded-3xl border border-brand-sand/35 shadow-2xl shadow-brand-palm/15">
-            <Image
-              src="/images/hero-cleaning.png"
-              alt={t('hero.imageAlt')}
-              width={800}
-              height={800}
-              priority
-              className="h-auto w-full object-cover"
-            />
-          </div>
-          <p className="mt-3 text-center text-xs font-medium tracking-wide text-muted-foreground lg:text-start">
-            {lang === 'ar' ? 'خوصة · عُمان' : 'KHOUSA · Oman'}
-          </p>
         </div>
       </div>
     </section>

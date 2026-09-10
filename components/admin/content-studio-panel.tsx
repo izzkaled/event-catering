@@ -38,16 +38,18 @@ export function ContentStudioPanel() {
   const [output, setOutput] = useState('')
   const [loading, setLoading] = useState(false)
 
-  const buildPrompt = () => `Create ${contentType} for Speedy Cleaning (professional cleaning service in Oman):
+  const buildPrompt = () => `Create ${contentType} for Event Catering (premium hospitality package intermediary in Oman for government & corporate):
 Topic: ${topic}
 Tone: ${tone}
 Language: ${language}
-Audience: ${audience || 'General'}
+Audience: ${audience || 'Government entities and corporate event managers'}
 Keywords: ${keywords || 'N/A'}
-Brand Voice: ${brandVoice || 'N/A'}
+Brand Voice: ${brandVoice || 'Elegant, trustworthy, plum/cream/gold luxury hospitality'}
 Content Length: ${length}
-CTA: ${cta || 'N/A'}
+CTA: ${cta || 'Request your hospitality package'}
 Additional Details: ${details || 'N/A'}
+Brand name: Event Catering / إيفنت كاترينج
+Model: packages by guest count; admin coordinates catering partners; reply with quote/approval.
 Write polished marketing copy ready to publish.`
 
   const generate = async () => {

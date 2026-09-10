@@ -46,10 +46,10 @@ export function SiteHeader() {
         <Link
           href="/"
           className="flex min-w-0 items-center gap-2 overflow-hidden rounded-lg transition-opacity hover:opacity-90"
-          aria-label="خوصة · KHOUSA"
+          aria-label="Event Catering"
         >
           <BrandLogo size="sm" className="min-w-0 sm:hidden" />
-          <BrandLogo size="md" className="hidden min-w-0 sm:flex" />
+          <BrandLogo size="md" showText className="hidden min-w-0 sm:flex" />
         </Link>
 
         <nav
@@ -107,7 +107,7 @@ export function SiteHeader() {
               render={<Link href="/booking" />}
               nativeButton={false}
               size="sm"
-              className="gap-1.5 whitespace-nowrap bg-brand-palm text-brand-cream shadow-md shadow-brand-palm/20 hover:bg-brand-palm/90"
+              className="gap-1.5 whitespace-nowrap tracking-wide shadow-md shadow-brand-palm/20"
             >
               <CalendarPlus className="size-4 shrink-0" />
               {t('nav.booking')}

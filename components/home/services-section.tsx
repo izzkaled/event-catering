@@ -1,42 +1,38 @@
 'use client'
 
 import Link from 'next/link'
-import { Clock, Calendar, Sparkles, Banknote } from 'lucide-react'
+import { Users, Building2, Sparkles, MessageSquareHeart } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useLanguage } from '@/components/language-provider'
 
 const features = [
   {
-    icon: Clock,
-    titleAr: '2–5 ساعات',
-    titleEn: '2–5 Hours',
-    descAr: 'باقات مرنة حسب حجم منزلك',
-    descEn: 'Flexible packages for your home',
-    color: 'bg-primary/10 text-primary',
+    icon: Building2,
+    titleAr: 'جهات وشركات',
+    titleEn: 'Gov & corporate',
+    descAr: 'ضيافة تناسب المناسبات الرسمية والاجتماعات',
+    descEn: 'Hospitality fit for official events and meetings',
   },
   {
-    icon: Calendar,
-    titleAr: '1–5 زيارات/أسبوع',
-    titleEn: '1–5 Visits/Week',
-    descAr: 'جدول يناسب احتياجك',
-    descEn: 'A schedule that fits your needs',
-    color: 'bg-brand-sand/15 text-brand-sand',
+    icon: Users,
+    titleAr: 'باقات حسب الحضور',
+    titleEn: 'By guest count',
+    descAr: 'اختر الباقة وعدد الأشخاص بسهولة',
+    descEn: 'Pick a package and guest count with ease',
   },
   {
-    icon: Banknote,
-    titleAr: 'أسعار بالريال العُماني',
-    titleEn: 'Prices in OMR',
-    descAr: 'بدون مفاجآت — سعر شهري واضح',
-    descEn: 'No surprises — clear monthly pricing',
-    color: 'bg-brand-terracotta/15 text-brand-terracotta',
+    icon: MessageSquareHeart,
+    titleAr: 'وسيط ينسّق عنك',
+    titleEn: 'We coordinate',
+    descAr: 'نستلم الطلب ونرتّب مع مزوّدي الضيافة',
+    descEn: 'We receive the request and arrange catering partners',
   },
   {
     icon: Sparkles,
-    titleAr: 'فريق محترف',
-    titleEn: 'Professional Team',
-    descAr: 'تنظيف موثوق في مسقط',
-    descEn: 'Trusted cleaning in Muscat',
-    color: 'bg-brand-palm/10 text-brand-palm',
+    titleAr: 'تجربة فاخرة',
+    titleEn: 'Premium feel',
+    descAr: 'هوية راقية وتنفيذ بذوق عالي',
+    descEn: 'Refined brand and high-taste delivery',
   },
 ]
 
@@ -44,35 +40,36 @@ export function ServicesSection() {
   const { lang, t } = useLanguage()
 
   return (
-    <section id="services" className="scroll-mt-20 border-t border-border bg-secondary/40 py-16">
+    <section id="services" className="scroll-mt-20 border-t border-border bg-secondary/30 py-16 sm:py-20">
       <div className="site-container">
-        <div className="mb-10 text-center">
-          <h2 className="text-3xl font-extrabold tracking-tight">{t('nav.services')}</h2>
-          <p className="content-max mt-2 text-muted-foreground">{t('services.subtitle')}</p>
+        <div className="mb-12 text-center">
+          <p className="brand-kicker mb-3">Event Catering</p>
+          <h2 className="font-brand text-3xl font-medium tracking-wide sm:text-4xl">{t('nav.services')}</h2>
+          <p className="content-max mt-3 text-muted-foreground">{t('services.subtitle')}</p>
         </div>
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {features.map((f) => {
             const Icon = f.icon
             return (
               <div
                 key={f.titleEn}
-                className="group rounded-2xl border border-border bg-card p-6 shadow-sm transition-shadow hover:shadow-md"
+                className="group border-b border-border/80 pb-6 transition-colors hover:border-brand-sand/50"
               >
-                <span
-                  className={`mb-4 flex size-12 items-center justify-center rounded-2xl ${f.color} transition-transform group-hover:scale-110`}
-                >
-                  <Icon className="size-6" />
+                <span className="mb-4 flex size-11 items-center justify-center rounded-full border border-brand-sand/30 bg-brand-sand/10 text-brand-palm transition-transform group-hover:scale-105">
+                  <Icon className="size-5" />
                 </span>
-                <h3 className="text-lg font-bold">{lang === 'ar' ? f.titleAr : f.titleEn}</h3>
-                <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
+                <h3 className="text-lg font-semibold tracking-tight">
+                  {lang === 'ar' ? f.titleAr : f.titleEn}
+                </h3>
+                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
                   {lang === 'ar' ? f.descAr : f.descEn}
                 </p>
               </div>
             )
           })}
         </div>
-        <div className="mt-10 text-center">
-          <Button render={<Link href="/booking" />} nativeButton={false} size="lg" className="h-12 px-10">
+        <div className="mt-12 text-center">
+          <Button render={<Link href="/booking" />} nativeButton={false} size="lg" className="h-12 px-10 tracking-wide">
             {t('hero.cta')}
           </Button>
         </div>

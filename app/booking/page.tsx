@@ -8,11 +8,7 @@ export const dynamic = 'force-dynamic'
 export const revalidate = 0
 
 async function getPackages() {
-  try {
-    return await getActivePackagesWithSections()
-  } catch {
-    return []
-  }
+  return getActivePackagesWithSections()
 }
 
 export default async function BookingPage() {

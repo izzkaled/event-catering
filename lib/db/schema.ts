@@ -11,7 +11,7 @@ import {
   uniqueIndex,
 } from 'drizzle-orm/pg-core'
 
-/** Service category — cleaning today; laundry, deep clean, etc. later. */
+/** Occasion category — official, corporate, openings, etc. */
 export const packageSections = pgTable('package_sections', {
   id: uuid('id').defaultRandom().primaryKey(),
   slug: text('slug').unique().notNull(),
@@ -30,12 +30,12 @@ export const packages = pgTable('packages', {
   section_id: uuid('section_id').references(() => packageSections.id),
   name_ar: text('name_ar').notNull(),
   name_en: text('name_en').notNull(),
-  hours_per_visit: integer('hours_per_visit').notNull(),
-  visits_per_week: integer('visits_per_week').notNull(),
-  visits_per_month: integer('visits_per_month').notNull(),
+  hours_per_visit: integer('hours_per_visit').notNull(), // catering: service hours
+  visits_per_week: integer('visits_per_week').notNull(), // catering: guest count
+  visits_per_month: integer('visits_per_month').notNull(), // catering: guest capacity mirror
   price_omr: decimal('price_omr', { precision: 10, scale: 2 }).notNull(),
   is_active: boolean('is_active').default(true).notNull(),
-  /** Green “most popular” badge in storefront */
+  /** “most popular” badge in storefront */
   is_popular: boolean('is_popular').default(false).notNull(),
   /** @deprecated use is_popular — kept for backward compatibility */
   is_featured: boolean('is_featured').default(false),

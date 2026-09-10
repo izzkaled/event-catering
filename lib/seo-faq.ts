@@ -5,54 +5,54 @@ export type FaqItem = {
   answerEn: string
 }
 
-/** Long-tail FAQs people search in Muscat (AR + EN) — used for UI + FAQPage schema. */
+/** FAQs for Event Catering intermediary model — used for UI + FAQPage schema. */
 export const SEO_FAQS: FaqItem[] = [
   {
-    questionAr: 'كم سعر تنظيف المنازل في مسقط؟',
-    questionEn: 'How much does home cleaning cost in Muscat?',
+    questionAr: 'كيف تعمل خدمة إيفنت كاترينج؟',
+    questionEn: 'How does Event Catering work?',
     answerAr:
-      'أسعار خوصة تبدأ تقريباً من 40 ر.ع شهرياً حسب عدد الساعات والزيارات الأسبوعية. كل باقة بسعر شهري واضح بالريال العُماني بدون رسوم مخفية — اختر الباقة المناسبة واحجز أونلاين.',
+      'تختار الباقة المناسبة وعدد الحضور وتاريخ المناسبة، نراجع طلبك وننسّق مع مزوّدي الضيافة، ثم نرد عليك بالموافقة أو عرض السعر النهائي خلال وقت قصير.',
     answerEn:
-      'KHOUSA packages start from about 40 OMR per month, depending on hours and weekly visits. Every plan has clear monthly pricing in Omani Rial with no hidden fees — pick a package and book online.',
+      'You choose a package, guest count, and event date. We review your request, coordinate with hospitality partners, then reply with approval or a final quote shortly.',
   },
   {
-    questionAr: 'هل خوصة تغطي بوشر والسيب ومطرح؟',
-    questionEn: 'Does KHOUSA cover Bawshar, Seeb, and Muttrah?',
+    questionAr: 'هل الأسعار المعروضة نهائية؟',
+    questionEn: 'Are the listed prices final?',
     answerAr:
-      'نعم. نخدم مسقط وضواحيها حالياً: مسقط القديمة، مطرح، بوشر، العامرات، السيب، وقريات. إذا منطقتك ضمن مسقط يمكنك الحجز مباشرة.',
+      'الأسعار استرشادية حسب الباقة وعدد الأشخاص. السعر النهائي يُؤكَّد بعد مراجعة الموقع والتاريخ والمتطلبات الخاصة بجهتكم.',
     answerEn:
-      'Yes. We currently serve Muscat and surroundings: Old Muscat, Muttrah, Bawshar, Al Amerat, Seeb, and Quriyat. If you are in Muscat, you can book right away.',
+      'Listed prices are indicative by package and guest count. The final price is confirmed after reviewing venue, date, and your organization’s specific requirements.',
   },
   {
-    questionAr: 'هل أحتاج حساب عشان أحجز تنظيف منزلي؟',
-    questionEn: 'Do I need an account to book house cleaning?',
+    questionAr: 'لمن الخدمة موجهة؟',
+    questionEn: 'Who is the service for?',
     answerAr:
-      'تقدر تبدأ الحجز بسهولة. لتأكيد الطلب ومتابعة الاشتراك يُفضّل تسجيل الدخول عبر Google أو البريد أو رقم الجوال العُماني.',
+      'للجهات الحكومية والشركات والمؤسسات التي تحتاج ضيافة جاهزة بالمناسبات والاجتماعات والافتتاحات — بنظام باقات واضح.',
     answerEn:
-      'You can start booking easily. To confirm and manage your subscription, sign in with Google, email, or an Oman mobile number.',
+      'Government entities, companies, and organizations that need ready hospitality for events, meetings, and openings — via clear packages.',
   },
   {
-    questionAr: 'ما الفرق بين باقة ساعتين وباقة 3 أو 4 ساعات؟',
-    questionEn: 'What is the difference between 2-hour and 3–4 hour packages?',
+    questionAr: 'هل أحتاج حساب لإرسال طلب؟',
+    questionEn: 'Do I need an account to submit a request?',
     answerAr:
-      'الباقات الأقصر تناسب الشقق والصيانة الأسبوعية الخفيفة. باقات 3–4 ساعات أنسب للمنازل الأكبر أو التنظيف الأعمق. اختر أيضاً عدد الزيارات الأسبوعية حسب احتياجك.',
+      'يمكنك بدء الطلب بسهولة. لتأكيد الطلب ومتابعته يُفضّل تسجيل الدخول عبر البريد أو الجوال.',
     answerEn:
-      'Shorter visits suit apartments and light weekly upkeep. 3–4 hour packages fit larger homes or deeper cleans. Also choose weekly visit frequency based on your needs.',
+      'You can start a request easily. To confirm and track it, signing in with email or phone is recommended.',
   },
   {
-    questionAr: 'كيف أدفع اشتراك التنظيف؟',
-    questionEn: 'How do I pay for a cleaning subscription?',
+    questionAr: 'ماذا يحدث بعد إرسال الطلب؟',
+    questionEn: 'What happens after I submit a request?',
     answerAr:
-      'عند إتمام الحجز يمكنك الدفع إلكترونياً (عند التفعيل) أو عبر التحويل البنكي. بعد التأكيد يتواصل فريق خوصة خلال 24 ساعة لترتيب الزيارة الأولى.',
+      'يصلك إشعار تأكيد، ويستلم فريقنا الطلب فوراً. ننسّق خلف الكواليس ثم نعود إليكم بالموافقة أو العرض النهائي.',
     answerEn:
-      'At checkout you can pay online (when enabled) or by bank transfer. After confirmation, the KHOUSA team contacts you within 24 hours to schedule the first visit.',
+      'You get a confirmation notice and our team receives the request immediately. We coordinate behind the scenes, then return with approval or a final offer.',
   },
   {
-    questionAr: 'هل توفرون تنظيف مكاتب في مسقط؟',
-    questionEn: 'Do you offer office cleaning in Muscat?',
+    questionAr: 'هل يمكن طلب ضيافة مخصصة خارج الباقات؟',
+    questionEn: 'Can I request custom hospitality outside packages?',
     answerAr:
-      'نعم، لدينا باقات مكتبية ضمن الخدمات. يمكنك اختيارها من صفحة الحجز أو السؤال عبر مساعد خوصة أو واتساب.',
+      'نعم. اختر أقرب باقة أو أرسل طلباً مع ملاحظاتك، وسنجهّز عرضاً يناسب مناسبتكم.',
     answerEn:
-      'Yes — we offer office cleaning packages. Choose one on the booking page, or ask via the KHOUSA chat assistant or WhatsApp.',
+      'Yes. Pick the closest package or send a request with your notes, and we will prepare an offer that fits your event.',
   },
 ]

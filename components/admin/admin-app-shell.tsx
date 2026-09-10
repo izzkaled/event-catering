@@ -83,7 +83,7 @@ export function AdminAppShell({ children }: { children: ReactNode }) {
     <div className="page-shell flex min-h-screen bg-background" dir={dir}>
       <aside className="hidden w-full max-w-72 shrink-0 flex-col border-e border-sidebar-border bg-sidebar p-4 lg:flex">
         <Link href="/" className="mb-6 flex items-center gap-2 px-2">
-          <BrandLogo size="md" subtitle="Admin" />
+          <BrandLogo size="md" showText subtitle="Admin" />
         </Link>
         {Nav}
         <div className="mt-auto flex flex-col gap-2 pt-4">
@@ -108,7 +108,7 @@ export function AdminAppShell({ children }: { children: ReactNode }) {
           />
           <aside className="absolute inset-y-0 end-0 flex w-full max-w-[min(18rem,85vw)] flex-col border-s border-sidebar-border bg-sidebar p-4">
             <div className="mb-6 flex items-center justify-between px-2">
-              <BrandLogo size="md" subtitle="Admin" />
+              <BrandLogo size="md" showText subtitle="Admin" />
               <button type="button" onClick={() => setOpen(false)} aria-label="Close">
                 <X className="size-5" />
               </button>

@@ -12,15 +12,15 @@ export function SiteFooter() {
 
   const desc =
     lang === 'ar'
-      ? 'خوصة — خدمة تنظيف منازل ومكاتب في مسقط (بوشر، السيب، مطرح والمزيد). باقات شهرية مرنة بالريال العُماني.'
-      : 'KHOUSA — home & office cleaning in Muscat (Bawshar, Seeb, Muttrah & more). Flexible monthly packages in OMR.'
+      ? 'إيفنت كاترينج — منصة وسيط ضيافة بالباقات للجهات الحكومية والشركات في عُمان. تنسيق احترافي وعروض واضحة.'
+      : 'Event Catering — hospitality package intermediary for government and corporate in Oman. Professional coordination and clear offers.'
 
   return (
     <footer className="min-w-0 w-full overflow-x-clip border-t border-border bg-secondary/40">
       <div className="site-container grid gap-8 py-12 sm:grid-cols-2 lg:grid-cols-3">
         <div className="flex flex-col gap-3">
           <Link href="/" className="flex items-center gap-2">
-            <BrandLogo size="md" />
+          <BrandLogo size="md" full className="justify-start" />
           </Link>
           <p className="text-sm leading-relaxed text-muted-foreground">{desc}</p>
         </div>
@@ -44,7 +44,9 @@ export function SiteFooter() {
         </div>
 
         <div className="flex flex-col gap-3">
-          <h3 className="text-sm font-bold text-brand-palm">تواصل معنا</h3>
+          <h3 className="text-sm font-bold text-brand-palm">
+            {lang === 'ar' ? 'تواصل معنا' : 'Contact'}
+          </h3>
           <a
             href={`https://wa.me/${WHATSAPP}`}
             target="_blank"
@@ -66,7 +68,8 @@ export function SiteFooter() {
       </div>
       <div className="border-t border-border">
         <div className="site-container py-4 text-center text-sm text-muted-foreground">
-          © 2026 خوصة · KHOUSA Oman — Home cleaning Muscat. {lang === 'ar' ? 'جميع الحقوق محفوظة.' : 'All rights reserved.'}
+          © 2026 Event Catering · إيفنت كاترينج —{' '}
+          {lang === 'ar' ? 'جميع الحقوق محفوظة.' : 'All rights reserved.'}
         </div>
       </div>
     </footer>

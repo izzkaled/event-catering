@@ -5,12 +5,16 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  --font-heading: var(--font-cairo), 'Cairo Fallback';
-  --font-sans: var(--font-cairo), 'Cairo Fallback';
+  --font-heading: var(--font-plex), 'IBM Plex Sans Arabic', -apple-system, BlinkMacSystemFont, 'Segoe UI',
+    sans-serif;
+  --font-sans: var(--font-plex), 'IBM Plex Sans Arabic', -apple-system, BlinkMacSystemFont, 'Segoe UI',
+    sans-serif;
   --font-mono: var(--font-geist-mono), 'Geist Mono Fallback';
-  --font-brand: var(--font-cairo), 'Cairo Fallback';
+  --font-brand: var(--font-plex), 'IBM Plex Sans Arabic', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-ios: var(--font-plex), 'IBM Plex Sans Arabic', -apple-system, BlinkMacSystemFont, 'SF Pro Text',
+    'SF Arabic', 'Segoe UI', sans-serif;
 
-  /* Brand palette — use as bg-brand-palm, text-brand-sand, etc. */
+  /* Brand palette — palm=plum, sand=gold (legacy token names kept for compatibility) */
   --color-brand-palm: var(--brand-palm);
   --color-brand-sand: var(--brand-sand);
   --color-brand-silver: var(--brand-silver);
@@ -60,12 +64,12 @@
 :root {
   color-scheme: light;
 
-  /* ── Brand tokens (source of truth) ── */
-  --brand-palm: #223826;
-  --brand-sand: #c4a17b;
-  --brand-silver: #c9c9c9;
-  --brand-terracotta: #a36846;
-  --brand-cream: #f7f2eb;
+  /* ── Brand tokens — Event Catering (plum / cream / gold) ── */
+  --brand-palm: #4a234a;
+  --brand-sand: #c9a86c;
+  --brand-silver: #d4cfc6;
+  --brand-terracotta: #b8915a;
+  --brand-cream: #f5f1e9;
 
   /* ── Semantic (derived from brand) ── */
   --background: var(--brand-cream);
@@ -76,27 +80,27 @@
   --popover-foreground: var(--brand-palm);
   --primary: var(--brand-palm);
   --primary-foreground: var(--brand-cream);
-  --secondary: #ebe0d2;
+  --secondary: #ebe4db;
   --secondary-foreground: var(--brand-palm);
   --muted: #ebe4db;
-  --muted-foreground: #5c6b5e;
+  --muted-foreground: #6b5a6b;
   --accent: var(--brand-terracotta);
   --accent-foreground: #fffcf8;
   --destructive: #9b3b2e;
   --border: color-mix(in srgb, var(--brand-silver) 72%, var(--brand-sand) 28%);
-  --input: color-mix(in srgb, var(--brand-silver) 60%, #ebe0d2 40%);
+  --input: color-mix(in srgb, var(--brand-silver) 60%, #ebe4db 40%);
   --ring: var(--brand-sand);
   --chart-1: var(--brand-palm);
   --chart-2: var(--brand-sand);
   --chart-3: var(--brand-terracotta);
-  --chart-4: #5c6b5e;
+  --chart-4: #6b5a6b;
   --chart-5: var(--brand-silver);
   --radius: 0.75rem;
-  --sidebar: #f0e9df;
+  --sidebar: #efe8df;
   --sidebar-foreground: var(--brand-palm);
   --sidebar-primary: var(--brand-palm);
   --sidebar-primary-foreground: var(--brand-cream);
-  --sidebar-accent: #ebe0d2;
+  --sidebar-accent: #ebe4db;
   --sidebar-accent-foreground: var(--brand-palm);
   --sidebar-border: color-mix(in srgb, var(--brand-silver) 72%, var(--brand-sand) 28%);
   --sidebar-ring: var(--brand-sand);
@@ -104,23 +108,23 @@
 
 .dark {
   color-scheme: dark;
-  --brand-palm: #223826;
-  --brand-sand: #c4a17b;
-  --brand-silver: #c9c9c9;
-  --brand-terracotta: #a36846;
-  --brand-cream: #f7f2eb;
-  --background: #162019;
-  --foreground: #f0e9df;
-  --card: #1e2a21;
-  --card-foreground: #f0e9df;
-  --popover: #1e2a21;
-  --popover-foreground: #f0e9df;
+  --brand-palm: #4a234a;
+  --brand-sand: #c9a86c;
+  --brand-silver: #d4cfc6;
+  --brand-terracotta: #b8915a;
+  --brand-cream: #f5f1e9;
+  --background: #1a101a;
+  --foreground: #f5f1e9;
+  --card: #241824;
+  --card-foreground: #f5f1e9;
+  --popover: #241824;
+  --popover-foreground: #f5f1e9;
   --primary: var(--brand-sand);
   --primary-foreground: var(--brand-palm);
-  --secondary: #2a3530;
-  --secondary-foreground: #f0e9df;
-  --muted: #2a3530;
-  --muted-foreground: #b7b5ad;
+  --secondary: #2e2230;
+  --secondary-foreground: #f5f1e9;
+  --muted: #2e2230;
+  --muted-foreground: #c4b8b0;
   --accent: var(--brand-terracotta);
   --accent-foreground: #fffcf8;
   --destructive: #d47368;
@@ -129,15 +133,15 @@
   --ring: var(--brand-sand);
   --chart-1: var(--brand-sand);
   --chart-2: var(--brand-terracotta);
-  --chart-3: #8fa08f;
+  --chart-3: #9b7a9b;
   --chart-4: var(--brand-silver);
-  --chart-5: #5c6b5e;
-  --sidebar: #1a241c;
-  --sidebar-foreground: #f0e9df;
+  --chart-5: #6b5a6b;
+  --sidebar: #1f141f;
+  --sidebar-foreground: #f5f1e9;
   --sidebar-primary: var(--brand-sand);
   --sidebar-primary-foreground: var(--brand-palm);
-  --sidebar-accent: #2a3530;
-  --sidebar-accent-foreground: #f0e9df;
+  --sidebar-accent: #2e2230;
+  --sidebar-accent-foreground: #f5f1e9;
   --sidebar-border: color-mix(in srgb, var(--brand-silver) 18%, transparent);
   --sidebar-ring: var(--brand-sand);
 }
@@ -154,14 +158,18 @@
     /* Do NOT set overflow-x on html/body — it breaks position:fixed bottom nav on mobile */
   }
   body {
-    @apply bg-background text-foreground min-w-0;
+    @apply bg-background text-foreground min-w-0 font-sans;
     max-width: 100%;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
   }
   h1,
   h2,
   h3,
   h4 {
     @apply font-heading tracking-tight text-foreground;
+    letter-spacing: -0.015em;
   }
   img,
   svg,
@@ -240,18 +248,31 @@
   /* Brand typography helpers */
   .font-brand {
     font-family: var(--font-brand);
+    letter-spacing: -0.01em;
+  }
+  .font-ios {
+    font-family: var(--font-ios);
+    font-feature-settings: 'kern' 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
   .brand-kicker {
-    @apply font-brand text-xs font-bold uppercase tracking-[0.32em] text-brand-sand sm:text-sm;
+    @apply font-ios text-[0.7rem] font-medium uppercase tracking-[0.28em] text-brand-sand sm:text-xs;
   }
   .brand-display {
-    @apply font-brand text-4xl font-extrabold leading-none tracking-tight text-brand-palm sm:text-5xl lg:text-[3.5rem];
+    @apply font-ios text-4xl font-semibold leading-none tracking-tight text-brand-palm sm:text-5xl lg:text-[3.5rem];
   }
   .surface-brand {
-    @apply bg-[linear-gradient(135deg,var(--brand-palm)_0%,#2f4a35_48%,var(--brand-terracotta)_100%)];
+    @apply bg-[linear-gradient(135deg,var(--brand-palm)_0%,#3a1c3a_48%,#5c2d4a_100%)];
   }
   .glow-sand {
     @apply bg-[radial-gradient(ellipse_at_top,color-mix(in_srgb,var(--brand-sand)_28%,transparent),transparent_60%)];
+  }
+  .btn-luxury {
+    @apply rounded-full border border-brand-sand/35 bg-brand-sand font-semibold text-brand-palm shadow-[0_8px_24px_-10px_rgba(0,0,0,0.4)] transition-all duration-200 hover:bg-[#d4b57a] hover:shadow-[0_12px_28px_-10px_rgba(0,0,0,0.45)] active:scale-[0.98];
+  }
+  .btn-ghost-luxury {
+    @apply rounded-full border border-brand-cream/45 bg-brand-cream/10 font-medium text-brand-cream backdrop-blur-[6px] transition-all duration-200 hover:border-brand-cream/70 hover:bg-brand-cream/18 active:scale-[0.98];
   }
 }
 
@@ -419,6 +440,59 @@
   animation: khousa-pulse-soft 3.2s ease-in-out infinite;
 }
 
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 18px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes hero-ken {
+  from {
+    transform: scale(1.05);
+  }
+  to {
+    transform: scale(1.12);
+  }
+}
+
+@keyframes event-wash {
+  0%,
+  100% {
+    opacity: 0.7;
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    opacity: 1;
+    transform: translate3d(1.5%, 0, 0);
+  }
+}
+
+@keyframes event-wash-alt {
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    opacity: 0.9;
+    transform: translate3d(-1.5%, 0, 0);
+  }
+}
+
+@keyframes event-splash-fill {
+  from {
+    width: 0%;
+  }
+  to {
+    width: 100%;
+  }
+}
+
 @keyframes khousa-splash-fill {
   from {
     width: 0%;
@@ -438,7 +512,9 @@
   .motion-safe\:animate-khousa-ken,
   .motion-safe\:animate-khousa-sweep,
   .motion-safe\:animate-khousa-progress,
-  .motion-safe\:animate-khousa-pulse-soft {
+  .motion-safe\:animate-khousa-pulse-soft,
+  [class*='animate-\[hero-ken'],
+  [class*='animate-\[event-wash'] {
     animation: none !important;
   }
 }

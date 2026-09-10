@@ -13,17 +13,17 @@ import type { ChatAction } from '@/lib/chat/links'
 type ChatMsg = { id: string; role: 'user' | 'assistant'; content: string; actions?: ChatAction[] }
 
 const SUGGESTIONS_AR = [
-  { label: 'الباقات', text: 'ما هي أحدث الباقات والأسعار؟ أرسل روابط الحجز', icon: Package },
+  { label: 'الباقات', text: 'ما هي أحدث باقات الضيافة والأسعار؟ أرسل روابط الطلب', icon: Package },
   { label: 'المناطق', text: 'أين تغطون الخدمة في مسقط؟', icon: MapPin },
-  { label: 'الحجز', text: 'كيف أحجز اشتراك تنظيف؟', icon: CalendarPlus },
-  { label: 'اشتراكاتي', text: 'وين أحصل اشتراكاتي؟', icon: CreditCard },
+  { label: 'الطلب', text: 'كيف أطلب باقة ضيافة؟', icon: CalendarPlus },
+  { label: 'طلباتي', text: 'وين أحصل طلباتي؟', icon: CreditCard },
 ] as const
 
 const SUGGESTIONS_EN = [
-  { label: 'Packages', text: 'What are the latest packages and prices? Include booking links.', icon: Package },
+  { label: 'Packages', text: 'What are the latest hospitality packages and prices? Include request links.', icon: Package },
   { label: 'Areas', text: 'Which areas in Muscat do you cover?', icon: MapPin },
-  { label: 'Booking', text: 'How do I book a cleaning subscription?', icon: CalendarPlus },
-  { label: 'My plans', text: 'Where can I find my subscriptions?', icon: CreditCard },
+  { label: 'Request', text: 'How do I request a hospitality package?', icon: CalendarPlus },
+  { label: 'My requests', text: 'Where can I find my requests?', icon: CreditCard },
 ] as const
 
 function newId() {
@@ -33,11 +33,11 @@ function newId() {
 function ChatbotLogo({ size = 56, className }: { size?: number; className?: string }) {
   return (
     <Image
-      src="/images/brand/chatbot-logo.png"
+      src="/images/brand/logo-mark.webp"
       alt=""
       width={size}
       height={size}
-      className={cn('rounded-full object-cover', className)}
+      className={cn('rounded-full object-cover ring-1 ring-brand-sand/30', className)}
       style={{ width: size, height: size }}
       priority={false}
     />
@@ -121,8 +121,8 @@ export function HomeChatbot() {
           id: 'welcome',
           role: 'assistant',
           content: ar
-            ? 'أهلاً بك في خوصة 🌿\nأقدر أساعدك بالباقات والأسعار والمناطق والحجز خلال ثوانٍ.\nبماذا أبدأ؟'
-            : 'Welcome to KHOUSA 🌿\nI can help with packages, prices, areas, and booking in seconds.\nWhere shall we start?',
+            ? 'أهلاً بك في إيفنت كاترينج\nأقدر أساعدك بالباقات والأسعار والمناطق وطلبات الضيافة خلال ثوانٍ.\nبماذا أبدأ؟'
+            : 'Welcome to Event Catering\nI can help with packages, prices, areas, and hospitality requests in seconds.\nWhere shall we start?',
         },
       ])
     }
@@ -144,8 +144,8 @@ export function HomeChatbot() {
           id: 'welcome',
           role: 'assistant',
           content: ar
-            ? `أهلاً ${customerName} 🌿\nفرحانين نساعدك في خوصة — باقات، أسعار، مناطق، وحجز خلال ثوانٍ.\nبماذا أبدأ؟`
-            : `Hi ${customerName} 🌿\nHappy to help at KHOUSA — packages, prices, areas, and booking in seconds.\nWhere shall we start?`,
+            ? `أهلاً ${customerName}\nفرحانين نساعدك في إيفنت كاترينج — باقات، أسعار، مناطق، وطلبات ضيافة خلال ثوانٍ.\nبماذا أبدأ؟`
+            : `Hi ${customerName}\nHappy to help at Event Catering — packages, prices, areas, and hospitality requests in seconds.\nWhere shall we start?`,
         },
       ]
     })
@@ -241,7 +241,7 @@ export function HomeChatbot() {
         dir={dir}
         role="dialog"
         aria-hidden={!open}
-        aria-label={ar ? 'مساعد خوصة' : 'KHOUSA Helper'}
+        aria-label={ar ? 'مساعد إيفنت' : 'Event Helper'}
         className={cn(
           'fixed z-[46] start-3 sm:start-6',
           'bottom-[calc(9.5rem+env(safe-area-inset-bottom,0px))] md:bottom-[7rem]',
@@ -254,7 +254,7 @@ export function HomeChatbot() {
         )}
       >
         {/* Header */}
-        <div className="relative overflow-hidden border-b border-white/10 bg-[linear-gradient(135deg,var(--brand-palm)_0%,#2a4530_55%,#3d5c42_100%)] px-3.5 py-3.5 text-brand-cream">
+        <div className="relative overflow-hidden border-b border-white/10 bg-[linear-gradient(135deg,var(--brand-palm)_0%,#3a1c3a_55%,#5c2d4a_100%)] px-3.5 py-3.5 text-brand-cream">
           <div className="pointer-events-none absolute -end-6 -top-8 size-28 rounded-full bg-brand-sand/20 blur-2xl" />
           <div className="relative flex items-center gap-3">
             <div className="relative shrink-0">
@@ -263,7 +263,7 @@ export function HomeChatbot() {
             </div>
             <div className="min-w-0 flex-1">
               <p className="truncate text-[15px] font-extrabold tracking-tight">
-                {ar ? 'مساعد خوصة' : 'KHOUSA Helper'}
+                {ar ? 'مساعد إيفنت' : 'Event Helper'}
               </p>
               <p className="mt-0.5 flex items-center gap-1.5 text-[11px] text-brand-sand/95">
                 <span className="size-1.5 rounded-full bg-emerald-400" />
@@ -392,14 +392,14 @@ export function HomeChatbot() {
       >
         {!open && (
           <span className="pointer-events-none rounded-full border border-brand-sand/40 bg-brand-cream/95 px-2.5 py-1 text-[10px] font-bold text-brand-palm shadow-md backdrop-blur-sm">
-            {ar ? 'مساعد خوصة' : 'KHOUSA Helper'}
+            {ar ? 'مساعد إيفنت' : 'Event Helper'}
           </span>
         )}
         <button
           type="button"
           onClick={() => setOpen((v) => !v)}
           aria-expanded={open}
-          aria-label={ar ? 'فتح مساعد خوصة' : 'Open KHOUSA helper'}
+          aria-label={ar ? 'فتح مساعد إيفنت' : 'Open KHOUSA helper'}
           className={cn(
             'relative flex size-[3.6rem] items-center justify-center overflow-hidden rounded-full transition-transform active:scale-95 sm:size-16 sm:hover:scale-105',
             'shadow-[0_12px_28px_-6px_color-mix(in_srgb,var(--brand-palm)_45%,transparent)]',

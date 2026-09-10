@@ -66,32 +66,33 @@ export async function buildChatSiteContext(): Promise<ChatSiteContext> {
     login_url: '/auth/login',
     forgot_url: '/auth/forgot',
     home_url: '/',
-    site_name_ar: 'خوصة',
-    site_name_en: 'KHOUSA',
+    site_name_ar: 'إيفنت كاترينج',
+    site_name_en: 'Event Catering',
   }
 }
 
 export function formatContextForPrompt(ctx: ChatSiteContext): string {
   const lines = ctx.packages.map((p) => {
     const flag = p.popular ? ' [popular]' : ''
-    return `- id:${p.id} | ${p.name_ar} / ${p.name_en}${flag} | ${p.hours_per_visit}h × ${p.visits_per_week}/week | ${p.price_omr} OMR | BOOK_LINK: ${p.book_url}`
+    return `- id:${p.id} | ${p.name_ar} / ${p.name_en}${flag} | tier ${p.hours_per_visit} · capacity ${p.visits_per_week} | ${p.price_omr} OMR | BOOK_LINK: ${p.book_url}`
   })
 
   return [
-    `Brand: ${ctx.site_name_ar} (${ctx.site_name_en}) — home cleaning subscriptions in Muscat, Oman.`,
-    `Currency: OMR.`,
+    `Brand: ${ctx.site_name_ar} (${ctx.site_name_en}) — hospitality package intermediary for government & corporate events in Oman.`,
+    `Model: customer requests a package → admin coordinates catering partners → reply with quote/approval.`,
+    `Currency: OMR (indicative until final quote).`,
     `IMPORTANT SITE LINKS (use these exact paths in markdown links):`,
     `- Home: ${ctx.home_url}`,
     `- All packages: ${ctx.packages_url}`,
-    `- Book (general): ${ctx.booking_url}`,
-    `- My subscriptions: ${ctx.subscriptions_url}`,
+    `- Request package: ${ctx.booking_url}`,
+    `- My requests: ${ctx.subscriptions_url}`,
     `- My profile: ${ctx.profile_url}`,
     `- Login: ${ctx.login_url}`,
     `- Forgot password: ${ctx.forgot_url}`,
     `- WhatsApp: ${ctx.whatsapp_url}`,
     `Service areas (AR): ${ctx.areas_ar.join(', ')}`,
     `Service areas (EN): ${ctx.areas_en.join(', ')}`,
-    `Payment: card/Apple Pay via Paymob, or bank transfer.`,
+    `Payment: card/Apple Pay via Paymob, or bank transfer (often after quote confirmation).`,
     `Active packages (${ctx.packages.length}) — when recommending a package ALWAYS include its BOOK_LINK:`,
     lines.length ? lines.join('\n') : '(no packages loaded)',
   ].join('\n')

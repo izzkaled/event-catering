@@ -6,6 +6,7 @@ import { toast } from 'sonner'
 import type { Package, PackageSection } from '@/lib/db/schema'
 import { visitsPerMonthFromWeekly } from '@/lib/booking/schedule'
 import { isPackagePopular } from '@/lib/packages/types'
+import { GUEST_PRESETS, formatGuests, formatServiceHours } from '@/lib/packages/semantics'
 import { PriceCell } from '@/components/admin/price-cell'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -34,8 +35,8 @@ export function PackagesPanel() {
   const [form, setForm] = useState({
     name_ar: '',
     name_en: '',
-    hours_per_visit: 2,
-    visits_per_week: 2,
+    hours_per_visit: 4,
+    visits_per_week: 50,
     price_omr: '',
     section_id: '',
     is_popular: false,
@@ -100,12 +101,11 @@ export function PackagesPanel() {
     }
   }
 
-  const weeklyPresets = [1, 2, 3, 4, 5] as const
-  const monthlyPreview = visitsPerMonthFromWeekly(form.visits_per_week)
+  const guestPreview = visitsPerMonthFromWeekly(form.visits_per_week)
 
   const addPackage = async () => {
-    if (form.visits_per_week < 1 || form.visits_per_week > 7) {
-      toast.error('زيارات الأسبوع يجب أن تكون بين 1 و 7')
+    if (form.visits_per_week < 1) {
+      toast.error('عدد الأشخاص يجب أن يكون 1 على الأقل')
       return
     }
     const visits_per_month = visitsPerMonthFromWeekly(form.visits_per_week)
@@ -126,8 +126,8 @@ export function PackagesPanel() {
       setForm({
         name_ar: '',
         name_en: '',
-        hours_per_visit: 2,
-        visits_per_week: 2,
+        hours_per_visit: 4,
+        visits_per_week: 50,
         price_omr: '',
         section_id: sections[0]?.id ?? '',
         is_popular: false,
@@ -154,21 +154,21 @@ export function PackagesPanel() {
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-4 rounded-xl border border-border p-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-bold">أقسام الخدمات</h2>
+          <h2 className="text-lg font-bold">أقسام الضيافة</h2>
           <Button variant="outline" size="sm" onClick={() => setShowSectionForm(!showSectionForm)}>
             <Plus className="size-4" />
             قسم جديد
           </Button>
         </div>
         <p className="text-sm text-muted-foreground">
-          نظّم الباقات حسب نوع الخدمة (تنظيف، غسيل، تعقيم…). يمكنك إضافة أقسام مستقبلية دون تغيير الكود.
+          نظّم الباقات حسب نوع المناسبة (ضيافة رسمية، شركات، افتتاحات…). يمكنك إضافة أقسام دون تغيير الكود.
         </p>
         {showSectionForm && (
           <div className="grid gap-3 sm:grid-cols-3">
             <div className="flex flex-col gap-1">
               <Label>الاسم (عربي)</Label>
               <Input
-                placeholder="غسيل"
+                placeholder="ضيافة رسمية"
                 value={sectionForm.name_ar}
                 onChange={(e) => setSectionForm({ ...sectionForm, name_ar: e.target.value })}
               />
@@ -176,7 +176,7 @@ export function PackagesPanel() {
             <div className="flex flex-col gap-1">
               <Label>الاسم (English)</Label>
               <Input
-                placeholder="Laundry"
+                placeholder="Official hospitality"
                 value={sectionForm.name_en}
                 onChange={(e) => setSectionForm({ ...sectionForm, name_en: e.target.value })}
               />
@@ -184,7 +184,7 @@ export function PackagesPanel() {
             <div className="flex flex-col gap-1">
               <Label>المعرّف (اختياري)</Label>
               <Input
-                placeholder="laundry — يُنشأ تلقائياً من الاسم الإنجليزي"
+                placeholder="official — يُنشأ تلقائياً"
                 value={sectionForm.slug}
                 onChange={(e) => setSectionForm({ ...sectionForm, slug: e.target.value })}
                 dir="ltr"
@@ -205,7 +205,7 @@ export function PackagesPanel() {
       </div>
 
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-bold">إدارة الباقات</h2>
+        <h2 className="text-lg font-bold">باقات الضيافة</h2>
         <Button
           onClick={() => {
             setShowForm(!showForm)
@@ -245,17 +245,18 @@ export function PackagesPanel() {
             <Input value={form.name_en} onChange={(e) => setForm({ ...form, name_en: e.target.value })} />
           </div>
           <div className="flex flex-col gap-2">
-            <Label>الساعات</Label>
+            <Label>ساعات الخدمة</Label>
             <Input
               type="number"
+              min={1}
               value={form.hours_per_visit}
               onChange={(e) => setForm({ ...form, hours_per_visit: +e.target.value })}
             />
           </div>
           <div className="flex flex-col gap-2 sm:col-span-2">
-            <Label>زيارات/أسبوع (أيام الزيارة)</Label>
+            <Label>عدد الأشخاص (سعة الباقة)</Label>
             <div className="flex flex-wrap gap-2">
-              {weeklyPresets.map((n) => (
+              {GUEST_PRESETS.map((n) => (
                 <Button
                   key={n}
                   type="button"
@@ -263,26 +264,25 @@ export function PackagesPanel() {
                   variant={form.visits_per_week === n ? 'default' : 'outline'}
                   onClick={() => setForm({ ...form, visits_per_week: n })}
                 >
-                  {n} {n === 1 ? 'يوم' : 'أيام'}
+                  {n}
                 </Button>
               ))}
             </div>
             <Input
               type="number"
               min={1}
-              max={7}
+              max={2000}
               value={form.visits_per_week}
               onChange={(e) =>
-                setForm({ ...form, visits_per_week: Math.min(7, Math.max(1, +e.target.value || 1)) })
+                setForm({ ...form, visits_per_week: Math.min(2000, Math.max(1, +e.target.value || 1)) })
               }
             />
             <p className="text-xs text-muted-foreground">
-              الزيارات الشهرية تلقائياً: <strong>{monthlyPreview}</strong> (4 أسابيع ×{' '}
-              {form.visits_per_week})
+              السعة المعتمدة: <strong>{formatGuests(guestPreview, 'ar')}</strong>
             </p>
           </div>
           <div className="flex flex-col gap-2">
-            <Label>السعر (OMR)</Label>
+            <Label>السعر الاسترشادي (OMR)</Label>
             <Input value={form.price_omr} onChange={(e) => setForm({ ...form, price_omr: e.target.value })} />
           </div>
           <div className="flex items-center gap-2 pt-6">
@@ -293,7 +293,7 @@ export function PackagesPanel() {
               onChange={(e) => setForm({ ...form, is_popular: e.target.checked })}
             />
             <Label htmlFor="is_popular" className="cursor-pointer">
-              الأكثر طلباً (شارة خضراء ⭐)
+              الأكثر طلباً ⭐
             </Label>
           </div>
           <div className="flex items-end">
@@ -311,8 +311,8 @@ export function PackagesPanel() {
               <TableHead>الترتيب</TableHead>
               <TableHead>القسم</TableHead>
               <TableHead>الباقة</TableHead>
-              <TableHead>ساعات</TableHead>
-              <TableHead>زيارات</TableHead>
+              <TableHead>ساعات الخدمة</TableHead>
+              <TableHead>عدد الأشخاص</TableHead>
               <TableHead>السعر</TableHead>
               <TableHead>الحالة</TableHead>
               <TableHead></TableHead>
@@ -356,17 +356,14 @@ export function PackagesPanel() {
                     <div className="flex items-center gap-2">
                       {pkg.name_ar}
                       {popular && (
-                        <Badge className="gap-0.5 border-emerald-400/40 bg-emerald-600 text-white hover:bg-emerald-600">
+                        <Badge className="gap-0.5 border-brand-sand/40 bg-brand-palm text-brand-cream hover:bg-brand-palm">
                           ⭐
                         </Badge>
                       )}
                     </div>
                   </TableCell>
-                  <TableCell>{pkg.hours_per_visit}</TableCell>
-                  <TableCell>
-                    {pkg.visits_per_week}/أسبوع
-                    <div className="text-xs text-muted-foreground">{pkg.visits_per_month}/شهر</div>
-                  </TableCell>
+                  <TableCell>{formatServiceHours(pkg.hours_per_visit, 'ar')}</TableCell>
+                  <TableCell>{formatGuests(pkg.visits_per_week, 'ar')}</TableCell>
                   <TableCell>
                     <PriceCell value={pkg.price_omr} onSave={(price) => patch(pkg.id, { price_omr: price })} />
                   </TableCell>
@@ -387,7 +384,7 @@ export function PackagesPanel() {
                         title="الأكثر طلباً"
                       >
                         <Star
-                          className={`size-4 ${popular ? 'fill-emerald-500 text-emerald-500' : 'text-muted-foreground'}`}
+                          className={`size-4 ${popular ? 'fill-brand-sand text-brand-sand' : 'text-muted-foreground'}`}
                         />
                       </button>
                       <button type="button" onClick={() => remove(pkg.id)} className="text-destructive">

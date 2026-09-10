@@ -1,20 +1,22 @@
 import { addOneMonth } from '@/lib/constants'
 
-/** Monthly subscription ends one calendar month after start. */
+/** One-time event: end date defaults to same day. Kept for compatibility with orders.end_date. */
 export function subscriptionEndDate(startDate: string): string {
-  return addOneMonth(startDate)
+  return startDate || addOneMonth(startDate)
 }
 
-export function visitsPerMonthFromWeekly(visitsPerWeek: number): number {
-  return Math.max(1, visitsPerWeek) * 4
+/** For catering: visits_per_week stores guest count — monthly mirror is same value. */
+export function visitsPerMonthFromWeekly(guestCount: number): number {
+  return Math.max(1, guestCount)
 }
 
-export function isValidPreferredDaysCount(days: string[], visitsPerWeek: number): boolean {
-  return days.length > 0 && days.length === visitsPerWeek
+/** Event booking needs exactly one event day selected. */
+export function isValidPreferredDaysCount(days: string[], _guestCount: number): boolean {
+  return days.length === 1
 }
 
-export function clampPreferredDays(days: string[], visitsPerWeek: number): string[] {
-  return days.slice(0, Math.max(1, visitsPerWeek))
+export function clampPreferredDays(days: string[], _guestCount: number): string[] {
+  return days.slice(0, 1)
 }
 
 export function formatBookingDate(isoDate: string, lang: 'ar' | 'en'): string {

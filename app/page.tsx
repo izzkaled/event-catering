@@ -23,11 +23,7 @@ export const metadata: Metadata = {
 }
 
 async function getPackages() {
-  try {
-    return await getActivePackagesWithSections()
-  } catch {
-    return []
-  }
+  return getActivePackagesWithSections()
 }
 
 export default async function HomePage() {

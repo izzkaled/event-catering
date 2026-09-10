@@ -2,7 +2,6 @@ import {
   MUSCAT_AREAS,
   PREFERRED_TIMES,
   WEEK_DAYS_AR,
-  addOneMonth,
   calcCommission,
   calcNetRevenue,
 } from '@/lib/constants'
@@ -78,12 +77,13 @@ export function validateOrderPayload(
     return { ok: false, error: 'Invalid preferred time' }
   }
   if (!preferred_days.length) {
-    return { ok: false, error: 'Select preferred days' }
+    return { ok: false, error: 'Select the event day' }
   }
-  if (preferred_days.length !== pkg.visits_per_week) {
+  // Catering: one event day (visits_per_week stores guest count, not days)
+  if (preferred_days.length !== 1) {
     return {
       ok: false,
-      error: `Select exactly ${pkg.visits_per_week} preferred day(s) for this package`,
+      error: 'Select exactly 1 event day',
     }
   }
   if (!preferred_days.every((d) => WEEK_DAYS_AR.includes(d as (typeof WEEK_DAYS_AR)[number]))) {
@@ -115,7 +115,7 @@ export function validateOrderPayload(
       commission_omr: calcCommission(price).toFixed(2),
       net_revenue_omr: calcNetRevenue(price).toFixed(2),
       start_date,
-      end_date: addOneMonth(start_date),
+      end_date: start_date,
       preferred_time,
       preferred_days,
     },

@@ -4,7 +4,8 @@ import { Badge } from '@/components/ui/badge'
 import { useLanguage } from '@/components/language-provider'
 import { PopularBadge } from '@/components/packages/popular-badge'
 import { groupPackagesBySection, isPackagePopular, type PackageWithSection } from '@/lib/packages/types'
-import { Check, Clock, Sparkles } from 'lucide-react'
+import { formatGuests, formatServiceHours } from '@/lib/packages/semantics'
+import { Check, Users, Sparkles } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 export function PackageSelector({
@@ -23,16 +24,16 @@ export function PackageSelector({
     <div className="flex flex-col gap-10">
       <div className="rounded-xl border border-primary/15 bg-primary/5 p-4 text-sm leading-relaxed text-muted-foreground">
         {lang === 'ar'
-          ? 'اختر القسم والباقة المناسبة — الأسعار شهرية شفافة بالريال العُماني.'
-          : 'Choose a service section and package — transparent monthly pricing in OMR.'}
+          ? 'اختر قسم المناسبة والباقة — السعر استرشادي حسب عدد الأشخاص، ويُؤكَّد بعد مراجعة الطلب.'
+          : 'Choose an occasion section and package — indicative price by guest count; confirmed after review.'}
       </div>
 
       {sections.map((section) => {
         const sectionName = lang === 'ar' ? section.name_ar : section.name_en
-        const groupedByHours = section.packages.reduce<Record<number, PackageWithSection[]>>((acc, pkg) => {
-          const h = pkg.hours_per_visit
-          if (!acc[h]) acc[h] = []
-          acc[h].push(pkg)
+        const groupedByGuests = section.packages.reduce<Record<number, PackageWithSection[]>>((acc, pkg) => {
+          const g = pkg.visits_per_week
+          if (!acc[g]) acc[g] = []
+          acc[g].push(pkg)
           return acc
         }, {})
 
@@ -42,16 +43,16 @@ export function PackageSelector({
               <h2 className="text-lg font-extrabold tracking-tight text-foreground">{sectionName}</h2>
             </div>
 
-            {Object.entries(groupedByHours)
+            {Object.entries(groupedByGuests)
               .sort(([a], [b]) => Number(a) - Number(b))
-              .map(([hours, pkgs]) => (
-                <div key={`${section.slug}-${hours}`} className="flex flex-col gap-4">
+              .map(([guests, pkgs]) => (
+                <div key={`${section.slug}-${guests}`} className="flex flex-col gap-4">
                   <div className="flex items-center gap-2">
                     <span className="flex size-8 items-center justify-center rounded-lg bg-secondary text-sm font-bold text-foreground">
-                      {hours}
+                      <Users className="size-4" />
                     </span>
                     <h3 className="text-sm font-bold text-muted-foreground">
-                      {hours} {t('booking.hours')} {lang === 'ar' ? 'لكل زيارة' : 'per visit'}
+                      {formatGuests(Number(guests), lang)}
                     </h3>
                   </div>
                   <div className="grid gap-4 sm:grid-cols-2">
@@ -82,23 +83,14 @@ export function PackageSelector({
                               <p className="text-safe font-extrabold leading-snug group-hover:text-primary">{name}</p>
                               <div className="mt-2 flex flex-wrap gap-1.5">
                                 <Badge variant="secondary" className="font-semibold">
-                                  {pkg.visits_per_week}{' '}
-                                  {lang === 'ar'
-                                    ? pkg.visits_per_week === 1
-                                      ? 'يوم/أسبوع'
-                                      : 'أيام/أسبوع'
-                                    : pkg.visits_per_week === 1
-                                      ? 'day/week'
-                                      : 'days/week'}
+                                  {formatGuests(pkg.visits_per_week, lang)}
                                 </Badge>
                                 <Badge variant="outline" className="font-normal">
-                                  {pkg.hours_per_visit} {t('booking.hours')}
+                                  {formatServiceHours(pkg.hours_per_visit, lang)}
                                 </Badge>
                               </div>
-                              <p className="mt-1.5 flex items-center gap-1.5 text-xs text-muted-foreground">
-                                <Clock className="size-3.5 shrink-0" />
-                                {pkg.visits_per_month} {t('booking.visitsPerMonth')}
-                                {lang === 'ar' ? ' · اشتراك شهري' : ' · monthly plan'}
+                              <p className="mt-1.5 text-xs text-muted-foreground">
+                                {lang === 'ar' ? 'سعر استرشادي للمناسبة' : 'Indicative event price'}
                               </p>
                             </div>
                             <span
@@ -113,7 +105,7 @@ export function PackageSelector({
 
                           <div className="flex items-end justify-between border-t border-border/80 pt-3">
                             <span className="text-xs text-muted-foreground">
-                              {lang === 'ar' ? 'شهرياً' : 'Monthly'}
+                              {t('hero.from')}
                             </span>
                             <div className="text-end">
                               <span className="text-2xl font-extrabold tabular-nums text-primary">{price}</span>

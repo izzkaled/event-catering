@@ -65,28 +65,28 @@ const assistActions = [
     label: 'حلّل الأداء',
     icon: BarChart3,
     prompt:
-      'بناءً على أرقام لوحة التحكم، أعطني تحليلاً مختصراً: نقاط القوة، المخاطر، و3 إجراءات عملية هذا الأسبوع.',
+      'بناءً على أرقام لوحة التحكم، أعطني تحليلاً مختصراً لطلبات الضيافة: نقاط القوة، المخاطر، و3 إجراءات عملية هذا الأسبوع.',
   },
   {
     id: 'whatsapp',
     label: 'رد واتساب',
     icon: MessageSquareText,
     prompt:
-      'اكتب 3 ردود واتساب جاهزة بالعربي: تأكيد حجز، تذكير بموعد زيارة، ومتابعة عميل لم يكمل الدفع. قصيرة واحترافية.',
+      'اكتب 3 ردود واتساب جاهزة بالعربي: تأكيد استلام طلب ضيافة، إرسال عرض سعر نهائي، ومتابعة جهة لم ترد على العرض. قصيرة واحترافية.',
   },
   {
     id: 'packages',
     label: 'اقتراح باقات',
     icon: Lightbulb,
     prompt:
-      'اقترح تحسينات على تسعير وعرض الباقات لشركة تنظيف منزلية في مسقط، مع فكرة باقة شركات/مكاتب.',
+      'اقترح تحسينات على تسعير وعرض باقات الضيافة للجهات الحكومية والشركات في مسقط، مع فكرة باقة افتتاح وباقة اجتماعات.',
   },
   {
     id: 'orders',
     label: 'تذكير طلبات معلّقة',
     icon: ClipboardList,
     prompt:
-      'اكتب نص تواصل قصير للطلبات المعلّقة (pending) لأرسله للعميل عبر واتساب أو إيميل لإكمال الدفع أو تأكيد الموعد.',
+      'اكتب نص تواصل قصير للطلبات المعلّقة (pending) لأرسله للجهة عبر واتساب أو إيميل لتأكيد العرض أو استكمال التفاصيل.',
   },
 ]
 
@@ -101,17 +101,17 @@ Live admin stats (use these numbers; do not invent data):
 - Areas: ${JSON.stringify(stats.areaBreakdown)}
 - Visits today / month: ${stats.todayVisits} / ${stats.monthVisits}
 `
-    : 'No live stats available — give general Oman cleaning-business advice.'
+    : 'No live stats available — give general Oman hospitality-intermediary advice.'
 
-  return `You are Speedy Cleaning (Clean Plus) operations AI assistant for the business owner/admin in Muscat, Oman.
+  return `You are Event Catering operations AI assistant for the business owner/admin in Muscat, Oman.
 
 Your job: be clear, practical, and supportive — not decorative. Prefer short actionable steps, checklists, and ready-to-send copy.
-Business: home cleaning subscriptions (hours × weekly visits), packages by service section, Paymob + bank transfer, WhatsApp support.
+Business: hospitality package intermediary for government & corporate (guest count × service hours), packages by occasion section, coordinate catering partners behind the scenes, Paymob + bank transfer, WhatsApp support.
 ${statsBlock}
 
 Rules:
 - Reply in the same language as the user (Arabic Gulf-friendly or English).
-- If recommending prices, use OMR.
+- If recommending prices, use OMR (indicative until final quote).
 - Never claim you already sent an email — only draft text unless the admin uses the Outreach tab.
 - Never claim you changed packages in the database — package edits happen only in the Packages tab after admin approval.
 - Be honest about uncertainty.`
@@ -382,7 +382,7 @@ export function AIAssistantPanel() {
               </span>
               <div>
                 <h1 className="text-xl font-extrabold tracking-tight">مساعد الإدارة الذكي</h1>
-                <p className="text-sm text-muted-foreground">Speedy Cleaning · يدعم قراراتك اليومية</p>
+                <p className="text-sm text-muted-foreground">Event Catering · يدعم قراراتك اليومية</p>
               </div>
             </div>
             <p className="max-w-2xl text-sm leading-relaxed text-muted-foreground">
@@ -716,7 +716,7 @@ export function AIAssistantPanel() {
                 <Textarea
                   value={brief}
                   onChange={(e) => setBrief(e.target.value)}
-                  placeholder="مثال: عرض تنظيف مكاتب 3 مرات أسبوعياً لموظفي الشركة في القرم"
+                  placeholder="مثال: عرض ضيافة لاجتماع حكومي 50 شخص في بوشر"
                   rows={3}
                 />
               </div>

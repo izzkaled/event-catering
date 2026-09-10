@@ -1,43 +1,43 @@
 'use client'
 
-import { Package, User, Calendar, CheckCircle, PartyPopper } from 'lucide-react'
+import { Package, Send, Headphones, FileCheck, PartyPopper } from 'lucide-react'
 import { useLanguage } from '@/components/language-provider'
 
 const steps = [
   {
     icon: Package,
     titleAr: 'اختر الباقة',
-    titleEn: 'Choose Package',
-    descAr: 'حدد الساعات وزيارات الأسبوع المناسبة لمنزلك.',
-    descEn: 'Pick hours and weekly visits that suit your home.',
+    titleEn: 'Choose package',
+    descAr: 'حدد مستوى الضيافة المناسب لمناسبتكم وعدد الحضور.',
+    descEn: 'Pick the hospitality tier that fits your occasion and guests.',
   },
   {
-    icon: User,
-    titleAr: 'بياناتك',
-    titleEn: 'Your Details',
-    descAr: 'أدخل اسمك وجوالك وعنوانك في مسقط.',
-    descEn: 'Enter your name, phone, and Muscat address.',
+    icon: Send,
+    titleAr: 'أرسل الطلب',
+    titleEn: 'Submit request',
+    descAr: 'أدخل بيانات الجهة، الموقع، التاريخ والملاحظات.',
+    descEn: 'Enter organization details, venue, date, and notes.',
   },
   {
-    icon: Calendar,
-    titleAr: 'الموعد',
-    titleEn: 'Schedule',
-    descAr: 'اختر تاريخ البداية والوقت وأيام الأسبوع.',
-    descEn: 'Choose start date, time, and preferred days.',
+    icon: Headphones,
+    titleAr: 'نستلم وننسّق',
+    titleEn: 'We coordinate',
+    descAr: 'يصلنا إشعار فوري وننسّق مع مزوّدي الضيافة خلف الكواليس.',
+    descEn: 'We get an instant alert and coordinate catering partners behind the scenes.',
   },
   {
-    icon: CheckCircle,
-    titleAr: 'تأكيد',
-    titleEn: 'Confirm',
-    descAr: 'راجع الطلب وأكّد — الدفع عبر تحويل بنكي.',
-    descEn: 'Review and confirm — pay by bank transfer.',
+    icon: FileCheck,
+    titleAr: 'عرض وموافقة',
+    titleEn: 'Quote & approval',
+    descAr: 'نرد عليكم بالعرض النهائي أو الموافقة حسب المتطلبات.',
+    descEn: 'We reply with a final quote or approval based on requirements.',
   },
   {
     icon: PartyPopper,
-    titleAr: 'ابدأ الخدمة',
-    titleEn: 'Get Started',
-    descAr: 'يتواصل معك فريقنا خلال 24 ساعة.',
-    descEn: 'Our team contacts you within 24 hours.',
+    titleAr: 'تنفيذ المناسبة',
+    titleEn: 'Event delivery',
+    descAr: 'تنفيذ الضيافة في الموعد المتفق عليه باحتراف.',
+    descEn: 'Hospitality is delivered on the agreed date with care.',
   },
 ]
 
@@ -45,34 +45,32 @@ export function HowItWorks() {
   const { lang, t } = useLanguage()
 
   return (
-    <section id="how" className="scroll-mt-20 border-t border-border py-16">
+    <section id="how" className="scroll-mt-20 border-t border-border py-16 sm:py-20">
       <div className="site-container">
         <div className="content-max text-center">
-          <h2 className="text-balance text-3xl font-extrabold tracking-tight sm:text-4xl">
+          <p className="brand-kicker mb-3">Process</p>
+          <h2 className="text-balance font-brand text-3xl font-medium tracking-wide sm:text-4xl">
             {t('how.title')}
           </h2>
           <p className="mt-3 text-pretty text-muted-foreground">{t('how.subtitle')}</p>
         </div>
 
-        <div className="relative mt-12">
-          <div className="absolute inset-x-8 top-8 hidden h-0.5 bg-border lg:block" />
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-5">
+        <div className="relative mt-14">
+          <div className="absolute inset-x-10 top-7 hidden h-px bg-gradient-to-r from-transparent via-brand-sand/40 to-transparent lg:block" />
+          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-5">
             {steps.map((step, i) => {
               const Icon = step.icon
               const title = lang === 'ar' ? step.titleAr : step.titleEn
               const desc = lang === 'ar' ? step.descAr : step.descEn
               return (
-                <div
-                  key={step.titleEn}
-                  className="relative flex flex-col items-center gap-4 rounded-2xl border border-border bg-card p-6 text-center shadow-sm"
-                >
-                  <span className="absolute -top-3.5 flex size-8 items-center justify-center rounded-full bg-primary text-sm font-bold text-primary-foreground shadow-md">
-                    {i + 1}
+                <div key={step.titleEn} className="relative flex flex-col items-center gap-4 text-center">
+                  <span className="relative z-10 flex size-14 items-center justify-center rounded-full border border-brand-sand/35 bg-card text-brand-palm shadow-sm">
+                    <Icon className="size-6" />
+                    <span className="absolute -top-1 -end-1 flex size-6 items-center justify-center rounded-full bg-primary text-[11px] font-semibold text-primary-foreground">
+                      {i + 1}
+                    </span>
                   </span>
-                  <span className="mt-2 flex size-14 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-                    <Icon className="size-7" />
-                  </span>
-                  <h3 className="text-base font-bold">{title}</h3>
+                  <h3 className="text-base font-semibold tracking-tight">{title}</h3>
                   <p className="text-sm leading-relaxed text-muted-foreground">{desc}</p>
                 </div>
               )

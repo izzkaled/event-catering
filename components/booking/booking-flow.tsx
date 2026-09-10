@@ -33,8 +33,6 @@ import {
   MUSCAT_AREAS_EN,
   PREFERRED_TIMES,
   PREFERRED_TIMES_EN,
-  WEEK_DAYS_AR,
-  WEEK_DAYS_EN,
 } from '@/lib/constants'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -43,9 +41,10 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { cn } from '@/lib/utils'
 import { TurnstileWidget, isTurnstileConfigured } from '@/components/cloudflare/turnstile-widget'
-import { formatBookingDate, subscriptionEndDate } from '@/lib/booking/schedule'
-import { Badge } from '@/components/ui/badge'
-
+import {
+  formatBookingDate,
+} from '@/lib/booking/schedule'
+import { formatGuests, formatServiceHours, weekdayArFromIsoDate, weekdayFromIsoDate } from '@/lib/packages/semantics'
 type BookingDraft = {
   step: number
   selectedPackageId: string | null
@@ -110,10 +109,10 @@ export function BookingFlow({ packages }: { packages: PackageWithSection[] }) {
   ]
 
   const stepDescriptions = [
-    lang === 'ar' ? 'اختر الباقة المناسبة لاحتياجات منزلك' : 'Choose the plan that fits your home',
-    lang === 'ar' ? 'أدخل بيانات التواصل وعنوان الخدمة' : 'Enter contact details and service address',
-    lang === 'ar' ? 'حدّد موعد بداية الزيارات والأيام المفضلة' : 'Pick start date, time slot, and preferred days',
-    lang === 'ar' ? 'راجع تفاصيل طلبك قبل التأكيد' : 'Review your order before confirming',
+    lang === 'ar' ? 'اختر باقة الضيافة حسب عدد الأشخاص' : 'Choose a hospitality package by guest count',
+    lang === 'ar' ? 'أدخل بيانات الجهة وموقع المناسبة' : 'Enter organization details and venue',
+    lang === 'ar' ? 'حدّد تاريخ المناسبة والوقت المفضل' : 'Pick event date and preferred time',
+    lang === 'ar' ? 'راجع الطلب قبل الإرسال' : 'Review your request before submitting',
   ]
 
   const [step, setStep] = useState(0)
@@ -203,45 +202,23 @@ export function BookingFlow({ packages }: { packages: PackageWithSection[] }) {
 
   const areas = lang === 'ar' ? MUSCAT_AREAS : MUSCAT_AREAS_EN
   const times = lang === 'ar' ? PREFERRED_TIMES : PREFERRED_TIMES_EN
-  const days = lang === 'ar' ? WEEK_DAYS_AR : WEEK_DAYS_EN
   const today = new Date().toISOString().split('T')[0]
-
-  const toggleDay = (day: string) => {
-    const maxDays = selectedPkg?.visits_per_week ?? 0
-    if (!maxDays) return
-
-    setPreferredDays((prev) => {
-      if (prev.includes(day)) return prev.filter((d) => d !== day)
-      if (prev.length >= maxDays) {
-        toast.error(
-          lang === 'ar'
-            ? `هذه الباقة ${maxDays} ${maxDays === 1 ? 'يوم' : 'أيام'} في الأسبوع فقط`
-            : `This package includes ${maxDays} day(s) per week only`,
-        )
-        return prev
-      }
-      return [...prev, day]
-    })
-  }
 
   const selectPackage = (pkg: PackageWithSection) => {
     setSelectedPkg(pkg)
-    setPreferredDays((prev) => prev.slice(0, pkg.visits_per_week))
   }
 
-  const requiredDays = selectedPkg?.visits_per_week ?? 0
-  const endDate = startDate ? subscriptionEndDate(startDate) : ''
+  useEffect(() => {
+    if (!startDate) return
+    // Always store Arabic weekday for API validation; display via preferredDays label separately if needed
+    setPreferredDays([weekdayArFromIsoDate(startDate)])
+  }, [startDate])
 
   const canProceed = () => {
     if (step === 0) return !!selectedPkg
     if (step === 1) return name.trim() && phone.trim() && area && address.trim()
     if (step === 2) {
-      return (
-        startDate &&
-        preferredTime &&
-        !!selectedPkg &&
-        preferredDays.length === selectedPkg.visits_per_week
-      )
+      return Boolean(startDate && preferredTime && preferredDays.length === 1)
     }
     return true
   }
@@ -324,15 +301,7 @@ export function BookingFlow({ packages }: { packages: PackageWithSection[] }) {
 
   const next = async () => {
     if (!canProceed()) {
-      if (
-        step === 2 &&
-        selectedPkg &&
-        preferredDays.length !== selectedPkg.visits_per_week
-      ) {
-        toast.error(t('booking.selectExactDays'))
-      } else {
-        toast.error(t('booking.required'))
-      }
+      toast.error(t('booking.required'))
       return
     }
 
@@ -406,15 +375,15 @@ export function BookingFlow({ packages }: { packages: PackageWithSection[] }) {
         <div className="site-container py-6 sm:py-12">
           <span className="mb-2 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-semibold text-primary sm:mb-3 sm:px-4 sm:py-1.5 sm:text-sm">
             <Sparkles className="size-3.5 sm:size-4" />
-            {lang === 'ar' ? 'حجز سريع وآمن' : 'Fast & secure booking'}
+            {lang === 'ar' ? 'طلب ضيافة سريع' : 'Fast hospitality request'}
           </span>
           <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl md:text-4xl">
             {t('nav.booking')}
           </h1>
           <p className="mt-1.5 max-w-2xl text-sm text-muted-foreground sm:mt-2 sm:text-base">
             {lang === 'ar'
-              ? '4 خطوات بسيطة — اختر باقتك، أدخل بياناتك، حدّد الموعد، وأكّد الطلب.'
-              : '4 simple steps — pick a package, enter details, schedule visits, and confirm.'}
+              ? '4 خطوات — اختر الباقة وعدد الأشخاص، موقع المناسبة، التاريخ، ثم أرسل الطلب.'
+              : '4 steps — choose package & guests, venue, date, then submit your request.'}
           </p>
         </div>
       </div>
@@ -513,16 +482,10 @@ export function BookingFlow({ packages }: { packages: PackageWithSection[] }) {
                     <div className="mt-6 rounded-2xl border border-primary/25 bg-primary/5 p-4 sm:p-5">
                       <p className="text-sm font-bold text-primary">{t('booking.packageWeeklyVisits')}</p>
                       <p className="mt-2 text-2xl font-extrabold tabular-nums text-foreground">
-                        {selectedPkg.visits_per_week}
-                        <span className="ms-2 text-base font-semibold text-muted-foreground">
-                          {lang === 'ar'
-                            ? selectedPkg.visits_per_week === 1
-                              ? 'يوم / أسبوع'
-                              : 'أيام / أسبوع'
-                            : selectedPkg.visits_per_week === 1
-                              ? 'day / week'
-                              : 'days / week'}
-                        </span>
+                        {formatGuests(selectedPkg.visits_per_week, lang)}
+                      </p>
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        {formatServiceHours(selectedPkg.hours_per_visit, lang)}
                       </p>
                       <p className="mt-2 text-sm text-muted-foreground">{t('booking.daysPerWeekHint')}</p>
                     </div>
@@ -544,7 +507,7 @@ export function BookingFlow({ packages }: { packages: PackageWithSection[] }) {
                         id="name"
                         value={name}
                         onChange={(e) => setName(e.target.value)}
-                        placeholder={lang === 'ar' ? 'الاسم الكامل' : 'Full name'}
+                        placeholder={lang === 'ar' ? 'اسم الجهة أو المسؤول' : 'Organization or contact name'}
                         className="h-11"
                       />
                     </div>
@@ -569,7 +532,7 @@ export function BookingFlow({ packages }: { packages: PackageWithSection[] }) {
                   </div>
 
                   <div className="rounded-xl border border-border/80 bg-secondary/20 p-5 space-y-4">
-                    <p className="text-sm font-bold">{lang === 'ar' ? 'عنوان الخدمة' : 'Service address'}</p>
+                    <p className="text-sm font-bold">{lang === 'ar' ? 'موقع الضيافة' : 'Hospitality venue'}</p>
                     <div className="space-y-2">
                       <Label htmlFor="area">{t('booking.area')}</Label>
                       <select
@@ -592,7 +555,11 @@ export function BookingFlow({ packages }: { packages: PackageWithSection[] }) {
                         id="address"
                         value={address}
                         onChange={(e) => setAddress(e.target.value)}
-                        placeholder={lang === 'ar' ? 'الحي، الشارع، رقم المنزل' : 'District, street, house no.'}
+                        placeholder={
+                          lang === 'ar'
+                            ? 'اسم المبنى / القاعة، الشارع، المدينة'
+                            : 'Building / hall, street, city'
+                        }
                         className="h-11"
                       />
                     </div>
@@ -605,7 +572,11 @@ export function BookingFlow({ packages }: { packages: PackageWithSection[] }) {
                       value={notes}
                       onChange={(e) => setNotes(e.target.value)}
                       rows={3}
-                      placeholder={lang === 'ar' ? 'ملاحظات اختيارية...' : 'Optional notes...'}
+                      placeholder={
+                        lang === 'ar'
+                          ? 'نوع المناسبة، تفاصيل إضافية، متطلبات خاصة…'
+                          : 'Event type, extras, special requirements…'
+                      }
                       className="min-h-[88px] resize-y"
                     />
                   </div>
@@ -615,11 +586,11 @@ export function BookingFlow({ packages }: { packages: PackageWithSection[] }) {
               {step === 2 && selectedPkg && (
                 <div className="flex flex-col gap-6">
                   <div className="rounded-xl border border-border/80 bg-secondary/30 p-4 text-sm">
-                    <p className="font-bold">{t('booking.packageWeeklyVisits')}</p>
+                    <p className="font-bold">{formatGuests(selectedPkg.visits_per_week, lang)}</p>
                     <p className="mt-1 text-muted-foreground">
                       {lang === 'ar'
-                        ? `اختر ${requiredDays} ${requiredDays === 1 ? 'يوم' : 'أيام'} في الأسبوع — كما في الباقة (${selectedPkg.visits_per_month} زيارة/شهر)`
-                        : `Pick ${requiredDays} day(s) per week — as included (${selectedPkg.visits_per_month} visits/month)`}
+                        ? `${formatServiceHours(selectedPkg.hours_per_visit, lang)} · سعر استرشادي ${parseFloat(selectedPkg.price_omr).toFixed(2)} ر.ع`
+                        : `${formatServiceHours(selectedPkg.hours_per_visit, lang)} · from ${parseFloat(selectedPkg.price_omr).toFixed(2)} OMR`}
                     </p>
                   </div>
 
@@ -646,8 +617,12 @@ export function BookingFlow({ packages }: { packages: PackageWithSection[] }) {
                           <p className="mt-1 text-sm font-bold">{formatBookingDate(startDate, lang)}</p>
                         </div>
                         <div className="rounded-xl bg-background/80 p-3">
-                          <p className="text-xs text-muted-foreground">{t('booking.endDate')}</p>
-                          <p className="mt-1 text-sm font-bold">{formatBookingDate(endDate, lang)}</p>
+                          <p className="text-xs text-muted-foreground">{t('booking.days')}</p>
+                          <p className="mt-1 text-sm font-bold">
+                            {preferredDays[0]
+                              ? weekdayFromIsoDate(startDate, lang)
+                              : '—'}
+                          </p>
                         </div>
                       </div>
                       <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
@@ -658,7 +633,7 @@ export function BookingFlow({ packages }: { packages: PackageWithSection[] }) {
 
                   <div className="space-y-3">
                     <Label>{t('booking.time')}</Label>
-                    <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
                       {times.map((time, i) => {
                         const active = preferredTime === PREFERRED_TIMES[i]
                         return (
@@ -678,49 +653,6 @@ export function BookingFlow({ packages }: { packages: PackageWithSection[] }) {
                         )
                       })}
                     </div>
-                  </div>
-
-                  <div className="space-y-3">
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <Label>{t('booking.daysRequired')}</Label>
-                      <Badge
-                        variant={preferredDays.length === requiredDays ? 'default' : 'secondary'}
-                        className="tabular-nums"
-                      >
-                        {preferredDays.length} / {requiredDays}
-                      </Badge>
-                    </div>
-                    <p className="text-sm text-muted-foreground">{t('booking.selectExactDays')}</p>
-                    <div className="flex flex-wrap gap-2">
-                      {days.map((day, i) => {
-                        const arDay = WEEK_DAYS_AR[i]
-                        const active = preferredDays.includes(arDay)
-                        const disabled = !active && preferredDays.length >= requiredDays
-                        return (
-                          <button
-                            key={day}
-                            type="button"
-                            disabled={disabled}
-                            onClick={() => toggleDay(arDay)}
-                            className={cn(
-                              'day-chip rounded-xl border px-3 py-2.5 text-sm font-medium transition-all active:scale-[0.98] sm:px-4',
-                              active
-                                ? 'border-primary bg-primary text-primary-foreground shadow-sm'
-                                : 'border-border bg-card hover:border-primary/40',
-                              disabled && 'cursor-not-allowed opacity-40 hover:border-border',
-                            )}
-                          >
-                            {day}
-                          </button>
-                        )
-                      })}
-                    </div>
-                    {preferredDays.length < requiredDays && (
-                      <p className="text-xs text-amber-700 dark:text-amber-300">
-                        {t('booking.selectDays')} ({requiredDays - preferredDays.length}{' '}
-                        {lang === 'ar' ? 'متبقي' : 'remaining'})
-                      </p>
-                    )}
                   </div>
                 </div>
               )}

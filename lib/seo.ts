@@ -1,50 +1,44 @@
-/** Shared SEO copy for KHOUSA (Arabic + English search visibility). */
+/** Shared SEO copy for Event Catering (Arabic + English). */
 
 export const SITE_URL =
-  (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.khousa.com').replace(/\/$/, '')
+  (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.eventcatering.om').replace(/\/$/, '')
 
-export const SITE_NAME_AR = 'خوصة'
-export const SITE_NAME_EN = 'KHOUSA'
-export const SITE_NAME = 'خوصة | KHOUSA Oman'
+export const SITE_NAME_AR = 'إيفنت كاترينج'
+export const SITE_NAME_EN = 'Event Catering'
+export const SITE_NAME = 'Event Catering | إيفنت كاترينج'
 
-export const SEO_TITLE_AR = 'خوصة | تنظيف منازل في مسقط — باقات شهرية بالريال العُماني'
+export const SEO_TITLE_AR =
+  'إيفنت كاترينج | باقات ضيافة للجهات الحكومية والشركات في عُمان'
 export const SEO_TITLE_EN =
-  'KHOUSA | Home Cleaning in Muscat, Oman — Flexible Monthly Packages'
+  'Event Catering | Hospitality Packages for Government & Corporate Oman'
 
 /** Default browser tab / Google snippet title (bilingual, brand first). */
 export const SEO_TITLE_DEFAULT =
-  'خوصة | KHOUSA — Home Cleaning in Muscat | تنظيف منازل مسقط'
+  'Event Catering | ضيافة بالباقات — جهات حكومية وشركات'
 
 export const SEO_DESCRIPTION_AR =
-  'خوصة خدمة تنظيف منزلي احترافية في مسقط وضواحيها. باقات مرنة من 2 إلى 5 ساعات، زيارات أسبوعية، أسعار شهرية شفافة بالريال العُماني. احجز أونلاين بسهولة.'
+  'إيفنت كاترينج منصة وسيط ضيافة بالباقات في عُمان. اختر الباقة وعدد الحضور، ننسّق مع مزوّدي الضيافة ونرد عليك بعرض مناسب للمناسبات الرسمية والاجتماعات.'
 
 export const SEO_DESCRIPTION_EN =
-  'KHOUSA is a professional home cleaning service in Muscat, Oman. Flexible packages from 2–5 hours, weekly visits, transparent monthly pricing in OMR. Book online today.'
+  'Event Catering is a hospitality package intermediary in Oman. Choose a package and guest count — we coordinate catering partners and reply with a tailored offer for official events and meetings.'
 
-/** Combined for meta description (Google shows ~150–160 chars; keep brand + locale). */
+/** Combined for meta description. */
 export const SEO_DESCRIPTION = `${SEO_DESCRIPTION_AR} ${SEO_DESCRIPTION_EN}`
 
 export const SEO_KEYWORDS = [
-  'خوصة',
-  'KHOUSA',
-  'KHOUSA Oman',
-  'تنظيف منازل مسقط',
-  'تنظيف منزلي عمان',
-  'شركة تنظيف مسقط',
-  'باقات تنظيف منزلية',
-  'home cleaning Muscat',
-  'house cleaning Oman',
-  'cleaning service Muscat',
-  'maid service Muscat',
-  'monthly cleaning package Oman',
-  'كم سعر تنظيف منزل مسقط',
-  'تنظيف منازل بوشر',
-  'تنظيف منازل السيب',
-  'home cleaning Bawshar',
-  'house cleaning Seeb',
-  'تنظيف بوشهر',
-  'تنظيف مطرح',
-  'تنظيف العامرات',
+  'إيفنت كاترينج',
+  'Event Catering',
+  'ضيافة عمان',
+  'باقات ضيافة',
+  'ضيافة جهات حكومية',
+  'ضيافة شركات مسقط',
+  'كاترينج مناسبات',
+  'hospitality packages Oman',
+  'corporate catering Muscat',
+  'government event catering',
+  'catering packages Oman',
+  'ضيافة مؤتمرات',
+  'ضيافة افتتاح',
 ]
 
-export const OG_IMAGE = '/images/hero-cleaning.png'
+export const OG_IMAGE = '/images/brand/brand-table.webp'

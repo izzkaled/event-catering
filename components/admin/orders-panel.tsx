@@ -57,7 +57,7 @@ export function OrdersPanel() {
         setOrders((prev) => prev.map((o) => (o.id === id ? updated : o)))
         toast.success(
           status === 'confirmed' || status === 'active'
-            ? 'تم تأكيد الاشتراك'
+            ? 'تم تأكيد العرض / الطلب'
             : status === 'cancelled'
               ? 'تم إلغاء الطلب — تم إعلام العميل'
               : 'تم تحديث الحالة',
@@ -179,15 +179,15 @@ export function OrdersPanel() {
           <TableHeader>
             <TableRow>
               <TableHead>رقم الطلب</TableHead>
-              <TableHead>العميل</TableHead>
-              <TableHead>المنطقة</TableHead>
-              <TableHead>الاشتراك</TableHead>
-              <TableHead>المدة</TableHead>
+              <TableHead>الجهة / المسؤول</TableHead>
+              <TableHead>الموقع</TableHead>
+              <TableHead>الباقة</TableHead>
+              <TableHead>تاريخ المناسبة</TableHead>
               <TableHead>السعر</TableHead>
               <TableHead>العمولة</TableHead>
               <TableHead>الصافي</TableHead>
               <TableHead>الحالة</TableHead>
-              <TableHead>تأكيد</TableHead>
+              <TableHead>إجراء</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -223,15 +223,17 @@ export function OrdersPanel() {
                 <TableCell>{order.customer_area}</TableCell>
                 <TableCell>
                   <div className="text-sm font-medium">
-                    {order.package_name_ar || `${order.hours_per_visit}h/${order.visits_per_week}v`}
+                    {order.package_name_ar || 'باقة ضيافة'}
                   </div>
                   <div className="text-xs text-muted-foreground">
-                    {order.hours_per_visit}س · {order.visits_per_week}ز/أسبوع
+                    {order.visits_per_week} شخص · {order.hours_per_visit} ساعة
                   </div>
                 </TableCell>
                 <TableCell className="whitespace-nowrap text-xs">
                   <div>{order.start_date}</div>
-                  {order.end_date && <div className="text-muted-foreground">→ {order.end_date}</div>}
+                  {order.preferred_time && (
+                    <div className="text-muted-foreground">{order.preferred_time}</div>
+                  )}
                 </TableCell>
                 <TableCell className={order.status === 'cancelled' ? 'text-muted-foreground line-through' : ''}>
                   {order.price_omr}
@@ -275,7 +277,7 @@ export function OrdersPanel() {
                       className="gap-1"
                     >
                       <CheckCircle2 className="size-3.5" />
-                      تأكيد الاشتراك
+                      تأكيد العرض
                     </Button>
                   ) : (
                     <span className="text-xs text-muted-foreground">—</span>
@@ -297,7 +299,7 @@ export function OrdersPanel() {
         <span className="text-primary">
           الصافي: <strong>{totals.net.toFixed(2)} OMR</strong>
         </span>
-        <span>{filtered.length} اشتراك</span>
+        <span>{filtered.length} طلب</span>
       </div>
     </div>
   )

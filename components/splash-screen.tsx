@@ -3,10 +3,11 @@
 import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import { cn } from '@/lib/utils'
+import { BrandLogo } from '@/components/brand-logo'
 
-const DURATION_MS = 3000
+const DURATION_MS = 2600
 
-/** Light 3-second brand splash on first paint. */
+/** Premium brand splash for Event Catering. */
 export function SplashScreen() {
   const [visible, setVisible] = useState(true)
   const [leaving, setLeaving] = useState(false)
@@ -16,8 +17,8 @@ export function SplashScreen() {
       typeof window !== 'undefined' &&
       window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
-    const leaveAt = reduce ? 400 : DURATION_MS
-    const fadeAt = Math.max(0, leaveAt - 350)
+    const leaveAt = reduce ? 350 : DURATION_MS
+    const fadeAt = Math.max(0, leaveAt - 400)
 
     const fadeTimer = window.setTimeout(() => setLeaving(true), fadeAt)
     const hideTimer = window.setTimeout(() => setVisible(false), leaveAt)
@@ -36,38 +37,42 @@ export function SplashScreen() {
       aria-live="polite"
       aria-busy={!leaving}
       className={cn(
-        'fixed inset-0 z-[100] flex flex-col items-center justify-center bg-brand-cream text-brand-palm transition-opacity duration-300',
+        'fixed inset-0 z-[100] flex flex-col items-center justify-center overflow-hidden bg-brand-palm text-brand-cream transition-opacity duration-500',
         leaving ? 'pointer-events-none opacity-0' : 'opacity-100',
       )}
     >
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_50%_35%,color-mix(in_srgb,var(--brand-sand)_26%,transparent),transparent_58%)]" />
+      <Image
+        src="/images/brand/brand-uniform.webp"
+        alt=""
+        fill
+        priority
+        className="object-cover opacity-40"
+        sizes="100vw"
+      />
+      <div className="absolute inset-0 bg-[linear-gradient(160deg,color-mix(in_srgb,var(--brand-palm)_82%,transparent),color-mix(in_srgb,var(--brand-palm)_92%,transparent))]" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_50%_30%,color-mix(in_srgb,var(--brand-sand)_22%,transparent),transparent_55%)]" />
 
       <div className="relative z-10 flex flex-col items-center px-6 text-center">
-        <div className="mb-6 overflow-hidden rounded-full bg-brand-palm shadow-lg shadow-brand-palm/15 ring-1 ring-brand-sand/40">
-          <Image
-            src="/logo-icon.png"
-            alt="خوصة"
-            width={80}
-            height={80}
-            priority
-            className="size-[4.5rem] object-cover sm:size-20"
-          />
+        <div className="mb-8 animate-[fade-up_0.7s_ease-out_both]">
+          <BrandLogo size="xl" full variant="onDark" className="justify-center" />
         </div>
 
-        <p className="font-brand text-[10px] font-semibold uppercase tracking-[0.38em] text-brand-sand">
-          خوصة · KHOUSA
+        <p className="animate-[fade-up_0.7s_ease-out_0.1s_both] font-sans text-[10px] font-medium uppercase tracking-[0.42em] text-brand-sand">
+          Hospitality · Oman
         </p>
-        <h1 className="mt-3 font-brand text-2xl font-extrabold tracking-tight sm:text-3xl">
-          لحظة…
+        <h1 className="mt-4 animate-[fade-up_0.7s_ease-out_0.16s_both] font-brand text-3xl font-medium tracking-[0.04em] sm:text-4xl">
+          EVENT
         </h1>
-        <p className="mt-2 text-sm text-muted-foreground">نجهّز تجربتك</p>
+        <p className="mt-2 animate-[fade-up_0.7s_ease-out_0.22s_both] text-sm font-light tracking-[0.28em] text-brand-cream/75 uppercase">
+          Preparing your experience
+        </p>
 
-        <div className="mt-8 h-[2px] w-28 overflow-hidden rounded-full bg-brand-sand/25">
+        <div className="mt-10 h-px w-36 overflow-hidden bg-brand-cream/15">
           <div
-            className="h-full rounded-full bg-brand-sand"
+            className="h-full bg-brand-sand"
             style={{
               width: '0%',
-              animation: `khousa-splash-fill ${DURATION_MS}ms linear forwards`,
+              animation: `event-splash-fill ${DURATION_MS}ms cubic-bezier(0.4,0,0.2,1) forwards`,
             }}
           />
         </div>

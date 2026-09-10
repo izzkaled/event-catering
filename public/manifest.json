@@ -1,19 +1,25 @@
 {
-  "name": "خوصة | KHOUSA Oman — Home Cleaning Muscat",
-  "short_name": "KHOUSA",
-  "description": "Professional home cleaning in Muscat, Oman | تنظيف منازل احترافي في مسقط",
+  "name": "Event Catering | إيفنت كاترينج",
+  "short_name": "Event Catering",
+  "description": "Hospitality packages for government & corporate in Oman | باقات ضيافة للجهات والشركات",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#f7f2eb",
-  "theme_color": "#223826",
+  "background_color": "#f5f1e9",
+  "theme_color": "#4a234a",
   "dir": "rtl",
   "lang": "ar",
   "icons": [
     {
-      "src": "/logo-icon.png",
+      "src": "/images/brand/logo-mark.webp",
       "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any maskable"
+      "type": "image/webp",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
     }
   ]
 }

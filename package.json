@@ -12,6 +12,7 @@
     "setup:otp": "node scripts/setup-otp-delivery.mjs",
     "setup:neon-otp": "node scripts/use-neon-otp-email.mjs",
     "restore:auth": "node scripts/restore-neon-auth.mjs",
+    "netlify:build": "npm run build",
     "portfolio:pdf": "tsx scripts/generate-portfolio-pdf.ts"
   },
   "dependencies": {

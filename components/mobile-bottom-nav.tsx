@@ -3,11 +3,11 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
-import { CalendarPlus, Home, Layers, UserRound } from 'lucide-react'
+import { Home, Layers, UserRound } from 'lucide-react'
 import { useLanguage } from '@/components/language-provider'
 import { cn } from '@/lib/utils'
 
-const HIDDEN_PREFIXES = ['/admin', '/auth', '/booking']
+const HIDDEN_PREFIXES = ['/admin', '/auth', '/booking', '/experience']
 
 export function MobileBottomNav() {
   const pathname = usePathname()
@@ -81,16 +81,10 @@ export function MobileBottomNav() {
       active: pathname === '/',
     },
     {
-      href: '/#packages',
+      href: '/packages',
       label: t('nav.packages'),
       icon: Layers,
-      active: false,
-    },
-    {
-      href: '/booking',
-      label: t('nav.bookingShort'),
-      icon: CalendarPlus,
-      active: pathname?.startsWith('/booking'),
+      active: pathname?.startsWith('/packages') || pathname?.startsWith('/experience'),
       highlight: true,
     },
     {
@@ -114,7 +108,7 @@ export function MobileBottomNav() {
         aria-label={lang === 'ar' ? 'التنقل السفلي' : 'Bottom navigation'}
         className="fixed inset-x-0 bottom-0 z-50 border-t border-border/80 bg-background/95 pb-[env(safe-area-inset-bottom,0px)] shadow-[0_-2px_16px_color-mix(in_srgb,#223826_8%,transparent)] backdrop-blur-md md:hidden [transform:translate3d(0,0,0)] [backface-visibility:hidden]"
       >
-        <ul className="grid h-16 grid-cols-4">
+        <ul className="grid h-16 grid-cols-3">
           {items.map((item) => {
             const Icon = item.icon
             return (

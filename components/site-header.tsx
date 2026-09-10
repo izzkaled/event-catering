@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import { CalendarPlus, User } from 'lucide-react'
+import { Layers, User } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { BrandLogo } from '@/components/brand-logo'
 import { HeaderBrandMotion } from '@/components/header-brand-motion'
@@ -11,15 +11,7 @@ import { LanguageSwitcher } from '@/components/language-switcher'
 import { useLanguage } from '@/components/language-provider'
 import { cn } from '@/lib/utils'
 
-function isNavLinkActive(pathname: string | null, href: string) {
-  if (!pathname) return false
-  if (href === '/booking') return pathname.startsWith('/booking')
-  if (href === '/subscriptions') return pathname.startsWith('/subscriptions')
-  if (href === '/#services' || href === '/#packages') return pathname === '/'
-  return false
-}
-
-/** Top bar: desktop nav + actions; mobile = logo + language only (tabs in MobileBottomNav). */
+/** Top bar: logo, few links, language, account + one CTA. */
 export function SiteHeader() {
   const pathname = usePathname()
   const [loggedIn, setLoggedIn] = useState(false)
@@ -31,18 +23,14 @@ export function SiteHeader() {
       .catch(() => setLoggedIn(false))
   }, [pathname])
 
-  const navLinks = [
-    { href: '/#services', label: t('nav.services') },
-    { href: '/#packages', label: t('nav.packages') },
-    { href: '/booking', label: t('nav.booking') },
-    ...(loggedIn ? [{ href: '/subscriptions', label: t('nav.subscriptions') }] : []),
-  ]
+  const onPackages =
+    pathname?.startsWith('/packages') || pathname?.startsWith('/experience')
 
   return (
     <header className="relative sticky top-0 z-50 w-full min-w-0 overflow-x-clip border-b border-brand-sand/25 bg-brand-cream/92 pt-safe shadow-[0_1px_0_color-mix(in_srgb,var(--brand-palm)_4%,transparent)] backdrop-blur-md">
       <HeaderBrandMotion />
 
-      <div className="site-container relative z-10 grid h-14 min-h-14 grid-cols-[minmax(0,1fr)_auto] items-center gap-2 sm:h-[4.25rem] md:grid-cols-[minmax(0,1fr)_auto_auto] md:gap-3">
+      <div className="site-container relative z-10 flex h-14 min-h-14 items-center justify-between gap-3 sm:h-[4.25rem]">
         <Link
           href="/"
           className="flex min-w-0 items-center gap-2 overflow-hidden rounded-lg transition-opacity hover:opacity-90"
@@ -53,26 +41,26 @@ export function SiteHeader() {
         </Link>
 
         <nav
-          className="hidden min-w-0 items-center gap-0.5 overflow-x-auto rounded-xl border border-brand-sand/30 bg-secondary/50 p-1 [-ms-overflow-style:none] [scrollbar-width:none] md:flex [&::-webkit-scrollbar]:hidden"
+          className="hidden items-center gap-1 md:flex"
           aria-label={lang === 'ar' ? 'القائمة الرئيسية' : 'Main navigation'}
         >
-          {navLinks.map((link) => {
-            const active = isNavLinkActive(pathname, link.href)
-            return (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={cn(
-                  'shrink-0 whitespace-nowrap rounded-lg px-3 py-1.5 text-sm font-semibold transition-colors',
-                  active
-                    ? 'bg-card text-brand-palm shadow-sm ring-1 ring-brand-sand/35'
-                    : 'text-muted-foreground hover:bg-card/80 hover:text-brand-palm',
-                )}
-              >
-                {link.label}
-              </Link>
-            )
-          })}
+          <Link
+            href="/packages"
+            className={cn(
+              'rounded-lg px-3 py-1.5 text-sm font-semibold transition-colors',
+              onPackages
+                ? 'bg-card text-brand-palm shadow-sm ring-1 ring-brand-sand/35'
+                : 'text-muted-foreground hover:text-brand-palm',
+            )}
+          >
+            {t('nav.packages')}
+          </Link>
+          <Link
+            href="/#how"
+            className="rounded-lg px-3 py-1.5 text-sm font-semibold text-muted-foreground transition-colors hover:text-brand-palm"
+          >
+            {t('nav.how')}
+          </Link>
         </nav>
 
         <div className="flex shrink-0 items-center justify-end gap-1.5 sm:gap-2">
@@ -104,13 +92,13 @@ export function SiteHeader() {
               </Button>
             )}
             <Button
-              render={<Link href="/booking" />}
+              render={<Link href="/packages" />}
               nativeButton={false}
               size="sm"
               className="gap-1.5 whitespace-nowrap tracking-wide shadow-md shadow-brand-palm/20"
             >
-              <CalendarPlus className="size-4 shrink-0" />
-              {t('nav.booking')}
+              <Layers className="size-4 shrink-0" />
+              {lang === 'ar' ? 'ابدأ' : 'Start'}
             </Button>
           </div>
         </div>

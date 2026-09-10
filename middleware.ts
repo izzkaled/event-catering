@@ -2,7 +2,6 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { auth } from '@/lib/neon-auth'
 import { USER_SESSION_COOKIE, verifySessionToken } from '@/lib/auth/session'
-import { getUserRoleById } from '@/lib/db/edge'
 import { requireCloudflareProxy } from '@/lib/cloudflare/proxy'
 
 const neonMiddleware = auth.middleware({ loginUrl: '/auth/login' })
@@ -35,11 +34,8 @@ export async function middleware(request: NextRequest) {
   }
 
   if (pathname.startsWith('/admin') && pathname !== '/admin/login') {
-    if (phoneSession) {
-      const role = await getUserRoleById(phoneSession.uid)
-      if (role === 'admin') return NextResponse.next()
-      return NextResponse.redirect(new URL('/admin/login', request.url))
-    }
+    // Require a session only — allowlist role is enforced in dashboard layout + APIs
+    if (phoneSession) return NextResponse.next()
     return neonMiddleware(request)
   }
 

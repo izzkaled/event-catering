@@ -5,7 +5,7 @@ const here = path.dirname(fileURLToPath(import.meta.url))
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'standalone',
+  // Netlify @netlify/plugin-nextjs handles SSR — do not use output: 'standalone'
   turbopack: {
     root: here,
   },

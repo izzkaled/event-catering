@@ -19,7 +19,9 @@ import {
   saveAuthEmail,
   saveAuthMode,
   saveAuthName,
-  saveReturnTo,
+  clearReturnTo,
+  captureRedirectFromSearch,
+  markOtpAlreadySent,
 } from '@/lib/auth/session-storage'
 
 type AuthEmailFormProps = {
@@ -65,6 +67,7 @@ export function AuthEmailForm({ mode = 'login', adminOnly = false }: AuthEmailFo
   const t = (ar: string, en: string) => (lang === 'ar' ? ar : en)
 
   React.useEffect(() => {
+    captureRedirectFromSearch(window.location.search)
     const storedEmail = getAuthEmail()
     const storedName = getAuthName()
     if (storedEmail) setEmail(storedEmail)
@@ -74,6 +77,7 @@ export function AuthEmailForm({ mode = 'login', adminOnly = false }: AuthEmailFo
   const finishLoggedIn = async () => {
     await fetch('/api/profile', { credentials: 'include' }).catch(() => null)
     const destination = adminOnly ? '/admin' : getReturnTo('/profile')
+    clearReturnTo()
     window.location.href = destination
   }
 
@@ -81,6 +85,7 @@ export function AuthEmailForm({ mode = 'login', adminOnly = false }: AuthEmailFo
     saveAuthEmail(targetEmail)
     saveAuthMode(nextMode)
     if (name.trim()) saveAuthName(name.trim())
+    markOtpAlreadySent()
     router.push(adminOnly ? '/auth/verify?admin=1' : '/auth/verify')
   }
 
@@ -219,9 +224,9 @@ export function AuthEmailForm({ mode = 'login', adminOnly = false }: AuthEmailFo
   }
 
   const signupBenefits = [
-    t('تتبع اشتراكاتك من مكان واحد', 'Track all subscriptions in one place'),
-    t('حفظ بياناتك للحجز السريع', 'Save details for faster booking'),
-    t('استلام الفواتير على بريدك', 'Receive invoices by email'),
+    t('تتبع طلباتك من مكان واحد', 'Track all your requests in one place'),
+    t('حفظ بياناتك لطلب أسرع', 'Save details for faster requests'),
+    t('استلام العروض والفواتير على بريدك', 'Receive quotes and invoices by email'),
     t('تسجيل دخول آمن عبر Google أو البريد', 'Secure login with Google or email'),
   ]
 
@@ -239,7 +244,7 @@ export function AuthEmailForm({ mode = 'login', adminOnly = false }: AuthEmailFo
           {adminOnly
             ? t('سجّل الدخول بالبريد وكلمة المرور', 'Sign in with email and password')
             : mode === 'signup'
-              ? t('انضم إلينا وابدأ بحجز خدمة التنظيف', 'Join us and start booking cleaning services')
+              ? t('انضم إلينا واطلب ضيافة مناسبتك بسهولة', 'Join us and request hospitality for your occasion')
               : t('مرحباً بعودتك! سجّل دخولك للمتابعة', 'Welcome back! Sign in to continue')}
         </CardDescription>
       </CardHeader>
@@ -425,6 +430,6 @@ export function AuthEmailForm({ mode = 'login', adminOnly = false }: AuthEmailFo
 
 export function useAuthRedirectSetup() {
   React.useEffect(() => {
-    saveReturnTo()
+    captureRedirectFromSearch(window.location.search)
   }, [])
 }

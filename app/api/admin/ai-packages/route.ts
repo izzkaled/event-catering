@@ -347,11 +347,22 @@ async function applyProposal(proposal: PackageProposal | undefined) {
       .values({
         name_ar: String(changes.name_ar).trim(),
         name_en: String(changes.name_en).trim(),
+        slug: String(changes.name_en)
+          .toLowerCase()
+          .trim()
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/^-+|-+$/g, '')
+          .slice(0, 70) + `-${Date.now().toString(36)}`,
         hours_per_visit: Number(changes.hours_per_visit),
         visits_per_week: weekly,
         visits_per_month: visitsPerMonthFromWeekly(weekly),
+        min_guests: weekly,
+        max_guests: Math.max(weekly, Math.round(weekly * 1.4)),
         price_omr: parseFloat(String(changes.price_omr)).toFixed(2),
         section_id: sectionId,
+        occasion_types: [],
+        pricing_model: 'starting_from',
+        status: 'draft',
         is_popular: Boolean(changes.is_popular),
         is_featured: Boolean(changes.is_popular),
         is_active: changes.is_active !== false,

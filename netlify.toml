@@ -1,12 +1,28 @@
+# Event Catering — Netlify
+# https://docs.netlify.com/frameworks/next-js/overview/
+
 [build]
   command = "npm run build"
   publish = ".next"
 
+[build.environment]
+  NODE_VERSION = "22"
+  NEXT_TELEMETRY_DISABLED = "1"
+
 [[plugins]]
   package = "@netlify/plugin-nextjs"
 
-# Prefer HTTPS + HSTS (Netlify already redirects HTTP→HTTPS when SSL is active)
+# Production HTTPS hardening (Netlify also forces HTTPS when SSL is active)
 [[headers]]
   for = "/*"
   [headers.values]
     Strict-Transport-Security = "max-age=31536000; includeSubDomains; preload"
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+
+# Context: set secrets in Netlify UI → Site configuration → Environment variables
+# Required for auth + admin (see .env.example):
+#   DATABASE_URL, NEON_AUTH_BASE_URL, NEON_AUTH_COOKIE_SECRET, AUTH_SECRET,
+#   INTERNAL_API_SECRET, ADMIN_EMAIL, ADMIN_PHONE, NEXT_PUBLIC_SITE_URL, NEXT_PUBLIC_WHATSAPP
+# OTP: Neon Auth built-in email only — do NOT enable send.otp webhook / RESEND for OTP.

@@ -4,6 +4,7 @@ import { db } from '@/lib/db'
 import { users } from '@/lib/db/schema'
 import { getSessionUser } from '@/lib/auth/get-session-user'
 import { normalizePhone } from '@/lib/auth/phone'
+import { resolveUserRole } from '@/lib/auth/admin'
 import { isPhoneTakenByOther } from '@/lib/auth/profile-update'
 import { clampText, isValidEmail } from '@/lib/security/order-validation'
 import { MUSCAT_AREAS } from '@/lib/constants'
@@ -98,7 +99,7 @@ export async function PATCH(req: Request) {
     }
   }
 
-  const [updated] = await db
+  let [updated] = await db
     .update(users)
     .set({
       name: name !== undefined ? clampText(name, 120) : undefined,
@@ -115,6 +116,19 @@ export async function PATCH(req: Request) {
     return NextResponse.json({ error: 'Profile not found' }, { status: 404 })
   }
 
+  const role = resolveUserRole({ email: updated.email, phone: updated.phone })
+  if (updated.role !== role) {
+    ;[updated] = await db
+      .update(users)
+      .set({ role, updated_at: new Date() })
+      .where(eq(users.id, updated.id))
+      .returning()
+  }
+
+  if (!updated) {
+    return NextResponse.json({ error: 'Profile not found' }, { status: 404 })
+  }
+
   return NextResponse.json({
     user: {
       id: current.id,
@@ -122,7 +136,7 @@ export async function PATCH(req: Request) {
       phone: updated.phone,
       name: updated.name,
       email: updated.email,
-      role: updated.role,
+      role,
       area: updated.area,
       address: updated.address,
       source: current.source,

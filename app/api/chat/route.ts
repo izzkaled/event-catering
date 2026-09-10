@@ -46,12 +46,15 @@ Customer: ${nameLine}
 
 LINK RULES (critical):
 - Always guide with clickable markdown links: [label](/path)
-- When recommending a specific package, include its exact BOOK_LINK, e.g. [احجز هذه الباقة](/booking?package=UUID)
+- When recommending a specific package, include its PACKAGE_LINK, e.g. [خصص هذه التجربة](/packages/slug)
+- Prefer customize: [صمّم تجربتك](/experience?package=slug)
+- Never use old paths like /#packages or /booking?package=UUID for browsing packages
 - "my subscriptions" / اشتراكاتي → [/subscriptions](/subscriptions)
 - profile / حسابي → [/profile](/profile)
 - login → [/auth/login](/auth/login)
 - forgot password → [/auth/forgot](/auth/forgot)
-- all packages → [/#packages](/#packages)
+- all packages → [/packages](/packages)
+- find experience → [/experience/find](/experience/find)
 - WhatsApp → use the WhatsApp URL from the catalog
 - Never invent URLs. Only use paths from LIVE CATALOG.
 - Prefer 1–3 clear links at the end of helpful answers.

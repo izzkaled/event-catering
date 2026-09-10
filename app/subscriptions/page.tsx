@@ -56,7 +56,7 @@ export default function MySubscriptionsPage() {
       <main dir={dir} className="site-container-narrow min-w-0 flex-1 overflow-x-clip py-6 pb-24 sm:py-10 sm:pb-10">
         <div className="mb-6 flex flex-col gap-3 sm:mb-8 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between">
           <div>
-            <h1 className="text-xl font-bold tracking-tight sm:text-2xl">{t('اشتراكاتي', 'My subscriptions')}</h1>
+            <h1 className="text-xl font-bold tracking-tight sm:text-2xl">{t('طلباتي', 'My requests')}</h1>
             <p className="mt-1 text-sm text-muted-foreground">
               {t(
                 'طلبات الباقات والحالة بعد تأكيد الإدارة',
@@ -64,8 +64,8 @@ export default function MySubscriptionsPage() {
               )}
             </p>
           </div>
-          <Button render={<Link href="/booking" />} nativeButton={false} className="h-11 w-full sm:w-auto">
-            {t('طلب اشتراك جديد', 'New subscription')}
+          <Button render={<Link href="/packages" />} nativeButton={false} className="h-11 w-full sm:w-auto">
+            {t('طلب جديد', 'New request')}
           </Button>
         </div>
 
@@ -74,18 +74,18 @@ export default function MySubscriptionsPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Sparkles className="size-5 text-primary" />
-                {t('لا توجد اشتراكات بعد', 'No subscriptions yet')}
+                {t('لا توجد طلبات بعد', 'No requests yet')}
               </CardTitle>
               <CardDescription>
                 {t(
-                  'احجز باقة تنظيف وستظهر هنا تلقائياً بانتظار تأكيد الإدارة.',
-                  'Book a cleaning package and it will appear here pending admin confirmation.',
+                  'اختر باقة مناسبة وستظهر طلباتك هنا بانتظار تأكيد الإدارة.',
+                  'Choose a package and your requests will appear here pending admin confirmation.',
                 )}
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Button render={<Link href="/booking" />} nativeButton={false}>
-                {t('احجز الآن', 'Book now')}
+              <Button render={<Link href="/packages" />} nativeButton={false}>
+                {t('تصفح الباقات', 'Browse packages')}
               </Button>
             </CardContent>
           </Card>

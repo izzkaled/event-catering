@@ -1,9 +1,9 @@
 /**
- * Make Neon Auth send OTP with its built-in email (auth@mail.myneon.app).
+ * Neon Auth OTP via built-in shared email only (auth@mail.myneon.app).
  * Disables send.otp webhook so Neon does not skip its own mailer.
  *
- * Run: node scripts/use-neon-otp-email.mjs
- * Requires: NEON_API_KEY in .env.local
+ * Run: npm run setup:neon-otp
+ * Requires: NEON_API_KEY, and optionally NEON_PROJECT_ID + NEON_BRANCH_ID
  */
 import { config } from 'dotenv'
 import { resolve } from 'path'
@@ -11,12 +11,18 @@ import { resolve } from 'path'
 config({ path: resolve(process.cwd(), '.env.local'), override: true })
 
 const neonApiKey = process.env.NEON_API_KEY?.trim()
-const projectId = process.env.NEON_PROJECT_ID?.trim() || 'holy-haze-60700006'
-const branchId = process.env.NEON_BRANCH_ID?.trim() || 'br-restless-union-aj01lw4h'
+const projectId = process.env.NEON_PROJECT_ID?.trim()
+const branchId = process.env.NEON_BRANCH_ID?.trim()
 
 if (!neonApiKey) {
   console.error('Add NEON_API_KEY to .env.local')
   console.error('https://console.neon.tech/app/settings/api-keys')
+  process.exit(1)
+}
+
+if (!projectId || !branchId) {
+  console.error('Add NEON_PROJECT_ID and NEON_BRANCH_ID to .env.local')
+  console.error('Neon Console → Project Settings → copy Project ID + Branch ID')
   process.exit(1)
 }
 
@@ -42,28 +48,28 @@ async function neon(path, method, body) {
 }
 
 async function main() {
-  console.log('1) Setting Neon shared email provider...')
+  console.log('1) Neon shared email provider (built-in OTP)...')
   const email = await neon('/email_provider', 'PATCH', {
     type: 'shared',
     sender_email: 'auth@mail.myneon.app',
-    sender_name: 'Speedy Cleaning',
+    sender_name: 'Event Catering',
   })
   if (!email.ok) {
-    console.warn('Email provider:', email.status, email.body)
+    console.warn('   Email provider:', email.status, email.body)
+    console.warn('   Continue — disable webhook anyway.')
   } else {
-    console.log('   ✓ Shared Neon email enabled')
+    console.log('   ✓ Shared Neon email → Event Catering <auth@mail.myneon.app>')
   }
 
-  console.log('2) Disabling send.otp webhook (required so Neon sends mail itself)...')
+  console.log('2) Disabling Auth webhooks (so Neon sends OTP itself)...')
   const webhook = await neon('/webhooks', 'PUT', { enabled: false })
   if (!webhook.ok) {
-    console.error('Webhook disable failed:', webhook.status, webhook.body)
-    console.error('Disable manually: Neon Console → Auth → Webhooks → turn OFF send.otp')
+    console.error('   Webhook disable failed:', webhook.status, webhook.body)
+    console.error('   Manual: Neon Console → Auth → Webhooks → OFF / uncheck send.otp')
     process.exit(1)
   }
-  console.log('   ✓ Webhook disabled')
-  console.log('\nDone. Neon will send OTP from auth@mail.myneon.app')
-  console.log('Check Spam/Junk if the code does not appear in Inbox.')
+  console.log('   ✓ Webhooks disabled')
+  console.log('\nDone. OTP comes from Neon only (auth@mail.myneon.app). Check Spam if needed.')
 }
 
 main().catch((e) => {

@@ -20,8 +20,8 @@ export function extractChatActions(text: string): ChatAction[] {
 }
 
 /**
- * If the model mentioned a package name but forgot its book link,
- * append a clean markdown booking link once.
+ * If the model mentioned a package name but forgot its link,
+ * append a clean markdown package link once.
  */
 export function enrichReplyWithPackageLinks(
   reply: string,
@@ -32,12 +32,12 @@ export function enrichReplyWithPackageLinks(
   const extras: string[] = []
 
   for (const p of ctx.packages) {
-    if (out.includes(p.book_url)) continue
+    if (out.includes(p.package_url) || out.includes(p.customize_url)) continue
     const name = lang === 'ar' ? p.name_ar : p.name_en
     if (!name || name.length < 4) continue
     if (!out.includes(name)) continue
-    const label = lang === 'ar' ? `احجز: ${name}` : `Book: ${name}`
-    extras.push(`[${label}](${p.book_url})`)
+    const label = lang === 'ar' ? `خصص: ${name}` : `Customize: ${name}`
+    extras.push(`[${label}](${p.customize_url})`)
   }
 
   if (extras.length) {

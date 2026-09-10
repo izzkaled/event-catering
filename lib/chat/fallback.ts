@@ -30,7 +30,7 @@ export function fallbackChatReply(
     !/طلباتي|subscriptions|my request|my order/.test(q)
   const wantsMySubs = /اشتراكاتي|subscriptions|طلباتي|my order|my request|حسابي|profile|بروفايل/.test(q)
   const wantsAreas = /منطق|مساح|أين|اين|area|muscat|مسقط|تغط|خدم/.test(q)
-  const wantsBook = /حجز|احجز|book|ابدأ|ابدا|order|طلب|اطلب/.test(q)
+  const wantsBook = /حجز|احجز|book|ابدأ|ابدا|order|طلب|اطلب|صمّم|صمم|تجرب/.test(q)
   const wantsPay = /دفع|بطاقة|تحويل|pay|card|bank|ابل|apple/.test(q)
   const wantsWhatsapp = /واتس|whatsapp|تواصل|كلم|اتصل/.test(q)
   const wantsLogin = /دخول|login|تسجيل|password|كلمة المرور|نسيت/.test(q)
@@ -49,21 +49,21 @@ export function fallbackChatReply(
 
   if (wantsWhatsapp) {
     return ar
-      ? `${hi}\nتواصل واتساب:\n${md('واتساب إيفنت كاترينج', ctx.whatsapp_url)}\n\nأو اطلب باقة:\n${md('اطلب باقة', ctx.booking_url)}`
-      : `${hi}\nWhatsApp us:\n${md('Event Catering WhatsApp', ctx.whatsapp_url)}\n\nOr request a package:\n${md('Request package', ctx.booking_url)}`
+      ? `${hi}\nتواصل واتساب:\n${md('واتساب إيفنت كاترينج', ctx.whatsapp_url)}\n\nأو استكشف الباقات:\n${md('الباقات', ctx.packages_url)}`
+      : `${hi}\nWhatsApp us:\n${md('Event Catering WhatsApp', ctx.whatsapp_url)}\n\nOr explore packages:\n${md('Packages', ctx.packages_url)}`
   }
 
   if (wantsAreas) {
     const areas = ar ? ctx.areas_ar.join(' · ') : ctx.areas_en.join(' · ')
     return ar
-      ? `${hi}، نخدم مسقط وضواحيها:\n${areas}\n\n${md('عرض الباقات', ctx.packages_url)} · ${md('اطلب باقة', ctx.booking_url)}`
-      : `${hi} — we serve Muscat:\n${areas}\n\n${md('View packages', ctx.packages_url)} · ${md('Request package', ctx.booking_url)}`
+      ? `${hi}، نخدم مسقط وضواحيها:\n${areas}\n\n${md('عرض الباقات', ctx.packages_url)} · ${md('اعثر على تجربتي', ctx.find_url)}`
+      : `${hi} — we serve Muscat:\n${areas}\n\n${md('View packages', ctx.packages_url)} · ${md('Find my experience', ctx.find_url)}`
   }
 
   if (wantsPay) {
     return ar
-      ? `${hi}، الدفع غالباً بعد تأكيد العرض: بطاقة / Apple Pay عبر Paymob، أو تحويل بنكي.\n${md('ابدأ الطلب', ctx.booking_url)}`
-      : `${hi} — payment is often after quote confirmation: card / Apple Pay (Paymob) or bank transfer.\n${md('Start request', ctx.booking_url)}`
+      ? `${hi}، الدفع غالباً بعد تأكيد العرض: بطاقة / Apple Pay عبر Paymob، أو تحويل بنكي.\n${md('استكشف الباقات', ctx.packages_url)}`
+      : `${hi} — payment is often after quote confirmation: card / Apple Pay (Paymob) or bank transfer.\n${md('Explore packages', ctx.packages_url)}`
   }
 
   if (wantsBook || wantsPackages) {
@@ -81,19 +81,19 @@ export function fallbackChatReply(
       .map((p) => {
         const name = ar ? p.name_ar : p.name_en
         const pop = p.popular ? ' ★' : ''
-        const label = ar ? 'اطلب هذه الباقة' : 'Request this package'
+        const label = ar ? 'خصص هذه التجربة' : 'Customize this experience'
         return ar
-          ? `• ${name}${pop} — يبدأ من ${p.price_omr} ر.ع\n  ${md(label, p.book_url)}`
-          : `• ${name}${pop} — from ${p.price_omr} OMR\n  ${md(label, p.book_url)}`
+          ? `• ${name}${pop} — يبدأ من ${p.price_omr} ر.ع\n  ${md(label, p.customize_url)}`
+          : `• ${name}${pop} — from ${p.price_omr} OMR\n  ${md(label, p.customize_url)}`
       })
       .join('\n\n')
 
     return ar
-      ? `${hi}، هذه باقات مناسبة:\n\n${list}\n\n${md('كل الباقات', ctx.packages_url)} · ${md('طلب عام', ctx.booking_url)}`
-      : `${hi} — packages that fit:\n\n${list}\n\n${md('All packages', ctx.packages_url)} · ${md('General request', ctx.booking_url)}`
+      ? `${hi}، هذه باقات مناسبة:\n\n${list}\n\n${md('كل الباقات', ctx.packages_url)} · ${md('اعثر على تجربتي', ctx.find_url)}`
+      : `${hi} — packages that fit:\n\n${list}\n\n${md('All packages', ctx.packages_url)} · ${md('Find my experience', ctx.find_url)}`
   }
 
   return ar
-    ? `${hi} في إيفنت كاترينج\nأقدر أساعدك بالباقات، المناطق، طلبات الضيافة، أو طلباتك.\n\n${md('الباقات', ctx.packages_url)} · ${md('اطلب', ctx.booking_url)} · ${md('طلباتي', ctx.subscriptions_url)}`
-    : `${hi} to Event Catering\nI can help with packages, areas, hospitality requests, or your orders.\n\n${md('Packages', ctx.packages_url)} · ${md('Request', ctx.booking_url)} · ${md('My requests', ctx.subscriptions_url)}`
+    ? `${hi} في إيفنت كاترينج\nأقدر أساعدك بالباقات، المناطق، أو تصميم تجربتك.\n\n${md('الباقات', ctx.packages_url)} · ${md('اعثر على تجربتي', ctx.find_url)} · ${md('طلباتي', ctx.subscriptions_url)}`
+    : `${hi} to Event Catering\nI can help with packages, areas, or designing your experience.\n\n${md('Packages', ctx.packages_url)} · ${md('Find my experience', ctx.find_url)} · ${md('My requests', ctx.subscriptions_url)}`
 }

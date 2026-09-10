@@ -373,7 +373,7 @@ export function HomeChatbot() {
         {/* CTA strip */}
         <div className="flex items-center justify-center border-t border-border/50 bg-secondary/40 px-3 py-2">
           <Link
-            href="/booking"
+            href="/packages"
             className="inline-flex items-center gap-1.5 rounded-full bg-brand-sand/20 px-3 py-1 text-[11px] font-bold text-brand-palm transition hover:bg-brand-sand/35"
           >
             <CalendarPlus className="size-3.5" />

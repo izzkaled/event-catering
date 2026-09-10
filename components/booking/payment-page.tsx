@@ -192,8 +192,8 @@ function PaymentPageInner() {
     return (
       <div className="site-container-tight py-20 text-center">
         <h1 className="text-xl font-bold">{t('payment.missing_order')}</h1>
-        <Button className="mt-6" render={<Link href="/booking" />} nativeButton={false}>
-          {t('nav.booking')}
+        <Button className="mt-6" render={<Link href="/packages" />} nativeButton={false}>
+          {t('nav.packages')}
         </Button>
       </div>
     )

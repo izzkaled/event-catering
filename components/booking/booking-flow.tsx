@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { Fragment, useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import {
@@ -15,7 +16,6 @@ import {
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useLanguage } from '@/components/language-provider'
-import { PackageSelector } from '@/components/booking/package-selector'
 import { BookingTrustBadges, OrderSummary } from '@/components/booking/order-summary'
 import { LoginRequiredDialog } from '@/components/auth/login-required-dialog'
 import { OmanPhoneInput } from '@/components/auth/oman-phone-input'
@@ -27,6 +27,7 @@ import {
 } from '@/lib/auth/session-storage'
 import { normalizePhone } from '@/lib/auth/phone'
 import type { PackageWithSection } from '@/lib/packages/types'
+import { toExperiencePackage } from '@/lib/packages/experience-map'
 
 import {
   MUSCAT_AREAS,
@@ -109,7 +110,7 @@ export function BookingFlow({ packages }: { packages: PackageWithSection[] }) {
   ]
 
   const stepDescriptions = [
-    lang === 'ar' ? 'اختر باقة الضيافة حسب عدد الأشخاص' : 'Choose a hospitality package by guest count',
+    lang === 'ar' ? 'اختر تجربتك من صفحة الباقات ثم عد لإكمال الطلب' : 'Choose your experience on the packages page, then continue here',
     lang === 'ar' ? 'أدخل بيانات الجهة وموقع المناسبة' : 'Enter organization details and venue',
     lang === 'ar' ? 'حدّد تاريخ المناسبة والوقت المفضل' : 'Pick event date and preferred time',
     lang === 'ar' ? 'راجع الطلب قبل الإرسال' : 'Review your request before submitting',
@@ -160,9 +161,18 @@ export function BookingFlow({ packages }: { packages: PackageWithSection[] }) {
         clearCheckoutDraft()
       }
 
-      // Deep-link from chat: /booking?package=<id>
+      // Legacy deep-link from old experience → booking handoff: send back to new request step
       if (!appliedFromDraft) {
         const packageId = searchParams.get('package')?.trim()
+        const experienceId = searchParams.get('experience')?.trim()
+        if (packageId && experienceId) {
+          const pkg = packages.find((p) => p.id === packageId)
+          if (pkg) {
+            const slug = toExperiencePackage(pkg).slug
+            router.replace(`/experience?package=${encodeURIComponent(slug)}&experience=${encodeURIComponent(experienceId)}&request=1`)
+            return
+          }
+        }
         if (packageId) {
           const pkg = packages.find((p) => p.id === packageId)
           if (pkg) setSelectedPkg(pkg)
@@ -203,10 +213,6 @@ export function BookingFlow({ packages }: { packages: PackageWithSection[] }) {
   const areas = lang === 'ar' ? MUSCAT_AREAS : MUSCAT_AREAS_EN
   const times = lang === 'ar' ? PREFERRED_TIMES : PREFERRED_TIMES_EN
   const today = new Date().toISOString().split('T')[0]
-
-  const selectPackage = (pkg: PackageWithSection) => {
-    setSelectedPkg(pkg)
-  }
 
   useEffect(() => {
     if (!startDate) return
@@ -301,6 +307,15 @@ export function BookingFlow({ packages }: { packages: PackageWithSection[] }) {
 
   const next = async () => {
     if (!canProceed()) {
+      if (step === 0 && !selectedPkg) {
+        toast.error(
+          lang === 'ar'
+            ? 'اختر باقة من صفحة الباقات أولًا'
+            : 'Choose a package from the packages page first',
+        )
+        router.push('/packages')
+        return
+      }
       toast.error(t('booking.required'))
       return
     }
@@ -368,22 +383,24 @@ export function BookingFlow({ packages }: { packages: PackageWithSection[] }) {
       <div className="pointer-events-none absolute -start-32 top-20 size-96 rounded-full bg-accent/10 blur-3xl" />
       <div className="pointer-events-none absolute -end-32 bottom-0 size-80 rounded-full bg-primary/10 blur-3xl" />
 
-      <LoginRequiredDialog open={loginDialogOpen} onOpenChange={setLoginDialogOpen} />
+      <LoginRequiredDialog
+        open={loginDialogOpen}
+        onOpenChange={setLoginDialogOpen}
+        returnTo="/booking"
+      />
 
       {/* Hero */}
       <div className="relative border-b border-border/60 bg-card/40 backdrop-blur-sm">
         <div className="site-container py-6 sm:py-12">
           <span className="mb-2 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-semibold text-primary sm:mb-3 sm:px-4 sm:py-1.5 sm:text-sm">
             <Sparkles className="size-3.5 sm:size-4" />
-            {lang === 'ar' ? 'طلب ضيافة سريع' : 'Fast hospitality request'}
+            {t('booking.formLead')}
           </span>
           <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl md:text-4xl">
             {t('nav.booking')}
           </h1>
           <p className="mt-1.5 max-w-2xl text-sm text-muted-foreground sm:mt-2 sm:text-base">
-            {lang === 'ar'
-              ? '4 خطوات — اختر الباقة وعدد الأشخاص، موقع المناسبة، التاريخ، ثم أرسل الطلب.'
-              : '4 steps — choose package & guests, venue, date, then submit your request.'}
+            {t('booking.formHint')}
           </p>
         </div>
       </div>
@@ -473,21 +490,75 @@ export function BookingFlow({ packages }: { packages: PackageWithSection[] }) {
 
               {step === 0 && (
                 <>
-                  <PackageSelector
-                    packages={packages}
-                    selected={selectedPkg}
-                    onSelect={selectPackage}
-                  />
-                  {selectedPkg && (
-                    <div className="mt-6 rounded-2xl border border-primary/25 bg-primary/5 p-4 sm:p-5">
-                      <p className="text-sm font-bold text-primary">{t('booking.packageWeeklyVisits')}</p>
-                      <p className="mt-2 text-2xl font-extrabold tabular-nums text-foreground">
-                        {formatGuests(selectedPkg.visits_per_week, lang)}
+                  {selectedPkg ? (
+                    <div className="space-y-4">
+                      <div className="rounded-2xl border border-primary/25 bg-primary/5 p-4 sm:p-5">
+                        <p className="text-xs font-semibold uppercase tracking-wide text-primary">
+                          {lang === 'ar' ? 'التجربة المختارة' : 'Selected experience'}
+                        </p>
+                        <p className="mt-2 text-xl font-extrabold text-foreground">
+                          {lang === 'ar' ? selectedPkg.name_ar : selectedPkg.name_en}
+                        </p>
+                        <p className="mt-2 text-sm text-muted-foreground">
+                          {formatGuests(selectedPkg.visits_per_week, lang)} ·{' '}
+                          {formatServiceHours(selectedPkg.hours_per_visit, lang)}
+                        </p>
+                        <p className="mt-3 text-lg font-bold tabular-nums text-primary">
+                          {parseFloat(selectedPkg.price_omr).toFixed(0)} OMR
+                        </p>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        <Button
+                          render={
+                            <Link
+                              href={`/packages/${toExperiencePackage(selectedPkg).slug}`}
+                            />
+                          }
+                          nativeButton={false}
+                          variant="outline"
+                          className="rounded-full"
+                        >
+                          {lang === 'ar' ? 'عرض / تخصيص التجربة' : 'View / customize experience'}
+                        </Button>
+                        <Button
+                          render={<Link href="/packages" />}
+                          nativeButton={false}
+                          variant="ghost"
+                          className="rounded-full"
+                        >
+                          {lang === 'ar' ? 'تغيير الباقة' : 'Change package'}
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="rounded-2xl border border-dashed border-border px-5 py-10 text-center">
+                      <p className="font-ios text-lg font-semibold">
+                        {lang === 'ar'
+                          ? 'اختيار الباقة يتم من صفحة الباقات الجديدة'
+                          : 'Choose your package from the new packages page'}
                       </p>
-                      <p className="mt-1 text-sm text-muted-foreground">
-                        {formatServiceHours(selectedPkg.hours_per_visit, lang)}
+                      <p className="mt-2 text-sm text-muted-foreground">
+                        {lang === 'ar'
+                          ? 'استكشف الباقات، خصص تجربتك، ثم ارجع هنا لإرسال الطلب.'
+                          : 'Browse packages, customize your experience, then return here to request it.'}
                       </p>
-                      <p className="mt-2 text-sm text-muted-foreground">{t('booking.daysPerWeekHint')}</p>
+                      <div className="mt-6 flex flex-col items-center gap-2 sm:flex-row sm:justify-center">
+                        <Button
+                          render={<Link href="/packages" />}
+                          nativeButton={false}
+                          className="h-11 rounded-full px-6"
+                        >
+                          {lang === 'ar' ? 'استكشف الباقات' : 'Explore packages'}
+                        </Button>
+                        <Button
+                          render={<Link href="/experience/find" />}
+                          nativeButton={false}
+                          variant="outline"
+                          className="h-11 rounded-full px-6"
+                        >
+                          {lang === 'ar' ? 'اعثر على تجربتي' : 'Find my experience'}
+                        </Button>
+                      </div>
                     </div>
                   )}
                 </>
@@ -669,6 +740,9 @@ export function BookingFlow({ packages }: { packages: PackageWithSection[] }) {
                     preferredTime={preferredTime}
                     preferredDays={preferredDays}
                   />
+                  <p className="mt-4 text-center text-sm font-medium text-brand-palm sm:text-start">
+                    {t('booking.confirmHint')}
+                  </p>
                   <TurnstileWidget action="booking" onToken={setTurnstileToken} />
                 </>
               )}

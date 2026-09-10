@@ -18,6 +18,7 @@ import {
   Package,
   Users,
   X,
+  ConciergeBell,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { BrandLogo } from '@/components/brand-logo'
@@ -30,6 +31,7 @@ const nav = [
   { href: '/admin/payments', key: 'admin.nav.payments' as const, icon: CreditCard },
   { href: '/admin/customers', key: 'admin.nav.customers' as const, icon: Users },
   { href: '/admin/packages', key: 'admin.nav.packages' as const, icon: Package },
+  { href: '/admin/services', key: 'admin.nav.services' as const, icon: ConciergeBell },
   { href: '/admin/content-studio', key: 'admin.nav.contentStudio' as const, icon: FileText },
   { href: '/admin/ai-assistant', key: 'admin.nav.aiAssistant' as const, icon: Bot },
   { href: '/admin/schedule', key: 'admin.nav.schedule' as const, icon: CalendarDays },

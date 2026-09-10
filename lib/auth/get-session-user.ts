@@ -106,7 +106,15 @@ export async function getSessionUser(): Promise<SessionUser | null> {
   const [user] = await db.select().from(users).where(eq(users.id, payload.uid)).limit(1)
   if (!user) return null
 
-  return toSessionUser(user, 'phone')
+  const role = isAdminUser({ email: user.email, phone: user.phone }) ? 'admin' : 'user'
+  if (user.role !== role) {
+    await db
+      .update(users)
+      .set({ role, updated_at: new Date() })
+      .where(eq(users.id, user.id))
+  }
+
+  return toSessionUser({ ...user, role }, 'phone')
 }
 
 function toSessionUser(user: User, source: 'neon' | 'phone'): SessionUser {

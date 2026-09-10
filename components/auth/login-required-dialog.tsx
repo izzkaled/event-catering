@@ -17,9 +17,10 @@ import { saveReturnTo } from '@/lib/auth/session-storage'
 type LoginRequiredDialogProps = {
   open: boolean
   onOpenChange: (open: boolean) => void
+  returnTo?: string
 }
 
-export function LoginRequiredDialog({ open, onOpenChange }: LoginRequiredDialogProps) {
+export function LoginRequiredDialog({ open, onOpenChange, returnTo }: LoginRequiredDialogProps) {
   const router = useRouter()
   const { lang } = useLanguage()
   const t = (ar: string, en: string) => (lang === 'ar' ? ar : en)
@@ -27,7 +28,7 @@ export function LoginRequiredDialog({ open, onOpenChange }: LoginRequiredDialogP
   if (!open) return null
 
   const goLogin = () => {
-    saveReturnTo('/booking')
+    saveReturnTo(returnTo || '/packages')
     onOpenChange(false)
     router.push('/auth/login')
   }
@@ -57,7 +58,7 @@ export function LoginRequiredDialog({ open, onOpenChange }: LoginRequiredDialogP
           <Button
             variant="outline"
             className="w-full sm:flex-1"
-            render={<Link href="/booking" />}
+            render={<Link href="/packages" />}
             nativeButton={false}
             onClick={() => onOpenChange(false)}
           >

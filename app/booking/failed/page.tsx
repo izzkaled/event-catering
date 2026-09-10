@@ -18,7 +18,7 @@ function FailedInner() {
   const { t, lang } = useLanguage()
   const paymentHref = orderNumber
     ? `/booking/payment?order=${encodeURIComponent(orderNumber)}`
-    : '/booking'
+    : '/packages'
 
   return (
     <main className="flex flex-1 flex-col items-center justify-center px-4 py-16 text-center">

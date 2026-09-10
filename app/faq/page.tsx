@@ -39,12 +39,12 @@ export default function FaqPage() {
         <FaqSection />
         <div className="site-container py-10 text-center">
           <Button
-            render={<Link href="/booking" />}
+            render={<Link href="/packages" />}
             nativeButton={false}
             size="lg"
             className="h-12 bg-brand-palm px-10 font-bold text-brand-cream hover:bg-brand-palm/90"
           >
-            احجز الآن · Book now
+            تصفح الباقات · Browse packages
           </Button>
         </div>
       </main>

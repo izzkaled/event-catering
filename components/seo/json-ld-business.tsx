@@ -82,7 +82,7 @@ export function JsonLdBusiness() {
         publisher: { '@id': `${SITE_URL}/#organization` },
         potentialAction: {
           '@type': 'ReserveAction',
-          target: `${SITE_URL}/booking`,
+          target: `${SITE_URL}/packages`,
           name: 'Request hospitality package | اطلب باقة ضيافة',
         },
       },

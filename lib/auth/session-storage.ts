@@ -4,21 +4,47 @@ export const AUTH_PHONE_KEY = 'authPhone'
 export const AUTH_EMAIL_KEY = 'authEmail'
 export const AUTH_MODE_KEY = 'authMode'
 export const AUTH_NAME_KEY = 'authName'
+export const AUTH_OTP_SENT_KEY = 'authOtpSent'
 
 export function saveReturnTo(path?: string) {
   if (typeof window === 'undefined') return
   const value = path || `${window.location.pathname}${window.location.search}`
+  if (!value.startsWith('/') || value.startsWith('//')) return
   sessionStorage.setItem(AUTH_RETURN_TO_KEY, value)
 }
 
-export function getReturnTo(fallback = '/booking'): string {
+export function getReturnTo(fallback = '/packages'): string {
   if (typeof window === 'undefined') return fallback
-  return sessionStorage.getItem(AUTH_RETURN_TO_KEY) || fallback
+  const value = sessionStorage.getItem(AUTH_RETURN_TO_KEY)
+  if (!value || !value.startsWith('/') || value.startsWith('//')) return fallback
+  return value
 }
 
 export function clearReturnTo() {
   if (typeof window === 'undefined') return
   sessionStorage.removeItem(AUTH_RETURN_TO_KEY)
+}
+
+/** Capture ?redirect=/path from login/signup URLs into sessionStorage. */
+export function captureRedirectFromSearch(search: string | URLSearchParams) {
+  if (typeof window === 'undefined') return
+  const params = typeof search === 'string' ? new URLSearchParams(search) : search
+  const redirect = params.get('redirect')?.trim()
+  if (redirect?.startsWith('/') && !redirect.startsWith('//')) {
+    saveReturnTo(redirect)
+  }
+}
+
+export function markOtpAlreadySent() {
+  if (typeof window === 'undefined') return
+  sessionStorage.setItem(AUTH_OTP_SENT_KEY, '1')
+}
+
+export function consumeOtpAlreadySent(): boolean {
+  if (typeof window === 'undefined') return false
+  const sent = sessionStorage.getItem(AUTH_OTP_SENT_KEY) === '1'
+  sessionStorage.removeItem(AUTH_OTP_SENT_KEY)
+  return sent
 }
 
 export function saveCheckoutDraft<T>(draft: T) {

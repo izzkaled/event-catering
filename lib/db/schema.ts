@@ -28,23 +28,117 @@ export const packageSections = pgTable('package_sections', {
 export const packages = pgTable('packages', {
   id: uuid('id').defaultRandom().primaryKey(),
   section_id: uuid('section_id').references(() => packageSections.id),
+  slug: text('slug').unique(),
   name_ar: text('name_ar').notNull(),
   name_en: text('name_en').notNull(),
+  short_description_ar: text('short_description_ar'),
+  short_description_en: text('short_description_en'),
+  description_ar: text('description_ar'),
+  description_en: text('description_en'),
+  /** Dynamic occasion/category slugs — drives filters & recommendations */
+  occasion_types: text('occasion_types').array().default([]).notNull(),
+  /** fixed | per_guest | starting_from | custom_quote */
+  pricing_model: text('pricing_model').default('starting_from').notNull(),
   hours_per_visit: integer('hours_per_visit').notNull(), // catering: service hours
-  visits_per_week: integer('visits_per_week').notNull(), // catering: guest count
+  visits_per_week: integer('visits_per_week').notNull(), // catering: default/typical guests
   visits_per_month: integer('visits_per_month').notNull(), // catering: guest capacity mirror
+  min_guests: integer('min_guests'),
+  max_guests: integer('max_guests'),
+  per_guest_omr: decimal('per_guest_omr', { precision: 10, scale: 2 }),
   price_omr: decimal('price_omr', { precision: 10, scale: 2 }).notNull(),
+  cover_image: text('cover_image'),
+  gallery: text('gallery').array().default([]).notNull(),
+  features_ar: text('features_ar').array().default([]).notNull(),
+  features_en: text('features_en').array().default([]).notNull(),
+  /** published | draft | archived | hidden */
+  status: text('status').default('published').notNull(),
   is_active: boolean('is_active').default(true).notNull(),
   /** “most popular” badge in storefront */
   is_popular: boolean('is_popular').default(false).notNull(),
   /** @deprecated use is_popular — kept for backward compatibility */
   is_featured: boolean('is_featured').default(false),
+  /** Featured / recommended for storefront highlight */
+  is_recommended: boolean('is_recommended').default(false).notNull(),
+  is_new: boolean('is_new').default(false).notNull(),
+  is_best_value: boolean('is_best_value').default(false).notNull(),
+  views_count: integer('views_count').default(0).notNull(),
+  customizations_count: integer('customizations_count').default(0).notNull(),
+  requests_count: integer('requests_count').default(0).notNull(),
+  bookings_count: integer('bookings_count').default(0).notNull(),
   sort_order: integer('sort_order').default(0),
   created_at: timestamp('created_at').defaultNow(),
   updated_at: timestamp('updated_at').defaultNow(),
 }, (table) => [
   index('packages_section_id_idx').on(table.section_id),
+  index('packages_status_idx').on(table.status),
+  index('packages_slug_idx').on(table.slug),
 ])
+
+/** Dynamic filter categories / occasions managed by admin */
+export const packageCategories = pgTable('package_categories', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  slug: text('slug').unique().notNull(),
+  name_ar: text('name_ar').notNull(),
+  name_en: text('name_en').notNull(),
+  /** occasion | filter */
+  kind: text('kind').default('occasion').notNull(),
+  sort_order: integer('sort_order').default(0).notNull(),
+  is_active: boolean('is_active').default(true).notNull(),
+  created_at: timestamp('created_at').defaultNow(),
+  updated_at: timestamp('updated_at').defaultNow(),
+})
+
+/** Catalog of à-la-carte hospitality services for the experience builder. */
+export const hospitalityServices = pgTable('hospitality_services', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  slug: text('slug').unique().notNull(),
+  name_ar: text('name_ar').notNull(),
+  name_en: text('name_en').notNull(),
+  description_ar: text('description_ar'),
+  description_en: text('description_en'),
+  category: text('category').notNull(),
+  price_omr: decimal('price_omr', { precision: 10, scale: 2 }).notNull(),
+  image_url: text('image_url'),
+  is_active: boolean('is_active').default(true).notNull(),
+  is_archived: boolean('is_archived').default(false).notNull(),
+  sort_order: integer('sort_order').default(0).notNull(),
+  created_at: timestamp('created_at').defaultNow(),
+  updated_at: timestamp('updated_at').defaultNow(),
+})
+
+export const packageServices = pgTable('package_services', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  package_id: uuid('package_id')
+    .notNull()
+    .references(() => packages.id, { onDelete: 'cascade' }),
+  service_id: uuid('service_id')
+    .notNull()
+    .references(() => hospitalityServices.id, { onDelete: 'cascade' }),
+  /** included | optional | addon | recommended */
+  role: text('role').default('included').notNull(),
+  included: boolean('included').default(true).notNull(),
+  quantity: integer('quantity').default(1).notNull(),
+  custom_price_omr: decimal('custom_price_omr', { precision: 10, scale: 2 }),
+  sort_order: integer('sort_order').default(0).notNull(),
+}, (table) => [
+  index('package_services_package_id_idx').on(table.package_id),
+  uniqueIndex('package_services_pkg_svc_uidx').on(table.package_id, table.service_id),
+])
+
+export const siteSettings = pgTable('site_settings', {
+  key: text('key').primaryKey(),
+  value: text('value').notNull(),
+  updated_at: timestamp('updated_at').defaultNow(),
+})
+
+export const savedExperiences = pgTable('saved_experiences', {
+  id: text('id').primaryKey(),
+  package_id: uuid('package_id').references(() => packages.id),
+  payload: text('payload').notNull(),
+  estimated_total_omr: decimal('estimated_total_omr', { precision: 10, scale: 2 }),
+  created_at: timestamp('created_at').defaultNow(),
+  updated_at: timestamp('updated_at').defaultNow(),
+})
 
 export const users = pgTable('users', {
   id: uuid('id').defaultRandom().primaryKey(),
@@ -178,12 +272,18 @@ export const emailContacts = pgTable('email_contacts', {
 
 export type PackageSection = typeof packageSections.$inferSelect
 export type Package = typeof packages.$inferSelect
+export type PackageCategory = typeof packageCategories.$inferSelect
+export type HospitalityService = typeof hospitalityServices.$inferSelect
+export type PackageService = typeof packageServices.$inferSelect
 export type Order = typeof orders.$inferSelect
 export type ScheduleEvent = typeof schedule_events.$inferSelect
 export type User = typeof users.$inferSelect
 export type EmailCollection = typeof emailCollections.$inferSelect
 export type EmailContact = typeof emailContacts.$inferSelect
 export type UserRole = 'user' | 'admin'
+export type PackageStatus = 'published' | 'draft' | 'archived' | 'hidden'
+export type PricingModel = 'fixed' | 'per_guest' | 'starting_from' | 'custom_quote'
+export type PackageServiceRole = 'included' | 'optional' | 'addon' | 'recommended'
 export type OrderStatus = 'pending' | 'confirmed' | 'active' | 'cancelled' | 'completed'
 export type PaymentMethod = 'paymob' | 'bank_transfer' | 'stripe'
 export type PaymentStatus =

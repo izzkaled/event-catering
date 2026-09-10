@@ -12,8 +12,15 @@ export function SiteFooter() {
 
   const desc =
     lang === 'ar'
-      ? 'إيفنت كاترينج — منصة وسيط ضيافة بالباقات للجهات الحكومية والشركات في عُمان. تنسيق احترافي وعروض واضحة.'
-      : 'Event Catering — hospitality package intermediary for government and corporate in Oman. Professional coordination and clear offers.'
+      ? 'إيفنت كاترينج — ضيافة مصممة لمناسبتك، بكل تفاصيلها. للجهات والشركات والمناسبات الخاصة في عُمان.'
+      : 'Event Catering — hospitality designed for your occasion. For government, corporate, and private events in Oman.'
+
+  const quickLinks = [
+    { href: '/packages', label: t('nav.packages') },
+    { href: '/experience/find', label: lang === 'ar' ? 'اعثر على تجربتي' : 'Find My Experience' },
+    { href: '/#how', label: t('nav.how') },
+    { href: '/#contact', label: t('nav.contact') },
+  ]
 
   return (
     <footer className="min-w-0 w-full overflow-x-clip border-t border-border bg-secondary/40">
@@ -25,22 +32,19 @@ export function SiteFooter() {
           <p className="text-sm leading-relaxed text-muted-foreground">{desc}</p>
         </div>
 
-        <div className="flex flex-col gap-3">
-          <h3 className="text-sm font-bold text-brand-palm">
+        <div className="flex flex-col gap-1.5">
+          <h3 className="mb-1.5 text-sm font-bold text-brand-palm">
             {lang === 'ar' ? 'روابط سريعة' : 'Quick links'}
           </h3>
-          <Link href="/#services" className="touch-target flex min-h-10 items-center text-sm text-muted-foreground hover:text-foreground">
-            {t('nav.services')}
-          </Link>
-          <Link href="/booking" className="touch-target flex min-h-10 items-center text-sm text-muted-foreground hover:text-foreground">
-            {t('nav.booking')}
-          </Link>
-          <Link href="/faq" className="touch-target flex min-h-10 items-center text-sm text-muted-foreground hover:text-foreground">
-            {t('faq.nav')}
-          </Link>
-          <Link href="/#areas" className="touch-target flex min-h-10 items-center text-sm text-muted-foreground hover:text-foreground">
-            {t('areas.title')}
-          </Link>
+          {quickLinks.map((link) => (
+            <Link
+              key={link.href + link.label}
+              href={link.href}
+              className="touch-target flex min-h-9 items-center text-sm text-muted-foreground hover:text-foreground"
+            >
+              {link.label}
+            </Link>
+          ))}
         </div>
 
         <div className="flex flex-col gap-3">

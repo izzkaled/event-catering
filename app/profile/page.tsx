@@ -181,15 +181,15 @@ export default function ProfilePage() {
     {
       href: '/subscriptions',
       icon: ClipboardList,
-      title: t('اشتراكاتي', 'My subscriptions'),
-      desc: t('تابع حالة اشتراكاتك', 'Track your subscription status'),
+      title: t('طلباتي', 'My requests'),
+      desc: t('تابع حالة طلبات الضيافة', 'Track your hospitality requests'),
       accent: 'bg-primary/10 text-primary',
     },
     {
-      href: '/booking',
+      href: '/packages',
       icon: CalendarDays,
-      title: t('احجز خدمة', 'Book a service'),
-      desc: t('اختر باقة وحدّد الموعد', 'Pick a package and schedule'),
+      title: t('تصفح الباقات', 'Browse packages'),
+      desc: t('اختر باقة وخصّص تجربتك', 'Choose a package and customize your experience'),
       accent: 'bg-primary/10 text-primary',
     },
   ]

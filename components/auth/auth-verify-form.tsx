@@ -14,6 +14,7 @@ import {
   clearReturnTo,
   getAuthEmail,
   getReturnTo,
+  consumeOtpAlreadySent,
 } from '@/lib/auth/session-storage'
 
 const RESEND_COOLDOWN_SEC = 30
@@ -52,6 +53,10 @@ export function AuthVerifyForm() {
 
   React.useEffect(() => {
     if (!email) return
+    if (consumeOtpAlreadySent()) {
+      setCooldown(RESEND_COOLDOWN_SEC)
+      return
+    }
     let cancelled = false
     ;(async () => {
       try {
@@ -165,8 +170,8 @@ export function AuthVerifyForm() {
             <br />
             <span className="text-xs">
               {t(
-                'تحقق من Spam — المرسل: auth@mail.myneon.app',
-                'Check Spam — sender: auth@mail.myneon.app',
+                'المرسل: auth@mail.myneon.app — تحقق من Spam إن لزم.',
+                'Sender: auth@mail.myneon.app — check Spam if needed.',
               )}
             </span>
           </CardDescription>

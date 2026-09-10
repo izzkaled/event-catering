@@ -94,7 +94,7 @@ export async function sendOtpSms(phone: string, code?: string): Promise<{ sent: 
 
   await client.messages.create({
     to: phone,
-    body: `Speedy Cleaning: رمز التحقق ${code}\nYour code: ${code}`,
+    body: `Event Catering: رمز التحقق ${code}\nYour code: ${code}`,
     ...(messagingServiceSid ? { messagingServiceSid } : { from: from! }),
   })
 

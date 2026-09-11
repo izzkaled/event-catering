@@ -4,6 +4,7 @@ import { SiteHeader } from '@/components/site-header'
 import { SiteFooter } from '@/components/site-footer'
 import { PackageDetail } from '@/components/packages/package-detail'
 import { getExperiencePackageBySlug, incrementPackageStat } from '@/lib/packages/queries'
+import { SITE_NAME, SITE_URL } from '@/lib/seo'
 
 export const dynamic = 'force-dynamic'
 
@@ -16,9 +17,21 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params
   const pkg = await getExperiencePackageBySlug(slug, { preview: true })
   if (!pkg) return { title: 'Package' }
+  const title = `${pkg.name_ar} | ${pkg.name_en}`
+  const description =
+    [pkg.description_ar, pkg.description_en].filter(Boolean).join(' ') ||
+    `${pkg.name_ar} — ${SITE_NAME}`
+  const url = `${SITE_URL}/packages/${slug}`
   return {
-    title: `${pkg.name_ar} | ${pkg.name_en}`,
-    description: pkg.description_ar,
+    title,
+    description,
+    alternates: { canonical: url },
+    openGraph: {
+      title,
+      description,
+      url,
+      type: 'website',
+    },
   }
 }
 

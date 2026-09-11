@@ -399,7 +399,7 @@ export function HomeChatbot() {
           type="button"
           onClick={() => setOpen((v) => !v)}
           aria-expanded={open}
-          aria-label={ar ? 'فتح مساعد إيفنت' : 'Open KHOUSA helper'}
+          aria-label={ar ? 'فتح مساعد إيفنت كاترينج' : 'Open Event Catering assistant'}
           className={cn(
             'relative flex size-[3.6rem] items-center justify-center overflow-hidden rounded-full transition-transform active:scale-95 sm:size-16 sm:hover:scale-105',
             'shadow-[0_12px_28px_-6px_color-mix(in_srgb,var(--brand-palm)_45%,transparent)]',

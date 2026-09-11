@@ -3,12 +3,19 @@ import { SiteHeader } from '@/components/site-header'
 import { SiteFooter } from '@/components/site-footer'
 import { PackagesCatalog } from '@/components/packages/packages-catalog'
 import { getActiveCategories, getPublishedPackagesWithSections } from '@/lib/packages/queries'
+import { SITE_URL } from '@/lib/seo'
 
 export const dynamic = 'force-dynamic'
 
 export const metadata: Metadata = {
-  title: 'الباقات | Packages',
-  description: 'ضيافة مصممة لمناسبتك — اختر نقطة البداية وخصص التفاصيل.',
+  title: 'باقات الضيافة | Hospitality Packages',
+  description:
+    'تصفّح باقات إيفنت كاترينج للجهات والشركات والمناسبات في عُمان، ثم خصّص تجربتك وأرسل الطلب. Browse Event Catering packages and customize your experience.',
+  alternates: { canonical: `${SITE_URL}/packages` },
+  openGraph: {
+    title: 'باقات الضيافة | Hospitality Packages',
+    url: `${SITE_URL}/packages`,
+  },
 }
 
 export default async function PackagesPage() {

@@ -8,14 +8,14 @@ import { Button } from '@/components/ui/button'
 import { SITE_NAME, SITE_URL } from '@/lib/seo'
 
 export const metadata: Metadata = {
-  title: 'أسئلة شائعة | FAQ — تنظيف منازل مسقط',
+  title: 'أسئلة شائعة | FAQ — ضيافة وباقات المناسبات',
   description:
-    'إجابات عن أسعار تنظيف المنازل في مسقط، مناطق الخدمة (بوشر، السيب، مطرح)، طريقة الحجز والدفع مع خوصة KHOUSA. FAQ for home cleaning in Muscat, Oman.',
+    'إجابات عن باقات الضيافة، الأسعار الاسترشادية، الجهات الحكومية والشركات، وكيف ترسل طلباً عبر إيفنت كاترينج في عُمان. FAQ for hospitality packages with Event Catering Oman.',
   alternates: { canonical: `${SITE_URL}/faq` },
   openGraph: {
     title: `FAQ | ${SITE_NAME}`,
     description:
-      'Home cleaning prices, Muscat service areas, booking & payment — KHOUSA Oman.',
+      'Hospitality packages, indicative pricing, government & corporate events — Event Catering Oman.',
     url: `${SITE_URL}/faq`,
   },
 }
@@ -27,13 +27,15 @@ export default function FaqPage() {
       <SiteHeader />
       <main className="min-w-0 flex-1 overflow-x-clip">
         <div className="site-container border-b border-border py-10 text-center">
-          <p className="text-sm font-semibold tracking-wide text-brand-sand">KHOUSA · Muscat</p>
+          <p className="text-sm font-semibold tracking-wide text-brand-sand">
+            Event Catering · عُمان
+          </p>
           <h1 className="mt-2 text-3xl font-extrabold text-brand-palm sm:text-4xl">
-            أسئلة شائعة عن تنظيف المنازل في مسقط
+            أسئلة شائعة عن باقات الضيافة
           </h1>
           <p className="mx-auto mt-3 max-w-2xl text-muted-foreground">
-            FAQ — home cleaning prices, areas (Bawshar, Seeb, Muttrah), booking and payment with
-            KHOUSA.
+            FAQ — packages, indicative pricing, government & corporate occasions, and how requests
+            work with Event Catering.
           </p>
         </div>
         <FaqSection />

@@ -9,6 +9,7 @@ import { validateOrderPayload } from '@/lib/security/order-validation'
 import { checkRateLimit, getClientIp } from '@/lib/auth/rate-limit'
 import { requireTurnstile } from '@/lib/cloudflare/turnstile'
 import { isPaymobEnabled } from '@/lib/paymob/client'
+import { triggerOrderConfirmation } from '@/lib/security/trigger-confirmation'
 
 export const dynamic = 'force-dynamic'
 
@@ -56,7 +57,7 @@ export async function POST(request: Request) {
     for (let attempt = 0; attempt < 3 && !order; attempt++) {
       const [{ count }] = await db.select({ count: sql<number>`count(*)` }).from(orders)
       const nextNum = Number(count ?? 0) + 1 + attempt
-      const orderNumber = `SPD-${new Date().getFullYear()}-${String(nextNum).padStart(4, '0')}`
+      const orderNumber = `EVT-${new Date().getFullYear()}-${String(nextNum).padStart(4, '0')}`
 
       try {
         ;[order] = await db
@@ -101,7 +102,7 @@ export async function POST(request: Request) {
 
     await db.insert(admin_notifications).values({
       order_id: order.id,
-      message: `طلب اشتراك جديد: ${order.order_number}`,
+      message: `طلب ضيافة جديد: ${order.order_number} — ${order.customer_name}`,
     })
 
     try {
@@ -116,9 +117,16 @@ export async function POST(request: Request) {
       console.error('Failed to sync profile from order:', profileError)
     }
 
-    // Confirmation emails fire after payment (Paymob) or bank receipt upload.
+    // Notify admin + customer (Resend + PDF) immediately on request submit.
+    triggerOrderConfirmation(order.id, 'created')
+
     return NextResponse.json(
-      { ...order, needsPayment: true, paymobEnabled },
+      {
+        ...order,
+        needsPayment: false,
+        paymobEnabled,
+        confirmationPath: `/booking/request-received?order=${encodeURIComponent(order.order_number)}`,
+      },
       { status: 201 },
     )
   } catch (error) {

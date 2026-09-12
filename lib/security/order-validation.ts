@@ -9,7 +9,7 @@ import type { Package } from '@/lib/db/schema'
 
 const MAX_NAME = 120
 const MAX_ADDRESS = 500
-const MAX_NOTES = 1000
+const MAX_NOTES = 2500
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/
 
 export type ValidatedOrderInput = {
@@ -93,10 +93,29 @@ export function validateOrderPayload(
     return { ok: false, error: 'Invalid email address' }
   }
 
-  const price = parseFloat(String(pkg.price_omr))
-  if (!Number.isFinite(price) || price <= 0) {
+  const basePrice = parseFloat(String(pkg.price_omr))
+  if (!Number.isFinite(basePrice) || basePrice <= 0) {
     return { ok: false, error: 'Invalid package price' }
   }
+
+  // Experience flow may send customized estimate + guest count.
+  const bodyPrice = parseFloat(String(body.price_omr ?? ''))
+  const price =
+    Number.isFinite(bodyPrice) && bodyPrice > 0 && bodyPrice <= basePrice * 20
+      ? bodyPrice
+      : basePrice
+
+  const bodyGuests = Number(body.visits_per_week)
+  const visits_per_week =
+    Number.isFinite(bodyGuests) && bodyGuests > 0 && bodyGuests <= 5000
+      ? Math.round(bodyGuests)
+      : pkg.visits_per_week
+
+  const bodyHours = Number(body.hours_per_visit)
+  const hours_per_visit =
+    Number.isFinite(bodyHours) && bodyHours > 0 && bodyHours <= 72
+      ? Math.round(bodyHours)
+      : pkg.hours_per_visit
 
   return {
     ok: true,
@@ -108,8 +127,8 @@ export function validateOrderPayload(
       customer_area,
       notes,
       package_id: pkg.id,
-      hours_per_visit: pkg.hours_per_visit,
-      visits_per_week: pkg.visits_per_week,
+      hours_per_visit,
+      visits_per_week,
       visits_per_month: pkg.visits_per_month,
       price_omr: price.toFixed(2),
       commission_omr: calcCommission(price).toFixed(2),

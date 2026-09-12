@@ -1,10 +1,10 @@
 import { Resend } from 'resend'
 import { emailLogoHtml } from '@/lib/email/brand-header'
 
-const APP_NAME = 'KHOUSA'
+const APP_NAME = 'Event Catering'
 
 export function getResendFromAddress(): string {
-  return process.env.RESEND_FROM_EMAIL?.trim() || 'KHOUSA <onboarding@resend.dev>'
+  return process.env.RESEND_FROM_EMAIL?.trim() || 'Event Catering <onboarding@resend.dev>'
 }
 
 export function isResendSandboxFrom(from = getResendFromAddress()): boolean {

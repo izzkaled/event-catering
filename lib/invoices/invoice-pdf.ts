@@ -94,26 +94,27 @@ export function buildInvoicePdfBuffer(
   // jsPDF default fonts (Helvetica/Times/Courier) do not render Arabic correctly.
   // We embed an Arabic font (Amiri) to render Arabic.
   const titleEn =
-    kind === 'confirmed' ? 'Subscription Invoice (Confirmed)' : 'Subscription Request Invoice (Pending)'
+    kind === 'confirmed' ? 'Hospitality Quote Invoice (Confirmed)' : 'Hospitality Request Invoice (Pending)'
 
   const pageW = doc.internal.pageSize.getWidth()
   const pageH = doc.internal.pageSize.getHeight()
   const left = 40
   const right = pageW - 40
 
+  const brandEn = 'Event Catering'
   const logo = getLogoBase64()
   if (logo) {
     doc.addImage(`data:image/png;base64,${logo}`, 'PNG', left, 18, 52, 52)
     doc.setFont('helvetica', 'bold')
     doc.setFontSize(18)
-    doc.text('KHOUSA', left + 62, 42)
+    doc.text(brandEn, left + 62, 42)
     doc.setFont('helvetica', 'normal')
     doc.setFontSize(10)
     doc.text('Oman · Muscat', left + 62, 58)
   } else {
     doc.setFont('helvetica', 'bold')
     doc.setFontSize(18)
-    doc.text('KHOUSA', left, 50)
+    doc.text(brandEn, left, 50)
   }
 
   doc.setFont('helvetica', 'normal')
@@ -122,7 +123,7 @@ export function buildInvoicePdfBuffer(
   ensureArabicFont(doc)
   doc.setFont('Amiri', 'normal')
   doc.setFontSize(12)
-  doc.text(kind === 'confirmed' ? 'فاتورة اشتراك (تم التأكيد)' : 'فاتورة طلب اشتراك (بانتظار التأكيد)', right, logo ? 82 : 72, {
+  doc.text(kind === 'confirmed' ? 'فاتورة عرض ضيافة (مؤكدة)' : 'فاتورة طلب ضيافة (بانتظار التأكيد)', right, logo ? 82 : 72, {
     align: 'right',
   })
 
@@ -140,34 +141,37 @@ export function buildInvoicePdfBuffer(
   drawCellBilingual(doc, left + col1, y, col2, rowH, 'Value', 'القيمة', { bold: true })
   y += rowH
 
+  const notesPreview = safe(order.notes).slice(0, 180)
   const rows: Array<[string, string, string, string]> = [
     ['Order number', 'رقم الطلب', safe(order.order_number), safe(order.order_number)],
-    ['Status', 'الحالة', kind === 'confirmed' ? 'Confirmed' : 'Pending', kind === 'confirmed' ? 'تم التأكيد' : 'بانتظار التأكيد'],
+    ['Status', 'الحالة', kind === 'confirmed' ? 'Confirmed' : 'Pending review', kind === 'confirmed' ? 'تم التأكيد' : 'بانتظار المراجعة'],
     ['Customer name', 'اسم العميل', safe(order.customer_name), safe(order.customer_name)],
     ['Customer phone', 'رقم الجوال', safe(order.customer_phone), safe(order.customer_phone)],
     ['Customer email', 'البريد الإلكتروني', safe(order.customer_email), safe(order.customer_email)],
     ['Area', 'المنطقة', safe(order.customer_area), safe(order.customer_area)],
-    ['Address', 'العنوان', safe(order.customer_address), safe(order.customer_address)],
+    ['Venue / address', 'الموقع / العنوان', safe(order.customer_address), safe(order.customer_address)],
     [
       'Package',
-      'نوع الاشتراك',
+      'الباقة',
       safe(order.package_name_en || ''),
       safe(order.package_name_ar || ''),
     ],
-    ['Hours / visit', 'ساعات الزيارة', safe(order.hours_per_visit), safe(order.hours_per_visit)],
-    ['Visits / week', 'زيارات/أسبوع', safe(order.visits_per_week), safe(order.visits_per_week)],
-    ['Visits / month', 'زيارات/شهر', safe(order.visits_per_month), safe(order.visits_per_month)],
-    ['Start date', 'تاريخ البداية', safe(order.start_date), safe(order.start_date)],
-    ['End date', 'تاريخ النهاية', safe(order.end_date), safe(order.end_date)],
+    ['Guests (est.)', 'الضيوف (تقديري)', safe(order.visits_per_week), safe(order.visits_per_week)],
+    ['Service hours', 'ساعات الخدمة', safe(order.hours_per_visit), safe(order.hours_per_visit)],
+    ['Event date', 'تاريخ المناسبة', safe(order.start_date), safe(order.start_date)],
     ['Preferred time', 'الوقت المفضل', safe(order.preferred_time), safe(order.preferred_time)],
     [
-      'Preferred days',
-      'الأيام المفضلة',
+      'Event day',
+      'يوم المناسبة',
       safe((order.preferred_days || []).join(', ')),
       safe((order.preferred_days || []).join('، ')),
     ],
-    ['Monthly price (OMR)', 'السعر الشهري (ر.ع)', formatOmr(order.price_omr), formatOmr(order.price_omr)],
+    ['Estimated total (OMR)', 'التقدير الإجمالي (ر.ع)', formatOmr(order.price_omr), formatOmr(order.price_omr)],
   ]
+
+  if (notesPreview) {
+    rows.push(['Brief', 'ملخص الطلب', notesPreview, notesPreview])
+  }
 
   for (const [kEn, kAr, vEn, vAr] of rows) {
     if (y + rowH > pageH - 80) {
@@ -195,7 +199,7 @@ export function buildInvoicePdfBuffer(
 
   if (audience === 'customer') {
     doc.text(`Support WhatsApp: ${supportWhatsAppDisplay}`, left, pageH - 35)
-    doc.text(`My subscriptions: ${siteUrl}/subscriptions`, left, pageH - 22)
+    doc.text(`My account: ${siteUrl}/profile`, left, pageH - 22)
   } else {
     doc.text(`Support WhatsApp: ${supportWhatsAppDisplay}`, left, pageH - 48)
     doc.text(`Admin panel: ${siteUrl}/admin/orders`, left, pageH - 35)

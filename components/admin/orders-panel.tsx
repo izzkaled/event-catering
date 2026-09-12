@@ -269,19 +269,43 @@ export function OrdersPanel() {
                   </div>
                 </TableCell>
                 <TableCell>
-                  {order.status === 'pending' ? (
+                  <div className="flex flex-col gap-2">
+                    {order.status === 'pending' ? (
+                      <Button
+                        size="sm"
+                        disabled={updatingId === order.id}
+                        onClick={() => updateStatus(order.id, 'confirmed')}
+                        className="gap-1"
+                      >
+                        <CheckCircle2 className="size-3.5" />
+                        تأكيد العرض
+                      </Button>
+                    ) : null}
                     <Button
                       size="sm"
-                      disabled={updatingId === order.id}
-                      onClick={() => updateStatus(order.id, 'confirmed')}
+                      variant="outline"
+                      render={
+                        <a
+                          href={`/api/invoice/${encodeURIComponent(order.order_number)}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        />
+                      }
+                      nativeButton={false}
                       className="gap-1"
                     >
-                      <CheckCircle2 className="size-3.5" />
-                      تأكيد العرض
+                      <Download className="size-3.5" />
+                      فاتورة PDF
                     </Button>
-                  ) : (
-                    <span className="text-xs text-muted-foreground">—</span>
-                  )}
+                    {order.notes ? (
+                      <details className="max-w-[220px] text-xs text-muted-foreground">
+                        <summary className="cursor-pointer select-none text-[#4A234A]">ملخص الطلب</summary>
+                        <pre className="mt-1 whitespace-pre-wrap rounded-md border bg-muted/40 p-2 font-sans leading-relaxed">
+                          {order.notes}
+                        </pre>
+                      </details>
+                    ) : null}
+                  </div>
                 </TableCell>
               </TableRow>
             ))}

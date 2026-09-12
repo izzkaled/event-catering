@@ -1,44 +1,11 @@
 import { NextResponse } from 'next/server'
-import { eq } from 'drizzle-orm'
-import { Resend } from 'resend'
-import { db } from '@/lib/db'
-import { orders, users } from '@/lib/db/schema'
-import { formatPhoneDisplay } from '@/lib/constants'
-import { buildInvoicePdfBuffer } from '@/lib/invoices/invoice-pdf'
-import type { Order } from '@/lib/db/schema'
+import {
+  sendOrderConfirmation,
+  type OrderConfirmationEvent,
+} from '@/lib/email/send-order-confirmation'
 import { verifyInternalApi } from '@/lib/security/internal-api'
 import { checkRateLimit, getClientIp } from '@/lib/auth/rate-limit'
 import { requireCloudflareProxy } from '@/lib/cloudflare/proxy'
-import { emailLogoHtml } from '@/lib/email/brand-header'
-import { escapeHtml } from '@/lib/security/escape-html'
-
-type InvoiceEvent = 'created' | 'confirmed' | 'cancelled'
-
-function pdfAttachment(
-  order: Order,
-  kind: 'requested' | 'confirmed',
-  filename: string,
-  audience: 'customer' | 'admin',
-) {
-  return {
-    filename,
-    content: buildInvoicePdfBuffer(order, kind, audience).toString('base64'),
-    contentType: 'application/pdf' as const,
-  }
-}
-
-async function resolveCustomerEmail(order: Order): Promise<string | null> {
-  let email = order.customer_email?.trim() || null
-  if (!email && order.user_id) {
-    const [profile] = await db
-      .select({ email: users.email })
-      .from(users)
-      .where(eq(users.id, order.user_id))
-      .limit(1)
-    email = profile?.email?.trim() || null
-  }
-  return email
-}
 
 export async function POST(request: Request) {
   try {
@@ -55,187 +22,19 @@ export async function POST(request: Request) {
 
     const body = (await request.json().catch(() => null)) as {
       orderId?: string
-      event?: InvoiceEvent
+      event?: OrderConfirmationEvent
     } | null
     const orderId = body?.orderId
     const event = body?.event
-    if (!orderId) {
-      return NextResponse.json({ error: 'Missing orderId' }, { status: 400 })
+    if (!orderId || !event) {
+      return NextResponse.json({ error: 'Missing orderId or event' }, { status: 400 })
+    }
+    if (event !== 'created' && event !== 'confirmed' && event !== 'cancelled') {
+      return NextResponse.json({ error: 'Invalid event' }, { status: 400 })
     }
 
-    const resendKey = process.env.RESEND_API_KEY
-    const adminEmail = process.env.ADMIN_EMAIL?.trim()
-    if (!adminEmail) {
-      console.warn('ADMIN_EMAIL not set, skipping admin notifications')
-    }
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
-    const whatsapp = process.env.NEXT_PUBLIC_WHATSAPP || '96877222432'
-    const from = process.env.RESEND_FROM_EMAIL?.trim() || 'Speedy Cleaning <onboarding@resend.dev>'
-
-    const [order] = await db.select().from(orders).where(eq(orders.id, orderId)).limit(1)
-    if (!order) {
-      return NextResponse.json({ error: 'Order not found' }, { status: 404 })
-    }
-
-    if (!resendKey) {
-      console.warn('RESEND_API_KEY not set, skipping emails')
-      return NextResponse.json({ success: true, skipped: true })
-    }
-
-    const resend = new Resend(resendKey)
-    const waLink = `https://wa.me/${order.customer_phone.replace(/\D/g, '')}`
-    const customerEmail = await resolveCustomerEmail(order)
-    const customerPhoneDisplay = formatPhoneDisplay(order.customer_phone)
-    const isSameRecipient =
-      Boolean(customerEmail && adminEmail) &&
-      customerEmail!.toLowerCase() === adminEmail!.toLowerCase()
-
-    const name = escapeHtml(order.customer_name)
-    const orderNo = escapeHtml(order.order_number)
-    const packageLabel = escapeHtml(
-      order.package_name_ar || `${order.hours_per_visit} ساعة | ${order.visits_per_week} زيارة/أسبوع`,
-    )
-    const phoneHtml = escapeHtml(customerPhoneDisplay)
-    const areaHtml = escapeHtml(order.customer_area)
-    const emailHtml = escapeHtml(customerEmail)
-    const priceHtml = escapeHtml(order.price_omr)
-    const startHtml = escapeHtml(order.start_date)
-    const safeSite = escapeHtml(siteUrl)
-    const safeWa = escapeHtml(whatsapp)
-
-    if (event === 'cancelled') {
-      const cancelHtml = `
-        <div dir="rtl" style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto">
-          ${emailLogoHtml(siteUrl)}
-          <h2>تم إلغاء الطلب</h2>
-          <p>مرحباً ${name}،</p>
-          <p>نود إعلامك بأنه تم <strong>إلغاء</strong> طلب الاشتراك رقم <strong>${orderNo}</strong>.</p>
-          <p><strong>الباقة:</strong> ${packageLabel}</p>
-          <p>لم يتم استلام أي مبلغ مقابل هذا الطلب.</p>
-          <p><a href="https://wa.me/${safeWa}">تواصل معنا على واتساب</a></p>
-        </div>
-      `
-
-      const adminCancelHtml = `
-        <div dir="rtl" style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto">
-          ${emailLogoHtml(siteUrl)}
-          <h2>❌ تم إلغاء الطلب: ${orderNo}</h2>
-          <p><strong>العميل:</strong> ${name} | <strong>الجوال:</strong> ${phoneHtml}</p>
-          <p>تم إعلام العميل بالإلغاء. لم يُستلم أي مبلغ.</p>
-          <p><a href="${safeSite}/admin/orders">عرض الطلبات</a></p>
-        </div>
-      `
-
-      await Promise.all([
-        customerEmail
-          ? resend.emails.send({
-              from,
-              to: customerEmail,
-              subject: `تم إلغاء طلبك ${order.order_number} | Speedy Cleaning`,
-              html: cancelHtml,
-            })
-          : Promise.resolve(),
-        isSameRecipient || !adminEmail
-          ? Promise.resolve()
-          : resend.emails.send({
-              from,
-              to: adminEmail,
-              subject: `❌ إلغاء طلب: ${order.order_number}`,
-              html: adminCancelHtml,
-            }),
-      ])
-
-      return NextResponse.json({
-        success: true,
-        customerEmailed: Boolean(customerEmail),
-        adminEmailed: true,
-      })
-    }
-
-    const isConfirmed = event === 'confirmed'
-    const invoiceKind = isConfirmed ? 'confirmed' : 'requested'
-    const filename = isConfirmed
-      ? `invoice-confirmed-${order.order_number}.pdf`
-      : `invoice-requested-${order.order_number}.pdf`
-    const customerAttachment = pdfAttachment(order, invoiceKind, filename, 'customer')
-    const adminAttachment = pdfAttachment(order, invoiceKind, `admin-${filename}`, 'admin')
-
-    const customerSubject = isConfirmed
-      ? `تم تأكيد اشتراكك ${order.order_number} | Speedy Cleaning`
-      : `تم استلام طلب اشتراكك ${order.order_number} | Speedy Cleaning`
-
-    const customerHtml = `
-      <div dir="rtl" style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto">
-        ${emailLogoHtml(siteUrl)}
-        <h2>${isConfirmed ? 'تم تأكيد اشتراكك ✅' : 'تم استلام طلبك بنجاح! 🎉'}</h2>
-        <p>مرحباً ${name}،</p>
-        <p><strong>رقم الطلب:</strong> ${orderNo}</p>
-        <p><strong>الباقة:</strong> ${packageLabel}</p>
-        <p><strong>الإجمالي:</strong> ${priceHtml} OMR</p>
-        <p>${
-          isConfirmed
-            ? 'تم تأكيد الحجز. ستبدأ الزيارات حسب الجدول المتفق عليه.'
-            : 'سيتواصل معك فريقنا خلال 24 ساعة لإتمام الدفع.'
-        }</p>
-        <p><a href="https://wa.me/${safeWa}">تواصل معنا على واتساب</a></p>
-        <p><a href="${safeSite}/subscriptions">عرض اشتراكاتي</a></p>
-        <p style="margin-top:16px">الفاتورة PDF مرفقة في البريد.</p>
-      </div>
-    `
-
-    const adminSubject = isConfirmed
-      ? `✅ تأكيد اشتراك: ${order.order_number}`
-      : `🆕 طلب اشتراك جديد: ${order.order_number}`
-
-    const adminHtml = `
-      <div dir="rtl" style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto">
-        ${emailLogoHtml(siteUrl)}
-        <h2>${isConfirmed ? '✅ تم تأكيد اشتراك' : '🆕 طلب اشتراك جديد'}: ${orderNo}</h2>
-        <p><strong>الاسم:</strong> ${name} | <strong>جوال العميل:</strong> ${phoneHtml} | <strong>المنطقة:</strong> ${areaHtml}</p>
-        ${customerEmail ? `<p><strong>إيميل العميل:</strong> ${emailHtml}</p>` : ''}
-        <p><strong>الباقة:</strong> ${escapeHtml(order.hours_per_visit)} ساعة / ${escapeHtml(order.visits_per_week)} زيارة أسبوعياً / ${escapeHtml(order.visits_per_month)} زيارة شهرياً</p>
-        <p><strong>السعر الإجمالي:</strong> ${priceHtml} OMR</p>
-        <p><strong>تاريخ البداية:</strong> ${startHtml}</p>
-        <p><a href="${escapeHtml(waLink)}">واتساب العميل</a></p>
-        <p><a href="${safeSite}/admin/orders">لوحة التحكم</a></p>
-        <p style="margin-top:16px">الفاتورة PDF مرفقة (${isConfirmed ? 'مؤكدة' : 'بانتظار التأكيد'}).</p>
-      </div>
-    `
-
-    const sends: Promise<unknown>[] = []
-
-    if (customerEmail) {
-      sends.push(
-        resend.emails.send({
-          from,
-          to: customerEmail,
-          subject: customerSubject,
-          html: customerHtml,
-          attachments: [customerAttachment],
-        }),
-      )
-    }
-
-    // Skip duplicate admin email when customer and admin share the same inbox
-    if (!isSameRecipient && adminEmail) {
-      sends.push(
-        resend.emails.send({
-          from,
-          to: adminEmail,
-          subject: adminSubject,
-          html: adminHtml,
-          attachments: [adminAttachment],
-        }),
-      )
-    }
-
-    await Promise.all(sends)
-
-    return NextResponse.json({
-      success: true,
-      customerEmailed: Boolean(customerEmail),
-      adminEmailed: true,
-    })
+    const result = await sendOrderConfirmation({ orderId, event })
+    return NextResponse.json(result)
   } catch (error) {
     console.error('POST /api/send-confirmation:', error)
     return NextResponse.json({ error: 'Failed to send confirmation' }, { status: 500 })

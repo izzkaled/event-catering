@@ -302,9 +302,9 @@ export function ExperienceBuilder({ pkg, initialDraftId }: Props) {
           notes: buildBrief(saved.id),
           package_id: pkg.id,
           hours_per_visit: pkg.hours_per_visit,
-          visits_per_week: pkg.visits_per_week,
+          visits_per_week: draft.guests,
           visits_per_month: pkg.visits_per_month,
-          price_omr: pkg.price_omr,
+          price_omr: String(price.estimatedTotal),
           start_date: draft.date,
           preferred_time: draft.time,
           preferred_days: [weekdayArFromIsoDate(draft.date)],
@@ -316,8 +316,14 @@ export function ExperienceBuilder({ pkg, initialDraftId }: Props) {
         const err = (await res.json().catch(() => null)) as { error?: string } | null
         throw new Error(err?.error || 'Failed')
       }
-      const order = (await res.json()) as { order_number: string }
-      router.push(`/booking/payment?order=${encodeURIComponent(order.order_number)}`)
+      const order = (await res.json()) as { order_number: string; confirmationPath?: string }
+      toast.success(
+        lang === 'ar' ? 'تم إرسال الطلب بنجاح' : 'Request submitted successfully',
+      )
+      router.push(
+        order.confirmationPath ||
+          `/booking/request-received?order=${encodeURIComponent(order.order_number)}`,
+      )
     } catch (e) {
       toast.error(
         e instanceof Error

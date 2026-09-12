@@ -115,7 +115,7 @@ export default function RootLayout({
       dir="rtl"
       className={`${plex.variable} ${geistMono.variable} bg-background`}
     >
-      <body className="font-sans antialiased min-w-0">
+      <body className="font-ios antialiased min-w-0">
         <LanguageProvider>
           <SplashScreen />
           {children}

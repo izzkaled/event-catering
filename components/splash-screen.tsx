@@ -57,7 +57,7 @@ export function SplashScreen() {
           <BrandLogo size="xl" full variant="onDark" className="justify-center" />
         </div>
 
-        <p className="animate-[fade-up_0.7s_ease-out_0.1s_both] font-sans text-[10px] font-medium uppercase tracking-[0.42em] text-brand-sand">
+        <p className="animate-[fade-up_0.7s_ease-out_0.1s_both] font-ios text-[10px] font-medium uppercase tracking-[0.42em] text-brand-sand">
           Hospitality · Oman
         </p>
         <h1 className="mt-4 animate-[fade-up_0.7s_ease-out_0.16s_both] font-brand text-3xl font-medium tracking-[0.04em] sm:text-4xl">

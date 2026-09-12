@@ -614,35 +614,35 @@
 
 .drama-wait {
   opacity: 0;
-  filter: blur(6px);
+  filter: blur(4px);
 }
 
 .drama-rise.drama-wait {
-  transform: translate3d(0, 72px, 0) scale(0.96);
+  transform: translate3d(0, 40px, 0) scale(0.98);
 }
 
 .drama-from-start.drama-wait {
-  transform: translate3d(-64px, 36px, 0) scale(0.97);
+  transform: translate3d(-40px, 24px, 0) scale(0.98);
 }
 
 .drama-from-end.drama-wait {
-  transform: translate3d(64px, 36px, 0) scale(0.97);
+  transform: translate3d(40px, 24px, 0) scale(0.98);
 }
 
 [dir='rtl'] .drama-from-start.drama-wait {
-  transform: translate3d(64px, 36px, 0) scale(0.97);
+  transform: translate3d(40px, 24px, 0) scale(0.98);
 }
 
 [dir='rtl'] .drama-from-end.drama-wait {
-  transform: translate3d(-64px, 36px, 0) scale(0.97);
+  transform: translate3d(-40px, 24px, 0) scale(0.98);
 }
 
 .drama-zoom.drama-wait {
-  transform: translate3d(0, 28px, 0) scale(0.88);
+  transform: translate3d(0, 20px, 0) scale(0.94);
 }
 
 .drama-fade.drama-wait {
-  transform: translate3d(0, 24px, 0);
+  transform: translate3d(0, 18px, 0);
 }
 
 .drama-in {
@@ -652,36 +652,21 @@
 }
 
 .drama-out {
-  opacity: 0.18;
-  filter: blur(3px);
+  opacity: 1;
+  filter: none;
+  transform: none;
 }
 
-.drama-rise.drama-out {
-  transform: translate3d(0, -56px, 0) scale(0.98);
-}
-
-.drama-from-start.drama-out {
-  transform: translate3d(48px, -40px, 0) scale(0.98);
-}
-
-.drama-from-end.drama-out {
-  transform: translate3d(-48px, -40px, 0) scale(0.98);
-}
-
-[dir='rtl'] .drama-from-start.drama-out {
-  transform: translate3d(-48px, -40px, 0) scale(0.98);
-}
-
+.drama-rise.drama-out,
+.drama-from-start.drama-out,
+.drama-from-end.drama-out,
+.drama-zoom.drama-out,
+.drama-fade.drama-out,
+[dir='rtl'] .drama-from-start.drama-out,
 [dir='rtl'] .drama-from-end.drama-out {
-  transform: translate3d(48px, -40px, 0) scale(0.98);
-}
-
-.drama-zoom.drama-out {
-  transform: translate3d(0, -32px, 0) scale(1.04);
-}
-
-.drama-fade.drama-out {
-  transform: translate3d(0, -20px, 0);
+  opacity: 1;
+  filter: none;
+  transform: none;
 }
 
 .drama-stagger-item {

@@ -603,6 +603,118 @@
   }
 }
 
+/* Dramatic scroll stages — sections arrive / leave like a storyboard */
+.drama-panel {
+  will-change: transform, opacity, filter;
+  transition:
+    opacity 0.75s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.85s cubic-bezier(0.22, 1, 0.36, 1),
+    filter 0.75s ease;
+}
+
+.drama-wait {
+  opacity: 0;
+  filter: blur(6px);
+}
+
+.drama-rise.drama-wait {
+  transform: translate3d(0, 72px, 0) scale(0.96);
+}
+
+.drama-from-start.drama-wait {
+  transform: translate3d(-64px, 36px, 0) scale(0.97);
+}
+
+.drama-from-end.drama-wait {
+  transform: translate3d(64px, 36px, 0) scale(0.97);
+}
+
+[dir='rtl'] .drama-from-start.drama-wait {
+  transform: translate3d(64px, 36px, 0) scale(0.97);
+}
+
+[dir='rtl'] .drama-from-end.drama-wait {
+  transform: translate3d(-64px, 36px, 0) scale(0.97);
+}
+
+.drama-zoom.drama-wait {
+  transform: translate3d(0, 28px, 0) scale(0.88);
+}
+
+.drama-fade.drama-wait {
+  transform: translate3d(0, 24px, 0);
+}
+
+.drama-in {
+  opacity: 1;
+  transform: translate3d(0, 0, 0) scale(1);
+  filter: blur(0);
+}
+
+.drama-out {
+  opacity: 0.18;
+  filter: blur(3px);
+}
+
+.drama-rise.drama-out {
+  transform: translate3d(0, -56px, 0) scale(0.98);
+}
+
+.drama-from-start.drama-out {
+  transform: translate3d(48px, -40px, 0) scale(0.98);
+}
+
+.drama-from-end.drama-out {
+  transform: translate3d(-48px, -40px, 0) scale(0.98);
+}
+
+[dir='rtl'] .drama-from-start.drama-out {
+  transform: translate3d(-48px, -40px, 0) scale(0.98);
+}
+
+[dir='rtl'] .drama-from-end.drama-out {
+  transform: translate3d(48px, -40px, 0) scale(0.98);
+}
+
+.drama-zoom.drama-out {
+  transform: translate3d(0, -32px, 0) scale(1.04);
+}
+
+.drama-fade.drama-out {
+  transform: translate3d(0, -20px, 0);
+}
+
+.drama-stagger-item {
+  opacity: 0;
+  transform: translate3d(0, 28px, 0);
+  transition:
+    opacity 0.55s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.65s cubic-bezier(0.22, 1, 0.36, 1);
+  transition-delay: calc(var(--drama-i, 0) * var(--drama-step, 90ms) + 120ms);
+}
+
+.drama-in .drama-stagger-item {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+}
+
+.drama-out .drama-stagger-item,
+.drama-wait .drama-stagger-item {
+  opacity: 0;
+  transform: translate3d(0, 18px, 0);
+  transition-delay: 0ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .drama-panel,
+  .drama-stagger-item {
+    transition: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+    filter: none !important;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .motion-safe\:animate-khousa-sway,
   .motion-safe\:animate-khousa-float,

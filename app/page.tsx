@@ -34,9 +34,11 @@ export default function HomePage() {
         <IntroSection />
         <OccasionsSection />
         <HowItWorks />
-        <CustomExperience />
-        <AudienceSections />
-        <ValueTrustSections />
+        <div className="bg-[#f3eee6]">
+          <CustomExperience />
+          <AudienceSections />
+          <ValueTrustSections />
+        </div>
         <FaqSection limit={4} />
         <CtaBanner />
       </main>

@@ -15,29 +15,29 @@ export function CustomExperience() {
   const { t } = useLanguage()
 
   return (
-    <section id="custom" className="scroll-mt-20 border-t border-border bg-secondary/20 py-16 sm:py-20">
+    <section id="custom" className="scroll-mt-20 border-t border-brand-palm/8 py-10 sm:py-12">
       <div className="site-container">
         <div className="max-w-2xl text-start">
-          <p className="brand-kicker mb-3">Custom</p>
-          <h2 className="font-ios text-3xl font-semibold tracking-tight sm:text-4xl">{t('custom.title')}</h2>
-          <p className="mt-3 text-[1.02rem] leading-relaxed text-muted-foreground">{t('custom.body')}</p>
+          <p className="brand-kicker mb-2">Custom</p>
+          <h2 className="font-ios text-2xl font-semibold tracking-tight sm:text-3xl">{t('custom.title')}</h2>
+          <p className="mt-2 text-[1.02rem] leading-relaxed text-muted-foreground">{t('custom.body')}</p>
         </div>
 
-        <div className="mt-12 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {fields.map((field) => (
             <div key={field.titleKey} className="border-s-2 border-brand-sand/50 ps-4">
               <h3 className="font-ios text-base font-semibold tracking-tight">{t(field.titleKey)}</h3>
-              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{t(field.descKey)}</p>
+              <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{t(field.descKey)}</p>
             </div>
           ))}
         </div>
 
-        <div className="mt-12">
+        <div className="mt-8">
           <Button
             render={<Link href="/experience/find" />}
             nativeButton={false}
             size="lg"
-            className="h-12 rounded-full px-8 font-ios tracking-wide"
+            className="h-11 rounded-full px-7 font-ios tracking-wide"
           >
             {t('custom.cta')}
           </Button>

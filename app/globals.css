@@ -603,95 +603,36 @@
   }
 }
 
-/* Dramatic scroll stages — sections arrive / leave like a storyboard */
+/* Dramatic scroll focus — one section sharp at a time (up + down) */
 .drama-panel {
   will-change: transform, opacity, filter;
+  transform-origin: center center;
+}
+
+.drama-live {
   transition:
-    opacity 0.75s cubic-bezier(0.22, 1, 0.36, 1),
-    transform 0.85s cubic-bezier(0.22, 1, 0.36, 1),
-    filter 0.75s ease;
-}
-
-.drama-wait {
-  opacity: 0;
-  filter: blur(4px);
-}
-
-.drama-rise.drama-wait {
-  transform: translate3d(0, 40px, 0) scale(0.98);
-}
-
-.drama-from-start.drama-wait {
-  transform: translate3d(-40px, 24px, 0) scale(0.98);
-}
-
-.drama-from-end.drama-wait {
-  transform: translate3d(40px, 24px, 0) scale(0.98);
-}
-
-[dir='rtl'] .drama-from-start.drama-wait {
-  transform: translate3d(40px, 24px, 0) scale(0.98);
-}
-
-[dir='rtl'] .drama-from-end.drama-wait {
-  transform: translate3d(-40px, 24px, 0) scale(0.98);
-}
-
-.drama-zoom.drama-wait {
-  transform: translate3d(0, 20px, 0) scale(0.94);
-}
-
-.drama-fade.drama-wait {
-  transform: translate3d(0, 18px, 0);
-}
-
-.drama-in {
-  opacity: 1;
-  transform: translate3d(0, 0, 0) scale(1);
-  filter: blur(0);
-}
-
-.drama-out {
-  opacity: 1;
-  filter: none;
-  transform: none;
-}
-
-.drama-rise.drama-out,
-.drama-from-start.drama-out,
-.drama-from-end.drama-out,
-.drama-zoom.drama-out,
-.drama-fade.drama-out,
-[dir='rtl'] .drama-from-start.drama-out,
-[dir='rtl'] .drama-from-end.drama-out {
-  opacity: 1;
-  filter: none;
-  transform: none;
+    opacity 0.18s linear,
+    transform 0.18s linear,
+    filter 0.18s linear;
 }
 
 .drama-stagger-item {
-  opacity: 0;
-  transform: translate3d(0, 28px, 0);
+  opacity: 0.35;
+  transform: translate3d(0, 12px, 0);
   transition:
-    opacity 0.55s cubic-bezier(0.22, 1, 0.36, 1),
-    transform 0.65s cubic-bezier(0.22, 1, 0.36, 1);
-  transition-delay: calc(var(--drama-i, 0) * var(--drama-step, 90ms) + 120ms);
+    opacity 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+  transition-delay: calc(var(--drama-i, 0) * var(--drama-step, 90ms));
 }
 
-.drama-in .drama-stagger-item {
+.drama-focused .drama-stagger-item {
   opacity: 1;
   transform: translate3d(0, 0, 0);
 }
 
-.drama-out .drama-stagger-item,
-.drama-wait .drama-stagger-item {
-  opacity: 0;
-  transform: translate3d(0, 18px, 0);
-  transition-delay: 0ms;
-}
-
 @media (prefers-reduced-motion: reduce) {
   .drama-panel,
+  .drama-live,
   .drama-stagger-item {
     transition: none !important;
     opacity: 1 !important;

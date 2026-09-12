@@ -23,7 +23,8 @@ type DramaticSectionProps = {
 }
 
 /**
- * Light scroll reveal — enters when visible. No sticky / no full-viewport hijack.
+ * Focus one section at a time while scrolling down or up.
+ * Centered section is sharp; others fade / drift away so attention stays locked.
  */
 export function DramaticSection({
   children,
@@ -35,7 +36,8 @@ export function DramaticSection({
   style,
 }: DramaticSectionProps) {
   const ref = useRef<HTMLElement | null>(null)
-  const [visible, setVisible] = useState(false)
+  const [focus, setFocus] = useState(0)
+  const [side, setSide] = useState<'below' | 'center' | 'above'>('below')
 
   useEffect(() => {
     const el = ref.current
@@ -43,19 +45,51 @@ export function DramaticSection({
 
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
     if (reduce) {
-      setVisible(true)
+      setFocus(1)
+      setSide('center')
       return
     }
 
-    const io = new IntersectionObserver(
-      ([entry]) => {
-        if (entry?.isIntersecting) setVisible(true)
-      },
-      { threshold: 0.18, rootMargin: '0px 0px -8% 0px' },
-    )
-    io.observe(el)
-    return () => io.disconnect()
+    let raf = 0
+    const update = () => {
+      cancelAnimationFrame(raf)
+      raf = requestAnimationFrame(() => {
+        const rect = el.getBoundingClientRect()
+        const vh = window.innerHeight || 1
+        const center = rect.top + rect.height * 0.42
+        const target = vh * 0.42
+        const delta = center - target
+        const abs = Math.abs(delta)
+        // Full focus near viewport center; fades as it leaves
+        const nextFocus = Math.max(0, Math.min(1, 1 - abs / (vh * 0.62)))
+        const nextSide: 'below' | 'center' | 'above' =
+          abs < vh * 0.12 ? 'center' : delta > 0 ? 'below' : 'above'
+
+        setFocus(nextFocus)
+        setSide(nextSide)
+      })
+    }
+
+    update()
+    window.addEventListener('scroll', update, { passive: true })
+    window.addEventListener('resize', update)
+    return () => {
+      cancelAnimationFrame(raf)
+      window.removeEventListener('scroll', update)
+      window.removeEventListener('resize', update)
+    }
   }, [])
+
+  const driftY =
+    side === 'below' ? (1 - focus) * 48 : side === 'above' ? (1 - focus) * -48 : 0
+  const driftX =
+    variant === 'from-start'
+      ? (1 - focus) * -36
+      : variant === 'from-end'
+        ? (1 - focus) * 36
+        : 0
+  const scale =
+    variant === 'zoom' ? 0.94 + focus * 0.06 : 0.985 + focus * 0.015
 
   return (
     <Tag
@@ -63,16 +97,21 @@ export function DramaticSection({
       id={id}
       style={style}
       className={cn('scroll-mt-20', className)}
-      data-drama={visible ? 'in' : 'wait'}
+      data-drama-side={side}
       data-drama-variant={variant}
     >
       <div
         className={cn(
-          'site-container w-full drama-panel',
-          visible ? 'drama-in' : 'drama-wait',
+          'site-container w-full drama-panel drama-live',
+          focus > 0.45 && 'drama-focused',
           `drama-${variant}`,
           innerClassName,
         )}
+        style={{
+          opacity: 0.12 + focus * 0.88,
+          filter: `blur(${((1 - focus) * 5).toFixed(2)}px)`,
+          transform: `translate3d(${driftX.toFixed(1)}px, ${driftY.toFixed(1)}px, 0) scale(${scale.toFixed(3)})`,
+        }}
       >
         {children}
       </div>

@@ -8,6 +8,7 @@ import { HowItWorks } from '@/components/home/how-it-works'
 import { CustomExperience } from '@/components/home/custom-experience'
 import { AudienceSections } from '@/components/home/audience-sections'
 import { ValueTrustSections } from '@/components/home/value-trust-sections'
+import { StoryFocusProvider } from '@/components/home/dramatic-section'
 import { FaqSection } from '@/components/home/faq-section'
 import { CtaBanner } from '@/components/home/cta-banner'
 import { HomeChatbot } from '@/components/home/home-chatbot'
@@ -35,9 +36,11 @@ export default function HomePage() {
         <OccasionsSection />
         <HowItWorks />
         <div className="bg-[#f3eee6]">
-          <CustomExperience />
-          <AudienceSections />
-          <ValueTrustSections />
+          <StoryFocusProvider>
+            <CustomExperience />
+            <AudienceSections />
+            <ValueTrustSections />
+          </StoryFocusProvider>
         </div>
         <FaqSection limit={4} />
         <CtaBanner />

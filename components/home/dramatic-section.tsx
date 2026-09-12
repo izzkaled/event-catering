@@ -9,6 +9,7 @@ import {
   type ReactNode,
 } from 'react'
 import { cn } from '@/lib/utils'
+import { useLanguage } from '@/components/language-provider'
 
 type DramaVariant = 'rise' | 'from-start' | 'from-end' | 'zoom' | 'fade'
 
@@ -35,6 +36,7 @@ export function DramaticSection({
   id,
   style,
 }: DramaticSectionProps) {
+  const { dir } = useLanguage()
   const ref = useRef<HTMLElement | null>(null)
   const [focus, setFocus] = useState(0)
   const [side, setSide] = useState<'below' | 'center' | 'above'>('below')
@@ -80,16 +82,13 @@ export function DramaticSection({
     }
   }, [])
 
+  const rtl = dir === 'rtl'
   const driftY =
     side === 'below' ? (1 - focus) * 48 : side === 'above' ? (1 - focus) * -48 : 0
-  const driftX =
-    variant === 'from-start'
-      ? (1 - focus) * -36
-      : variant === 'from-end'
-        ? (1 - focus) * 36
-        : 0
-  const scale =
-    variant === 'zoom' ? 0.94 + focus * 0.06 : 0.985 + focus * 0.015
+  let driftX = 0
+  if (variant === 'from-start') driftX = (1 - focus) * (rtl ? 36 : -36)
+  if (variant === 'from-end') driftX = (1 - focus) * (rtl ? -36 : 36)
+  const scale = variant === 'zoom' ? 0.94 + focus * 0.06 : 0.985 + focus * 0.015
 
   return (
     <Tag

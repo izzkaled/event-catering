@@ -502,6 +502,107 @@
   }
 }
 
+/* How-it-works: animated map path (mobile vertical + desktop route) */
+.how-map-route-base {
+  color: color-mix(in srgb, var(--brand-sand) 35%, transparent);
+}
+
+.how-map-route-draw {
+  stroke-dasharray: 1200;
+  stroke-dashoffset: 1200;
+}
+
+.how-map-rail-fill {
+  height: 0%;
+  transition: none;
+}
+
+.how-map-stop {
+  opacity: 0;
+  transform: translate3d(0, 14px, 0);
+}
+
+.how-map-traveler {
+  opacity: 0;
+  inset-inline-start: 6%;
+}
+
+.how-map-active .how-map-route-draw {
+  animation: how-map-draw 1.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.how-map-active .how-map-rail-fill {
+  animation: how-map-rail 1.45s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.how-map-active .how-map-stop {
+  animation: how-map-stop-in 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.how-map-active .how-map-node {
+  animation: how-map-node-pulse 2.8s ease-in-out 1.2s infinite;
+}
+
+.how-map-active .how-map-traveler {
+  opacity: 1;
+  animation: how-map-travel 3.2s cubic-bezier(0.45, 0.05, 0.55, 0.95) 0.35s infinite;
+}
+
+@keyframes how-map-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes how-map-rail {
+  from {
+    height: 0%;
+  }
+  to {
+    height: 100%;
+  }
+}
+
+@keyframes how-map-stop-in {
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes how-map-node-pulse {
+  0%,
+  100% {
+    box-shadow: 0 10px 24px -12px rgba(74, 35, 74, 0.45);
+  }
+  50% {
+    box-shadow:
+      0 10px 24px -12px rgba(74, 35, 74, 0.45),
+      0 0 0 6px rgba(201, 168, 108, 0.16);
+  }
+}
+
+@keyframes how-map-travel {
+  0% {
+    inset-inline-start: 6%;
+    transform: translateY(0);
+  }
+  25% {
+    transform: translateY(-6px);
+  }
+  50% {
+    inset-inline-start: calc(50% - 0.375rem);
+    transform: translateY(4px);
+  }
+  75% {
+    transform: translateY(-4px);
+  }
+  100% {
+    inset-inline-start: calc(94% - 0.75rem);
+    transform: translateY(0);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .motion-safe\:animate-khousa-sway,
   .motion-safe\:animate-khousa-float,
@@ -516,5 +617,17 @@
   [class*='animate-\[hero-ken'],
   [class*='animate-\[event-wash'] {
     animation: none !important;
+  }
+
+  .how-map-route-draw,
+  .how-map-rail-fill,
+  .how-map-stop,
+  .how-map-traveler,
+  .how-map-active .how-map-node {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+    stroke-dashoffset: 0 !important;
+    height: 100% !important;
   }
 }

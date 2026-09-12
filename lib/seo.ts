@@ -2,7 +2,7 @@
 
 /** Production canonical host (override with NEXT_PUBLIC_SITE_URL). */
 export const SITE_URL = (
-  process.env.NEXT_PUBLIC_SITE_URL || 'https://event-catering-om.netlify.app'
+  process.env.NEXT_PUBLIC_SITE_URL || 'https://event-om.netlify.app'
 ).replace(/\/$/, '')
 
 export const SITE_NAME_AR = 'إيفنت كاترينج'

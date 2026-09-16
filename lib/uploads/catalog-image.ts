@@ -58,9 +58,12 @@ async function uploadCloudinary(opts: {
 async function uploadBlobs(opts: { buffer: Buffer; mimeType: string; key: string }): Promise<string> {
   const { getStore } = await import('@netlify/blobs')
   const store = getStore({ name: 'catalog-images', consistency: 'strong' })
-  // Netlify Blobs expects BlobInput (ArrayBuffer / Uint8Array / string), not Node Buffer.
-  const bytes = Uint8Array.from(opts.buffer)
-  await store.set(opts.key, bytes, {
+  // @netlify/blobs BlobInput typings accept ArrayBuffer (not Node Buffer / Uint8Array).
+  const data = opts.buffer.buffer.slice(
+    opts.buffer.byteOffset,
+    opts.buffer.byteOffset + opts.buffer.byteLength,
+  ) as ArrayBuffer
+  await store.set(opts.key, data, {
     metadata: {
       contentType: opts.mimeType,
       uploadedAt: new Date().toISOString(),

@@ -6,6 +6,8 @@ import {
   Archive,
   Copy,
   Eye,
+  Loader2,
+  Package,
   Pencil,
   Plus,
   Search,
@@ -14,46 +16,48 @@ import {
   Trash2,
   ChevronUp,
   ChevronDown,
+  Users,
 } from 'lucide-react'
 import { toast } from 'sonner'
-import type { Package } from '@/lib/db/schema'
+import type { Package as DbPackage } from '@/lib/db/schema'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Badge } from '@/components/ui/badge'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
+import { cn } from '@/lib/utils'
+import { useLanguage } from '@/components/language-provider'
 
-type AdminPackage = Package & {
+type AdminPackage = DbPackage & {
   section_slug: string | null
   section_name_ar: string | null
   section_name_en: string | null
 }
 
-const STATUS_LABEL: Record<string, string> = {
-  published: 'منشورة',
-  draft: 'مسودة',
-  archived: 'مؤرشفة',
-  hidden: 'مخفية',
+const STATUS_META: Record<
+  string,
+  { ar: string; en: string; className: string }
+> = {
+  published: { ar: 'منشورة', en: 'Published', className: 'bg-emerald-100 text-emerald-900' },
+  draft: { ar: 'مسودة', en: 'Draft', className: 'bg-amber-100 text-amber-900' },
+  archived: { ar: 'مؤرشفة', en: 'Archived', className: 'bg-slate-200 text-slate-800' },
+  hidden: { ar: 'مخفية', en: 'Hidden', className: 'bg-rose-100 text-rose-900' },
 }
 
+const selectClass =
+  'h-11 w-full rounded-xl border border-input bg-background px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50'
+
 export function PackagesManager() {
+  const { tx, lang } = useLanguage()
   const [packages, setPackages] = useState<AdminPackage[]>([])
   const [loading, setLoading] = useState(true)
   const [q, setQ] = useState('')
   const [status, setStatus] = useState('all')
   const [category, setCategory] = useState('all')
   const [maxFeatured, setMaxFeatured] = useState(3)
+  const [busyId, setBusyId] = useState<string | null>(null)
 
   const load = useCallback(async () => {
     const res = await fetch('/api/admin/packages')
     if (!res.ok) {
-      toast.error('فشل تحميل الباقات')
+      toast.error(tx('فشل تحميل الباقات', 'Failed to load packages'))
       setLoading(false)
       return
     }
@@ -61,7 +65,7 @@ export function PackagesManager() {
     setPackages(data.packages || data)
     setMaxFeatured(data.max_featured_packages || 3)
     setLoading(false)
-  }, [])
+  }, [tx])
 
   useEffect(() => {
     load()
@@ -73,6 +77,13 @@ export function PackagesManager() {
       for (const o of p.occasion_types || []) set.add(o)
     }
     return [...set].sort()
+  }, [packages])
+
+  const counts = useMemo(() => {
+    const published = packages.filter((p) => p.status === 'published').length
+    const draft = packages.filter((p) => p.status === 'draft').length
+    const featured = packages.filter((p) => p.is_popular).length
+    return { total: packages.length, published, draft, featured }
   }, [packages])
 
   const filtered = useMemo(() => {
@@ -89,37 +100,70 @@ export function PackagesManager() {
   }, [packages, q, status, category])
 
   const patch = async (id: string, data: Record<string, unknown>) => {
-    const res = await fetch(`/api/admin/packages/${id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-    })
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}))
-      toast.error(err.error || 'فشل التحديث')
-      return
+    setBusyId(id)
+    try {
+      const res = await fetch(`/api/admin/packages/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      })
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}))
+        const msg = String(err.error || '')
+        if (msg.toLowerCase().includes('maximum featured') || msg.includes('max_featured')) {
+          toast.error(
+            tx(
+              `الحد الأقصى للباقات المميزة ${maxFeatured}. ألغِ تمييز باقة أخرى أولاً.`,
+              `Max featured packages is ${maxFeatured}. Unfeature another package first.`,
+            ),
+          )
+        } else {
+          toast.error(err.error || tx('فشل التحديث', 'Update failed'))
+        }
+        return
+      }
+      toast.success(tx('تم التحديث', 'Updated'))
+      await load()
+    } finally {
+      setBusyId(null)
     }
-    toast.success('تم التحديث')
-    load()
   }
 
   const duplicate = async (id: string) => {
-    const res = await fetch(`/api/admin/packages/${id}/duplicate`, { method: 'POST' })
-    if (!res.ok) {
-      toast.error('فشل النسخ')
-      return
+    setBusyId(id)
+    try {
+      const res = await fetch(`/api/admin/packages/${id}/duplicate`, { method: 'POST' })
+      if (!res.ok) {
+        toast.error(tx('فشل النسخ', 'Duplicate failed'))
+        return
+      }
+      const copy = await res.json()
+      toast.success(tx('تم نسخ الباقة', 'Package duplicated'))
+      window.location.href = `/admin/packages/${copy.id}`
+    } finally {
+      setBusyId(null)
     }
-    const copy = await res.json()
-    toast.success('تم نسخ الباقة')
-    window.location.href = `/admin/packages/${copy.id}`
   }
 
   const remove = async (id: string) => {
-    if (!confirm('حذف الباقة نهائيًا؟ يفضّل الأرشفة بدل الحذف.')) return
-    const res = await fetch(`/api/admin/packages/${id}`, { method: 'DELETE' })
-    if (res.ok) {
-      toast.success('تم الحذف')
-      load()
+    if (
+      !confirm(
+        tx(
+          'حذف الباقة نهائيًا؟ يفضّل الأرشفة بدل الحذف.',
+          'Permanently delete this package? Archiving is safer.',
+        ),
+      )
+    )
+      return
+    setBusyId(id)
+    try {
+      const res = await fetch(`/api/admin/packages/${id}`, { method: 'DELETE' })
+      if (res.ok) {
+        toast.success(tx('تم الحذف', 'Deleted'))
+        await load()
+      }
+    } finally {
+      setBusyId(null)
     }
   }
 
@@ -127,186 +171,371 @@ export function PackagesManager() {
     const idx = packages.findIndex((p) => p.id === pkg.id)
     const swap = packages[dir === 'up' ? idx - 1 : idx + 1]
     if (!swap) return
-    await Promise.all([
-      patch(pkg.id, { sort_order: swap.sort_order }),
-      patch(swap.id, { sort_order: pkg.sort_order }),
-    ])
+    setBusyId(pkg.id)
+    try {
+      await Promise.all([
+        fetch(`/api/admin/packages/${pkg.id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ sort_order: swap.sort_order }),
+        }),
+        fetch(`/api/admin/packages/${swap.id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ sort_order: pkg.sort_order }),
+        }),
+      ])
+      await load()
+    } finally {
+      setBusyId(null)
+    }
   }
 
-  if (loading) return <p className="text-muted-foreground">جاري التحميل...</p>
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center gap-2 py-20 text-muted-foreground">
+        <Loader2 className="size-5 animate-spin" />
+        {tx('جاري التحميل...', 'Loading...')}
+      </div>
+    )
+  }
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">إدارة الباقات</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            أي عدد من الباقات — كل تغيير يظهر مباشرة للعميل. الحد الأقصى للمميزة: {maxFeatured}
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <Button render={<Link href="/admin/services" />} nativeButton={false} variant="outline">
-            مكتبة الخدمات
-          </Button>
-          <Button render={<Link href="/admin/package-categories" />} nativeButton={false} variant="outline">
-            التصنيفات
-          </Button>
-          <Button render={<Link href="/admin/packages/new" />} nativeButton={false} className="gap-1.5">
-            <Plus className="size-4" />
-            Create New Package
-          </Button>
+    <div className="@container space-y-4 pb-6 sm:space-y-6">
+      <div className="rounded-2xl bg-brand-palm/6 p-4 ring-1 ring-brand-palm/10 sm:p-5">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div className="min-w-0">
+            <div className="flex items-center gap-2">
+              <span className="flex size-9 items-center justify-center rounded-xl bg-brand-palm text-brand-cream">
+                <Package className="size-4" />
+              </span>
+              <span className="rounded-full bg-brand-sand/40 px-2.5 py-0.5 text-xs font-semibold text-brand-palm">
+                {counts.total} {tx('باقة', 'packages')}
+              </span>
+            </div>
+            <h1 className="mt-3 text-xl font-extrabold tracking-tight sm:text-2xl">
+              {tx('إدارة الباقات', 'Packages')}
+            </h1>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {tx(
+                `التعديلات تظهر مباشرة للعميل. المميزة: ${counts.featured}/${maxFeatured}`,
+                `Changes go live immediately. Featured: ${counts.featured}/${maxFeatured}`,
+              )}
+            </p>
+          </div>
+          <div className="grid grid-cols-1 gap-2 sm:flex sm:flex-wrap sm:justify-end">
+            <Button
+              render={<Link href="/admin/services" />}
+              nativeButton={false}
+              variant="outline"
+              className="min-h-11 w-full sm:w-auto"
+            >
+              {tx('مكتبة الخدمات', 'Services')}
+            </Button>
+            <Button
+              render={<Link href="/admin/package-categories" />}
+              nativeButton={false}
+              variant="outline"
+              className="min-h-11 w-full sm:w-auto"
+            >
+              {tx('التصنيفات', 'Categories')}
+            </Button>
+            <Button
+              render={<Link href="/admin/packages/new" />}
+              nativeButton={false}
+              className="min-h-11 w-full gap-1.5 sm:w-auto"
+            >
+              <Plus className="size-4" />
+              {tx('باقة جديدة', 'New package')}
+            </Button>
+          </div>
         </div>
       </div>
 
-      <div className="flex flex-col gap-3 rounded-xl border border-border bg-card p-4 sm:flex-row sm:items-center">
-        <div className="relative min-w-0 flex-1">
-          <Search className="pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            placeholder="Search packages..."
-            className="ps-9"
-          />
+      <div className="grid grid-cols-2 gap-2 @3xl:grid-cols-4">
+        {[
+          {
+            label: tx('الكل', 'Total'),
+            value: counts.total,
+            wrap: 'bg-card ring-foreground/8',
+            onClick: () => setStatus('all'),
+            active: status === 'all',
+          },
+          {
+            label: tx('منشورة', 'Published'),
+            value: counts.published,
+            wrap: 'bg-emerald-50 ring-emerald-200/70',
+            onClick: () => setStatus('published'),
+            active: status === 'published',
+          },
+          {
+            label: tx('مسودة', 'Draft'),
+            value: counts.draft,
+            wrap: 'bg-amber-50 ring-amber-200/70',
+            onClick: () => setStatus('draft'),
+            active: status === 'draft',
+          },
+          {
+            label: tx('مميزة', 'Featured'),
+            value: `${counts.featured}/${maxFeatured}`,
+            wrap: 'bg-brand-sand/25 ring-brand-sand/40',
+            onClick: () => {
+              setStatus('all')
+              setQ('')
+            },
+            active: false,
+          },
+        ].map((card) => (
+          <button
+            key={card.label}
+            type="button"
+            onClick={card.onClick}
+            className={cn(
+              'rounded-2xl p-3 text-start ring-1 transition sm:p-4',
+              card.wrap,
+              card.active && 'ring-2 ring-brand-palm',
+            )}
+          >
+            <p className="text-[11px] font-medium text-muted-foreground sm:text-xs">{card.label}</p>
+            <p className="ltr-data mt-1 text-xl font-extrabold sm:text-2xl">{card.value}</p>
+          </button>
+        ))}
+      </div>
+
+      <div className="rounded-2xl bg-card p-3 ring-1 ring-foreground/8 sm:p-4">
+        <div className="flex flex-col gap-2 @2xl:flex-row @2xl:items-center">
+          <div className="relative min-w-0 flex-1">
+            <Search className="pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              placeholder={tx('بحث بالاسم أو الـ slug...', 'Search name or slug...')}
+              className="h-11 ps-9"
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-2 @2xl:flex @2xl:w-auto">
+            <select className={selectClass} value={status} onChange={(e) => setStatus(e.target.value)}>
+              <option value="all">{tx('كل الحالات', 'All statuses')}</option>
+              <option value="published">{tx('منشورة', 'Published')}</option>
+              <option value="draft">{tx('مسودة', 'Draft')}</option>
+              <option value="archived">{tx('مؤرشفة', 'Archived')}</option>
+              <option value="hidden">{tx('مخفية', 'Hidden')}</option>
+            </select>
+            <select className={selectClass} value={category} onChange={(e) => setCategory(e.target.value)}>
+              <option value="all">{tx('كل التصنيفات', 'All categories')}</option>
+              {categories.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
-        <select
-          className="h-10 rounded-lg border border-input bg-background px-3 text-sm"
-          value={status}
-          onChange={(e) => setStatus(e.target.value)}
-        >
-          <option value="all">كل الحالات</option>
-          <option value="published">Published</option>
-          <option value="draft">Draft</option>
-          <option value="archived">Archived</option>
-          <option value="hidden">Hidden</option>
-        </select>
-        <select
-          className="h-10 rounded-lg border border-input bg-background px-3 text-sm"
-          value={category}
-          onChange={(e) => setCategory(e.target.value)}
-        >
-          <option value="all">كل التصنيفات</option>
-          {categories.map((c) => (
-            <option key={c} value={c}>
-              {c}
-            </option>
-          ))}
-        </select>
       </div>
 
       {!filtered.length ? (
-        <div className="rounded-2xl border border-dashed border-border px-6 py-16 text-center">
-          <p className="font-semibold">لا توجد باقات مطابقة</p>
-          <p className="mt-2 text-sm text-muted-foreground">أنشئ باقة جديدة أو عدّل الفلاتر.</p>
-          <Button render={<Link href="/admin/packages/new" />} nativeButton={false} className="mt-6">
-            Create New Package
+        <div className="rounded-2xl border border-dashed border-border px-4 py-14 text-center sm:px-6">
+          <Package className="mx-auto size-8 text-brand-sand" />
+          <p className="mt-3 font-semibold">{tx('لا توجد باقات مطابقة', 'No matching packages')}</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {tx('أنشئ باقة جديدة أو عدّل الفلاتر.', 'Create a package or change filters.')}
+          </p>
+          <Button render={<Link href="/admin/packages/new" />} nativeButton={false} className="mt-5 min-h-11">
+            <Plus className="size-4" />
+            {tx('باقة جديدة', 'New package')}
           </Button>
         </div>
       ) : (
-        <div className="overflow-x-auto rounded-xl border border-border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>الترتيب</TableHead>
-                <TableHead>Package</TableHead>
-                <TableHead>Category</TableHead>
-                <TableHead>Guests</TableHead>
-                <TableHead>Starting Price</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Featured</TableHead>
-                <TableHead>Analytics</TableHead>
-                <TableHead>Updated</TableHead>
-                <TableHead></TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filtered.map((pkg) => (
-                <TableRow key={pkg.id}>
-                  <TableCell>
-                    <div className="flex items-center gap-1">
-                      <button type="button" onClick={() => move(pkg, 'up')} aria-label="up">
-                        <ChevronUp className="size-4" />
-                      </button>
-                      <button type="button" onClick={() => move(pkg, 'down')} aria-label="down">
-                        <ChevronDown className="size-4" />
-                      </button>
-                      <span className="text-xs text-muted-foreground">{pkg.sort_order}</span>
+        <div className="grid gap-3 @3xl:grid-cols-2">
+          {filtered.map((pkg) => {
+            const st = STATUS_META[pkg.status] || STATUS_META.draft
+            const busy = busyId === pkg.id
+            const fullIdx = packages.findIndex((p) => p.id === pkg.id)
+            return (
+              <article
+                key={pkg.id}
+                className={cn(
+                  'flex flex-col gap-3 rounded-2xl bg-card p-4 ring-1 ring-foreground/8 transition',
+                  busy && 'opacity-70',
+                )}
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      <span className={cn('rounded-full px-2 py-0.5 text-[10px] font-semibold', st.className)}>
+                        {lang === 'ar' ? st.ar : st.en}
+                      </span>
+                      {pkg.is_popular ? (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-brand-sand/40 px-2 py-0.5 text-[10px] font-semibold text-brand-palm">
+                          <Star className="size-3 fill-current" />
+                          {tx('مميزة', 'Featured')}
+                        </span>
+                      ) : null}
+                      {pkg.is_recommended ? (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-brand-palm/10 px-2 py-0.5 text-[10px] font-semibold text-brand-palm">
+                          <Sparkles className="size-3" />
+                          {tx('موصى بها', 'Recommended')}
+                        </span>
+                      ) : null}
                     </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="min-w-[10rem]">
-                      <p className="font-semibold">{pkg.name_en}</p>
-                      <p className="text-xs text-muted-foreground">{pkg.name_ar}</p>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex max-w-[10rem] flex-wrap gap-1">
-                      {(pkg.occasion_types || []).slice(0, 3).map((o) => (
-                        <Badge key={o} variant="secondary" className="text-[10px]">
-                          {o}
-                        </Badge>
-                      ))}
-                    </div>
-                  </TableCell>
-                  <TableCell className="whitespace-nowrap text-sm">
-                    {pkg.min_guests ?? '—'}–{pkg.max_guests ?? '—'}
-                  </TableCell>
-                  <TableCell className="tabular-nums">{Number(pkg.price_omr).toFixed(0)} OMR</TableCell>
-                  <TableCell>
-                    <Badge variant={pkg.status === 'published' ? 'default' : 'outline'}>
-                      {STATUS_LABEL[pkg.status] || pkg.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex gap-1">
-                      <button type="button" title="Most Popular" onClick={() => patch(pkg.id, { is_popular: !pkg.is_popular })}>
-                        <Star className={`size-4 ${pkg.is_popular ? 'fill-brand-sand text-brand-sand' : 'text-muted-foreground'}`} />
-                      </button>
-                      <button type="button" title="Recommended" onClick={() => patch(pkg.id, { is_recommended: !pkg.is_recommended })}>
-                        <Sparkles className={`size-4 ${pkg.is_recommended ? 'text-brand-palm' : 'text-muted-foreground'}`} />
-                      </button>
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-xs text-muted-foreground">
-                    <div>V {pkg.views_count}</div>
-                    <div>C {pkg.customizations_count}</div>
-                    <div>R {pkg.requests_count}</div>
-                  </TableCell>
-                  <TableCell className="text-xs text-muted-foreground">
-                    {pkg.updated_at ? new Date(pkg.updated_at).toLocaleDateString('ar') : '—'}
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-1">
-                      <Link href={`/admin/packages/${pkg.id}`} className="rounded p-1.5 hover:bg-secondary" title="Edit">
-                        <Pencil className="size-4" />
-                      </Link>
-                      <Link
-                        href={`/packages/${pkg.slug}?preview=1`}
-                        target="_blank"
-                        className="rounded p-1.5 hover:bg-secondary"
-                        title="Preview"
+                    <h2 className="font-ar mt-2 truncate text-base font-bold">{pkg.name_ar}</h2>
+                    <p className="font-en truncate text-xs text-muted-foreground">{pkg.name_en}</p>
+                  </div>
+                  <div className="flex shrink-0 flex-col items-center gap-0.5 rounded-xl bg-muted/50 p-1">
+                    <button
+                      type="button"
+                      disabled={busy || fullIdx <= 0}
+                      onClick={() => move(pkg, 'up')}
+                      className="rounded-lg p-1.5 hover:bg-background disabled:opacity-30"
+                      aria-label={tx('أعلى', 'Up')}
+                    >
+                      <ChevronUp className="size-4" />
+                    </button>
+                    <span className="ltr-data text-[10px] font-semibold text-muted-foreground">
+                      {pkg.sort_order}
+                    </span>
+                    <button
+                      type="button"
+                      disabled={busy || fullIdx < 0 || fullIdx >= packages.length - 1}
+                      onClick={() => move(pkg, 'down')}
+                      className="rounded-lg p-1.5 hover:bg-background disabled:opacity-30"
+                      aria-label={tx('أسفل', 'Down')}
+                    >
+                      <ChevronDown className="size-4" />
+                    </button>
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap gap-1.5">
+                  {(pkg.occasion_types || []).length === 0 ? (
+                    <span className="text-xs text-muted-foreground">{tx('بدون تصنيف', 'No category')}</span>
+                  ) : (
+                    (pkg.occasion_types || []).slice(0, 4).map((o) => (
+                      <span
+                        key={o}
+                        className="ltr-data rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground"
                       >
-                        <Eye className="size-4" />
-                      </Link>
-                      <button type="button" className="rounded p-1.5 hover:bg-secondary" title="Duplicate" onClick={() => duplicate(pkg.id)}>
-                        <Copy className="size-4" />
-                      </button>
-                      <button
-                        type="button"
-                        className="rounded p-1.5 hover:bg-secondary"
-                        title="Archive"
-                        onClick={() => patch(pkg.id, { status: 'archived', is_active: false })}
-                      >
-                        <Archive className="size-4" />
-                      </button>
-                      <button type="button" className="rounded p-1.5 text-destructive hover:bg-secondary" title="Delete" onClick={() => remove(pkg.id)}>
-                        <Trash2 className="size-4" />
-                      </button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+                        {o}
+                      </span>
+                    ))
+                  )}
+                </div>
+
+                <div className="grid grid-cols-3 gap-2 text-center">
+                  <div className="rounded-xl bg-brand-palm/6 px-2 py-2">
+                    <p className="text-[10px] text-muted-foreground">{tx('السعر', 'Price')}</p>
+                    <p className="ltr-data text-sm font-bold">{Number(pkg.price_omr).toFixed(0)}</p>
+                  </div>
+                  <div className="rounded-xl bg-sky-50 px-2 py-2">
+                    <p className="text-[10px] text-muted-foreground">{tx('الضيوف', 'Guests')}</p>
+                    <p className="ltr-data inline-flex items-center justify-center gap-1 text-sm font-bold">
+                      <Users className="size-3.5 text-sky-700" />
+                      {pkg.min_guests ?? '—'}–{pkg.max_guests ?? '—'}
+                    </p>
+                  </div>
+                  <div className="rounded-xl bg-muted/60 px-2 py-2">
+                    <p className="text-[10px] text-muted-foreground">{tx('مشاهدات', 'Views')}</p>
+                    <p className="ltr-data text-sm font-bold">{pkg.views_count ?? 0}</p>
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    disabled={busy}
+                    onClick={() => patch(pkg.id, { is_popular: !pkg.is_popular })}
+                    className={cn(
+                      'inline-flex min-h-10 flex-1 items-center justify-center gap-1.5 rounded-xl px-3 text-xs font-semibold ring-1 transition',
+                      pkg.is_popular
+                        ? 'bg-brand-sand/35 text-brand-palm ring-brand-sand/50'
+                        : 'bg-background text-muted-foreground ring-foreground/8',
+                    )}
+                  >
+                    <Star className={cn('size-3.5', pkg.is_popular && 'fill-current')} />
+                    {tx('مميزة', 'Featured')}
+                  </button>
+                  <button
+                    type="button"
+                    disabled={busy}
+                    onClick={() => patch(pkg.id, { is_recommended: !pkg.is_recommended })}
+                    className={cn(
+                      'inline-flex min-h-10 flex-1 items-center justify-center gap-1.5 rounded-xl px-3 text-xs font-semibold ring-1 transition',
+                      pkg.is_recommended
+                        ? 'bg-brand-palm/10 text-brand-palm ring-brand-palm/25'
+                        : 'bg-background text-muted-foreground ring-foreground/8',
+                    )}
+                  >
+                    <Sparkles className="size-3.5" />
+                    {tx('موصى بها', 'Recommended')}
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 @4xl:grid-cols-5">
+                  <Button
+                    render={<Link href={`/admin/packages/${pkg.id}`} />}
+                    nativeButton={false}
+                    size="sm"
+                    className="min-h-10 col-span-2 gap-1.5 sm:col-span-1"
+                  >
+                    <Pencil className="size-3.5" />
+                    {tx('تعديل', 'Edit')}
+                  </Button>
+                  <Button
+                    render={<Link href={`/packages/${pkg.slug}?preview=1`} target="_blank" />}
+                    nativeButton={false}
+                    size="sm"
+                    variant="outline"
+                    className="min-h-10 gap-1"
+                  >
+                    <Eye className="size-3.5" />
+                    {tx('معاينة', 'Preview')}
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    disabled={busy}
+                    className="min-h-10 gap-1"
+                    onClick={() => duplicate(pkg.id)}
+                  >
+                    <Copy className="size-3.5" />
+                    {tx('نسخ', 'Copy')}
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    disabled={busy}
+                    className="min-h-10 gap-1"
+                    onClick={() => patch(pkg.id, { status: 'archived', is_active: false })}
+                  >
+                    <Archive className="size-3.5" />
+                    {tx('أرشفة', 'Archive')}
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="ghost"
+                    disabled={busy}
+                    className="min-h-10 gap-1 text-rose-700 hover:bg-rose-50 hover:text-rose-800"
+                    onClick={() => remove(pkg.id)}
+                  >
+                    <Trash2 className="size-3.5" />
+                    {tx('حذف', 'Delete')}
+                  </Button>
+                </div>
+
+                <p className="ltr-data text-[10px] text-muted-foreground">
+                  {tx('آخر تحديث', 'Updated')}:{' '}
+                  {pkg.updated_at
+                    ? new Date(pkg.updated_at).toLocaleDateString(lang === 'ar' ? 'ar' : 'en')
+                    : '—'}
+                  {' · '}
+                  C {pkg.customizations_count ?? 0} · R {pkg.requests_count ?? 0}
+                </p>
+              </article>
+            )
+          })}
         </div>
       )}
     </div>

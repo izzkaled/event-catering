@@ -5,12 +5,10 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useState } from 'react'
 import {
-  BarChart3,
-  Bot,
   CalendarDays,
   ClipboardList,
   CreditCard,
-  FileText,
+  FolderTree,
   Home,
   LayoutDashboard,
   LogOut,
@@ -22,6 +20,7 @@ import {
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { BrandLogo } from '@/components/brand-logo'
+import { LanguageSwitcher } from '@/components/language-switcher'
 import { useLanguage } from '@/components/language-provider'
 import { authClient } from '@/lib/auth-client'
 
@@ -31,11 +30,9 @@ const nav = [
   { href: '/admin/payments', key: 'admin.nav.payments' as const, icon: CreditCard },
   { href: '/admin/customers', key: 'admin.nav.customers' as const, icon: Users },
   { href: '/admin/packages', key: 'admin.nav.packages' as const, icon: Package },
+  { href: '/admin/package-categories', key: 'admin.nav.categories' as const, icon: FolderTree },
   { href: '/admin/services', key: 'admin.nav.services' as const, icon: ConciergeBell },
-  { href: '/admin/content-studio', key: 'admin.nav.contentStudio' as const, icon: FileText },
-  { href: '/admin/ai-assistant', key: 'admin.nav.aiAssistant' as const, icon: Bot },
   { href: '/admin/schedule', key: 'admin.nav.schedule' as const, icon: CalendarDays },
-  { href: '/admin/analytics', key: 'admin.nav.analytics' as const, icon: BarChart3 },
 ]
 
 function isActive(pathname: string, href: string) {
@@ -46,7 +43,7 @@ function isActive(pathname: string, href: string) {
 export function AdminAppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname()
   const [open, setOpen] = useState(false)
-  const { lang, setLang, t, dir } = useLanguage()
+  const { t, tx, dir } = useLanguage()
   const current = nav.find((n) => isActive(pathname, n.href))
 
   const logout = async () => {
@@ -82,10 +79,10 @@ export function AdminAppShell({ children }: { children: ReactNode }) {
   )
 
   return (
-    <div className="page-shell flex min-h-screen bg-background" dir={dir}>
+    <div className="page-shell admin-dashboard flex min-h-screen bg-background" dir={dir}>
       <aside className="hidden w-full max-w-72 shrink-0 flex-col border-e border-sidebar-border bg-sidebar p-4 lg:flex">
         <Link href="/" className="mb-6 flex items-center gap-2 px-2">
-          <BrandLogo size="md" showText subtitle="Admin" />
+          <BrandLogo size="md" showText subtitle={tx('إدارة', 'Admin')} />
         </Link>
         {Nav}
         <div className="mt-auto flex flex-col gap-2 pt-4">
@@ -104,14 +101,14 @@ export function AdminAppShell({ children }: { children: ReactNode }) {
         <div className="fixed inset-0 z-50 lg:hidden">
           <button
             type="button"
-            aria-label="Close"
+            aria-label={tx('إغلاق', 'Close')}
             className="absolute inset-0 bg-foreground/40"
             onClick={() => setOpen(false)}
           />
-          <aside className="absolute inset-y-0 end-0 flex w-full max-w-[min(18rem,85vw)] flex-col border-s border-sidebar-border bg-sidebar p-4">
+          <aside className="absolute inset-y-0 start-0 flex w-full max-w-[min(18rem,85vw)] flex-col border-e border-sidebar-border bg-sidebar p-4 shadow-xl">
             <div className="mb-6 flex items-center justify-between px-2">
-              <BrandLogo size="md" showText subtitle="Admin" />
-              <button type="button" onClick={() => setOpen(false)} aria-label="Close">
+              <BrandLogo size="md" showText subtitle={tx('إدارة', 'Admin')} />
+              <button type="button" onClick={() => setOpen(false)} aria-label={tx('إغلاق', 'Close')}>
                 <X className="size-5" />
               </button>
             </div>
@@ -125,7 +122,7 @@ export function AdminAppShell({ children }: { children: ReactNode }) {
           <div className="flex items-center gap-3">
             <button
               type="button"
-              aria-label="Menu"
+              aria-label={tx('القائمة', 'Menu')}
               onClick={() => setOpen(true)}
               className="flex size-11 items-center justify-center rounded-lg lg:hidden"
             >
@@ -134,13 +131,7 @@ export function AdminAppShell({ children }: { children: ReactNode }) {
             <h1 className="text-lg font-bold">{current ? t(current.key) : t('admin.title')}</h1>
           </div>
           <div className="flex items-center gap-2">
-            <button
-              type="button"
-              className="rounded-lg border border-border px-2.5 py-1 text-sm text-muted-foreground hover:bg-muted"
-              onClick={() => setLang(lang === 'ar' ? 'en' : 'ar')}
-            >
-              {lang === 'ar' ? 'EN' : 'AR'}
-            </button>
+            <LanguageSwitcher />
             <Button variant="outline" size="sm" onClick={logout} className="lg:hidden">
               <LogOut className="size-4" />
               {t('admin.logout')}

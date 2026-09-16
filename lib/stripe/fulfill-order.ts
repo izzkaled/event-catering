@@ -1,6 +1,7 @@
 import { eq } from 'drizzle-orm'
 import { db } from '@/lib/db'
 import { admin_notifications, orders } from '@/lib/db/schema'
+import { calcCommissionBreakdown } from '@/lib/constants'
 import { triggerOrderConfirmation } from '@/lib/security/trigger-confirmation'
 
 /** Mark order paid after successful Stripe Checkout. Idempotent. */
@@ -17,12 +18,19 @@ export async function fulfillStripeOrder(
     return { ok: true, orderNumber: order.order_number }
   }
 
+  const price = Number.parseFloat(order.price_omr) || 0
+  const breakdown = calcCommissionBreakdown(price, 'stripe')
+
   await db
     .update(orders)
     .set({
       payment_status: 'paid',
       payment_method: 'stripe',
+      payment_channel: 'stripe',
+      commission_omr: breakdown.total.toFixed(2),
+      net_revenue_omr: breakdown.net.toFixed(2),
       stripe_checkout_session_id: stripeSessionId,
+      paid_at: new Date(),
       status: 'confirmed',
       updated_at: new Date(),
     })

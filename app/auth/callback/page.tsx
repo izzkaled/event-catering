@@ -26,10 +26,23 @@ export default function AuthCallbackPage() {
         if (cancelled) return
 
         if (authed) {
-          // Ensure profile row is created/synced in Neon DB
-          await fetch('/api/profile', { credentials: 'include' }).catch(() => null)
+          const profileRes = await fetch('/api/profile', { credentials: 'include' }).catch(() => null)
           const destination = getReturnTo('/profile')
           clearReturnTo()
+
+          if (destination.startsWith('/admin')) {
+            const profileData = (await profileRes?.json().catch(() => null)) as {
+              user?: { role?: string }
+            } | null
+            if (profileRes?.ok && profileData?.user?.role === 'admin') {
+              window.location.href = '/admin'
+              return
+            }
+            await authClient.signOut().catch(() => null)
+            window.location.href = '/admin/login'
+            return
+          }
+
           window.location.href = destination
           return
         }

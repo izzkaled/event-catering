@@ -1,3 +1,4 @@
+import { resolvePublicSiteUrl } from '@/lib/seo'
 import { internalApiHeaders } from '@/lib/security/internal-api'
 import type { OrderConfirmationEvent } from '@/lib/email/send-order-confirmation'
 
@@ -8,8 +9,8 @@ type ConfirmationEvent = OrderConfirmationEvent
  * Never derive from request Host — that can exfiltrate INTERNAL_API_SECRET.
  */
 export function getAppOrigin(): string {
-  const configured = process.env.NEXT_PUBLIC_SITE_URL?.trim() || process.env.INTERNAL_APP_URL?.trim()
-  if (configured) return configured.replace(/\/$/, '')
+  const configured = process.env.INTERNAL_APP_URL?.trim() || process.env.NEXT_PUBLIC_SITE_URL?.trim()
+  if (configured) return resolvePublicSiteUrl(configured)
   if (process.env.NODE_ENV === 'development') return 'http://localhost:3000'
   throw new Error('NEXT_PUBLIC_SITE_URL (or INTERNAL_APP_URL) is required in production')
 }

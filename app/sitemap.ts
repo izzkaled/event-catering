@@ -1,6 +1,5 @@
 import type { MetadataRoute } from 'next'
 import { FALLBACK_PACKAGES } from '@/lib/packages/fallback'
-import { getPublishedPackagesWithSections } from '@/lib/packages/queries'
 import { SITE_URL } from '@/lib/seo'
 
 function slugify(input: string) {
@@ -24,6 +23,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   let packageEntries: MetadataRoute.Sitemap = []
   try {
+    const { getPublishedPackagesWithSections } = await import('@/lib/packages/queries')
     const packages = await getPublishedPackagesWithSections()
     packageEntries = packages.map((pkg) => {
       const slug = pkg.slug || slugify(pkg.name_en)

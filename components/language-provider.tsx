@@ -7,6 +7,7 @@ type LanguageContextValue = {
   lang: Lang
   setLang: (lang: Lang) => void
   t: (key: TranslationKey) => string
+  tx: (ar: string, en: string) => string
   dir: 'rtl' | 'ltr'
 }
 
@@ -21,16 +22,22 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   }, [])
 
   useEffect(() => {
-    document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr'
-    document.documentElement.lang = lang
+    const root = document.documentElement
+    root.dir = lang === 'ar' ? 'rtl' : 'ltr'
+    root.lang = lang
+    root.classList.toggle('lang-ar', lang === 'ar')
+    root.classList.toggle('lang-en', lang === 'en')
     localStorage.setItem('lang', lang)
   }, [lang])
 
   const setLang = (l: Lang) => setLangState(l)
   const t = (key: TranslationKey) => translations[lang][key]
+  const tx = (ar: string, en: string) => (lang === 'ar' ? ar : en)
 
   return (
-    <LanguageContext.Provider value={{ lang, setLang, t, dir: lang === 'ar' ? 'rtl' : 'ltr' }}>
+    <LanguageContext.Provider
+      value={{ lang, setLang, t, tx, dir: lang === 'ar' ? 'rtl' : 'ltr' }}
+    >
       {children}
     </LanguageContext.Provider>
   )

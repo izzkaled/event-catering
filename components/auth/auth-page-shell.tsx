@@ -18,8 +18,9 @@ export function AuthPageShell({ children }: AuthPageShellProps) {
       <div className="pointer-events-none absolute -end-24 bottom-8 size-80 rounded-full bg-brand-palm/10 blur-3xl" />
 
       <div className="relative mx-auto w-full min-w-0 max-w-5xl">
-        <div className="mb-8 flex flex-col items-center gap-3 text-center">
-          <BrandLogo size="xl" />
+        <div className="mb-4 flex flex-col items-center gap-2 text-center sm:mb-8 sm:gap-3">
+          <BrandLogo size="lg" className="sm:hidden" />
+          <BrandLogo size="xl" className="hidden sm:flex" />
           <p className="brand-kicker">
             {lang === 'ar' ? 'عُمان · مسقط' : 'OMAN · MUSCAT'}
           </p>

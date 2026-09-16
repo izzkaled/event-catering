@@ -33,7 +33,9 @@ export function GoogleSignInButton({ callbackURL, adminOnly = false }: GoogleSig
     try {
       // Save where the user should land AFTER OAuth — never the login page itself.
       const current = `${window.location.pathname}${window.location.search}`
-      if (!callbackURL && !isAuthPath(current)) {
+      if (adminOnly) {
+        saveReturnTo('/admin')
+      } else if (!callbackURL && !isAuthPath(current)) {
         saveReturnTo(current)
       } else if (!callbackURL && !sessionStorage.getItem('returnTo')) {
         saveReturnTo('/profile')

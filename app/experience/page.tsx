@@ -3,7 +3,8 @@ import { notFound } from 'next/navigation'
 import { SiteHeader } from '@/components/site-header'
 import { SiteFooter } from '@/components/site-footer'
 import { ExperienceBuilder } from '@/components/experience/experience-builder'
-import { getExperiencePackageBySlug, incrementPackageStat } from '@/lib/packages/queries'
+import { resolveServicesCatalog } from '@/lib/experience/service-catalog'
+import { getActiveServices, getExperiencePackageBySlug, incrementPackageStat } from '@/lib/packages/queries'
 
 export const dynamic = 'force-dynamic'
 
@@ -20,7 +21,11 @@ async function BuilderInner({ searchParams }: Props) {
   if (!pkg.id.startsWith('fallback-')) {
     void incrementPackageStat(pkg.id, 'customizations_count')
   }
-  return <ExperienceBuilder pkg={pkg} initialDraftId={sp.experience || null} />
+  const dbServices = await getActiveServices()
+  const services = resolveServicesCatalog(dbServices)
+  return (
+    <ExperienceBuilder pkg={pkg} services={services} initialDraftId={sp.experience || null} />
+  )
 }
 
 export default function ExperiencePage(props: Props) {

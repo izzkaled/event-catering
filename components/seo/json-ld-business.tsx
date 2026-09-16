@@ -21,7 +21,7 @@ export function JsonLdBusiness() {
         logo: `${SITE_URL}/images/brand/logo-mark.webp`,
         email: 'izzkaled@gmail.com',
         telephone: '+96877222432',
-        sameAs: [`https://wa.me/96877222432`],
+        sameAs: ['https://www.event-om.com', 'https://wa.me/96877222432'],
         areaServed: {
           '@type': 'City',
           name: 'Muscat',

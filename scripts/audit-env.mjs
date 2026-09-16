@@ -144,8 +144,8 @@ if (
 }
 if (local.NEXT_PUBLIC_SITE_URL) {
   const host = local.NEXT_PUBLIC_SITE_URL.replace(/^https?:\/\//, '').split('/')[0]
-  if (/localhost|clean-plus/i.test(host)) {
-    console.log(`NOTE: NEXT_PUBLIC_SITE_URL host: ${host}`)
+  if (/localhost|clean-plus|netlify\.app|^event-om\.com$/i.test(host)) {
+    console.log(`NOTE: NEXT_PUBLIC_SITE_URL host: ${host} (canonical is www.event-om.com)`)
   }
 }
 
@@ -157,6 +157,9 @@ if (sid) {
 }
 
 console.log('\n--- Production checklist (Netlify) ---')
+if (!/^https:\/\/www\.event-om\.com\/?$/.test((local.NEXT_PUBLIC_SITE_URL || '').trim())) {
+  console.log('  [ ] NEXT_PUBLIC_SITE_URL=https://www.event-om.com')
+}
 const prodCritical = [
   'UPSTASH_REDIS_REST_URL',
   'UPSTASH_REDIS_REST_TOKEN',

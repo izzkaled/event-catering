@@ -1,5 +1,6 @@
 import { Resend } from 'resend'
 import { emailLogoHtml } from '@/lib/email/brand-header'
+import { SITE_URL } from '@/lib/seo'
 
 const APP_NAME = 'Event Catering'
 
@@ -31,7 +32,7 @@ export async function sendOtpEmail(to: string, code: string, appName = APP_NAME)
   }
 
   const resend = new Resend(apiKey)
-  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000').replace(/\/$/, '')
+  const siteUrl = SITE_URL
 
   const { error } = await resend.emails.send({
     from: getResendFromAddress(),

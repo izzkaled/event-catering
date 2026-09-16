@@ -21,6 +21,32 @@
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
 
+# Canonical domain is https://www.event-om.com
+# Set NEXT_PUBLIC_SITE_URL=https://www.event-om.com in Netlify env (build-time).
+[[redirects]]
+  from = "https://event-om.netlify.app/*"
+  to = "https://www.event-om.com/:splat"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "https://event-om.netlify.app/"
+  to = "https://www.event-om.com/"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "https://event-om.com/*"
+  to = "https://www.event-om.com/:splat"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "https://event-om.com/"
+  to = "https://www.event-om.com/"
+  status = 301
+  force = true
+
 # Context: set secrets in Netlify UI → Site configuration → Environment variables
 # Required for auth + admin (see .env.example):
 #   DATABASE_URL, NEON_AUTH_BASE_URL, NEON_AUTH_COOKIE_SECRET, AUTH_SECRET,

@@ -162,14 +162,26 @@ export function AuthEmailForm({ mode = 'login', adminOnly = false }: AuthEmailFo
           return
         }
 
+        // Google-only accounts return INVALID_EMAIL_OR_PASSWORD (they have no password).
+        if (
+          code === 'INVALID_EMAIL_OR_PASSWORD' ||
+          messageLower.includes('invalid email or password') ||
+          messageLower.includes('invalid credentials')
+        ) {
+          toast.error(
+            t(
+              'البريد أو كلمة المرور غير صحيحة. إذا سجّلت عبر Google، استخدم الزر أعلاه.',
+              'Wrong email or password. If you signed up with Google, use the button above.',
+            ),
+          )
+          return
+        }
+
         if (
           messageLower.includes('not found') ||
           messageLower.includes('no user') ||
           messageLower.includes('user not found') ||
-          messageLower.includes('does not exist') ||
-          messageLower.includes('invalid') ||
-          messageLower.includes('credential') ||
-          messageLower.includes('password')
+          messageLower.includes('does not exist')
         ) {
           saveAuthEmail(normalizedEmail)
           saveAuthMode('signup')
@@ -242,22 +254,18 @@ export function AuthEmailForm({ mode = 'login', adminOnly = false }: AuthEmailFo
         </CardTitle>
         <CardDescription className="text-base">
           {adminOnly
-            ? t('سجّل الدخول بالبريد وكلمة المرور', 'Sign in with email and password')
+            ? t('سجّل الدخول بـ Google أو البريد وكلمة المرور', 'Sign in with Google or email')
             : mode === 'signup'
               ? t('انضم إلينا واطلب ضيافة مناسبتك بسهولة', 'Join us and request hospitality for your occasion')
               : t('مرحباً بعودتك! سجّل دخولك للمتابعة', 'Welcome back! Sign in to continue')}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        {!adminOnly && (
-          <>
-            <GoogleSignInButton />
-            <div className="relative py-1 text-center text-xs text-muted-foreground">
-              <span className="relative z-10 bg-card px-3">{t('أو بالبريد الإلكتروني', 'or with email')}</span>
-              <span className="absolute inset-x-0 top-1/2 border-t border-border" />
-            </div>
-          </>
-        )}
+        <GoogleSignInButton adminOnly={adminOnly} />
+        <div className="relative py-1 text-center text-xs text-muted-foreground">
+          <span className="relative z-10 bg-card px-3">{t('أو بالبريد الإلكتروني', 'or with email')}</span>
+          <span className="absolute inset-x-0 top-1/2 border-t border-border" />
+        </div>
 
         {mode === 'signup' && (
           <div className="space-y-1.5">
@@ -422,7 +430,7 @@ export function AuthEmailForm({ mode = 'login', adminOnly = false }: AuthEmailFo
   }
 
   return (
-    <div dir={dir} className="site-container-compact py-10">
+    <div dir={dir} className="site-container-compact py-2 sm:py-10">
       {formCard}
     </div>
   )

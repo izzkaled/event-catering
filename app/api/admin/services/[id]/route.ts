@@ -26,6 +26,9 @@ export async function PATCH(request: Request, context: RouteContext) {
   ] as const) {
     if (body[key] !== undefined) updates[key] = body[key]
   }
+  if (body.pricing_model !== undefined) {
+    updates.pricing_model = body.pricing_model === 'per_guest' ? 'per_guest' : 'fixed'
+  }
   if (body.price_omr !== undefined) updates.price_omr = Number(body.price_omr).toFixed(2)
   if (body.slug !== undefined) {
     updates.slug = String(body.slug)

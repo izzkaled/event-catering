@@ -2,17 +2,29 @@
 
 import { useEffect, useState } from 'react'
 import Image from 'next/image'
+import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import { BrandLogo } from '@/components/brand-logo'
 
 const DURATION_MS = 2600
 
+function isAuthRoute(pathname: string | null) {
+  if (!pathname) return false
+  return pathname.startsWith('/auth') || pathname.startsWith('/admin')
+}
+
 /** Premium brand splash for Event Catering. */
 export function SplashScreen() {
-  const [visible, setVisible] = useState(true)
+  const pathname = usePathname()
+  const [visible, setVisible] = useState(() => !isAuthRoute(pathname))
   const [leaving, setLeaving] = useState(false)
 
   useEffect(() => {
+    if (isAuthRoute(pathname)) {
+      setVisible(false)
+      return
+    }
+
     const reduce =
       typeof window !== 'undefined' &&
       window.matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -27,9 +39,9 @@ export function SplashScreen() {
       window.clearTimeout(fadeTimer)
       window.clearTimeout(hideTimer)
     }
-  }, [])
+  }, [pathname])
 
-  if (!visible) return null
+  if (!visible || isAuthRoute(pathname)) return null
 
   return (
     <div

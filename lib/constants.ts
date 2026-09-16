@@ -93,14 +93,82 @@ export function addOneMonth(isoDate: string): string {
   return d.toISOString().slice(0, 10)
 }
 
-export const COMMISSION_RATE = 0.15
+/** Platform shares (always applied). */
+export const COMMISSION_CEO_RATE = 0.09
+export const COMMISSION_DEV_RATE = 0.03
+/** CEO + developer — used before payment channel is known. */
+export const COMMISSION_BASE_RATE = COMMISSION_CEO_RATE + COMMISSION_DEV_RATE
 
-export function calcCommission(price: number) {
-  return Math.round(price * COMMISSION_RATE * 100) / 100
+/** Gateway fees by payment channel. */
+export const COMMISSION_APPLE_PAY_FEE = 0.015
+export const COMMISSION_CARD_FEE = 0.025 // Visa / Mastercard
+export const COMMISSION_BANK_FEE = 0
+
+/** @deprecated Prefer channel-aware helpers; kept as base (CEO+dev). */
+export const COMMISSION_RATE = COMMISSION_BASE_RATE
+
+export type CommissionChannel =
+  | 'visa'
+  | 'mastercard'
+  | 'apple_pay'
+  | 'card'
+  | 'bank_transfer'
+  | 'stripe'
+  | 'paymob'
+  | 'unknown'
+  | string
+  | null
+  | undefined
+
+export function gatewayFeeRate(channel?: CommissionChannel): number {
+  switch (channel) {
+    case 'apple_pay':
+      return COMMISSION_APPLE_PAY_FEE
+    case 'visa':
+    case 'mastercard':
+    case 'card':
+      return COMMISSION_CARD_FEE
+    case 'bank_transfer':
+      return COMMISSION_BANK_FEE
+    case 'paymob':
+    case 'stripe':
+      // Unknown card brand — assume Visa/MC fee until webhook refines it
+      return COMMISSION_CARD_FEE
+    default:
+      return 0
+  }
 }
 
-export function calcNetRevenue(price: number) {
-  return Math.round(price * (1 - COMMISSION_RATE) * 100) / 100
+export function commissionRateForChannel(channel?: CommissionChannel): number {
+  return COMMISSION_BASE_RATE + gatewayFeeRate(channel)
+}
+
+export function calcCommissionBreakdown(price: number, channel?: CommissionChannel) {
+  const gatewayRate = gatewayFeeRate(channel)
+  const ceo = Math.round(price * COMMISSION_CEO_RATE * 100) / 100
+  const developer = Math.round(price * COMMISSION_DEV_RATE * 100) / 100
+  const gateway = Math.round(price * gatewayRate * 100) / 100
+  const total = Math.round((ceo + developer + gateway) * 100) / 100
+  const net = Math.round((price - total) * 100) / 100
+  return {
+    ceo,
+    developer,
+    gateway,
+    total,
+    net,
+    ceoRate: COMMISSION_CEO_RATE,
+    developerRate: COMMISSION_DEV_RATE,
+    gatewayRate,
+    totalRate: COMMISSION_BASE_RATE + gatewayRate,
+  }
+}
+
+export function calcCommission(price: number, channel?: CommissionChannel) {
+  return calcCommissionBreakdown(price, channel).total
+}
+
+export function calcNetRevenue(price: number, channel?: CommissionChannel) {
+  return calcCommissionBreakdown(price, channel).net
 }
 
 export const OMAN_PHONE_REGEX = /^(968)?(9|7|2)\d{7}$/

@@ -4,6 +4,7 @@ import { db } from '@/lib/db'
 import { orders } from '@/lib/db/schema'
 import { fulfillPaymobOrder } from '@/lib/paymob/fulfill'
 import { verifyPaymobTransactionHmac } from '@/lib/paymob/client'
+import { parsePaymobSourceData } from '@/lib/paymob/payment-channel'
 
 export const dynamic = 'force-dynamic'
 
@@ -13,6 +14,9 @@ type PaymobWebhookBody = {
     id?: number | string
     success?: boolean
     pending?: boolean
+    integration_id?: number | string
+    data?: { message?: string }
+    source_data?: { pan?: unknown; sub_type?: unknown; type?: unknown }
     order?: {
       id?: number | string
       merchant_order_id?: string
@@ -42,11 +46,18 @@ export async function POST(request: Request) {
       ? String(obj.order.merchant_order_id)
       : null
     const transactionId = obj.id != null ? String(obj.id) : null
+    const parsed = parsePaymobSourceData({
+      source_data: obj.source_data,
+      integration_id: obj.integration_id,
+      data_message: obj.data?.message,
+    })
 
     if (success && orderNumber && transactionId) {
       const result = await fulfillPaymobOrder({
         orderNumber,
         transactionId,
+        paymentChannel: parsed.channel,
+        cardLast4: parsed.cardLast4,
       })
       if (!result.ok) {
         console.error('Paymob fulfill failed:', result.reason, orderNumber)
@@ -62,6 +73,8 @@ export async function POST(request: Request) {
           .update(orders)
           .set({
             payment_status: 'failed',
+            payment_channel: parsed.channel !== 'card' ? parsed.channel : order.payment_channel,
+            payment_card_last4: parsed.cardLast4 ?? order.payment_card_last4,
             paymob_transaction_id: transactionId || order.paymob_transaction_id,
             updated_at: new Date(),
           })

@@ -77,6 +77,7 @@ export async function POST(request: Request) {
       .update(orders)
       .set({
         payment_method: 'bank_transfer',
+        payment_channel: 'bank_transfer',
         payment_status: 'pending_verification',
         transfer_receipt_url: url,
         verification_notes: notes,

@@ -96,7 +96,7 @@ export function CustomersPanel() {
           {t('admin.customers.totalOrders')}: <strong>{totals.orders}</strong>
         </span>
         <span>
-          {t('admin.customers.totalSpent')}: <strong>{totals.spent.toFixed(2)} OMR</strong>
+          {t('admin.customers.totalSpent')}: <strong className="ltr-data">{totals.spent.toFixed(2)} OMR</strong>
         </span>
       </div>
 
@@ -134,7 +134,7 @@ export function CustomersPanel() {
                   <div className="flex flex-col gap-1 text-sm">
                     {customer.phone ? (
                       <div className="flex items-center gap-1">
-                        <span>{formatPhoneDisplay(customer.phone.replace(/\D/g, ''))}</span>
+                        <span className="ltr-data">{formatPhoneDisplay(customer.phone.replace(/\D/g, ''))}</span>
                         <button
                           type="button"
                           onClick={() => {
@@ -156,7 +156,7 @@ export function CustomersPanel() {
                       <span className="text-muted-foreground">—</span>
                     )}
                     {customer.email && (
-                      <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                      <div className="ltr-data flex items-center gap-1 text-xs text-muted-foreground">
                         <Mail className="size-3" />
                         {customer.email}
                       </div>
@@ -173,15 +173,15 @@ export function CustomersPanel() {
                     <Badge variant="outline">{t('admin.customers.unknownAuth')}</Badge>
                   )}
                   {customer.auth_user_id && (
-                    <p className="truncate-cell-sm mt-1 truncate font-mono text-[10px] text-muted-foreground">
+                    <p className="ltr-data truncate-cell-sm mt-1 truncate font-mono text-[10px] text-muted-foreground">
                       {customer.auth_user_id}
                     </p>
                   )}
                 </TableCell>
                 <TableCell>{customer.order_count}</TableCell>
                 <TableCell>{customer.active_subscriptions}</TableCell>
-                <TableCell>{customer.total_spent} OMR</TableCell>
-                <TableCell className="whitespace-nowrap text-xs text-muted-foreground">
+                <TableCell className="ltr-data">{customer.total_spent} OMR</TableCell>
+                <TableCell className="ltr-data whitespace-nowrap text-xs text-muted-foreground">
                   {customer.created_at
                     ? new Date(customer.created_at).toLocaleDateString(lang === 'ar' ? 'ar-OM' : 'en-GB')
                     : '—'}

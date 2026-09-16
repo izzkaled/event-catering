@@ -97,6 +97,11 @@ export const hospitalityServices = pgTable('hospitality_services', {
   description_ar: text('description_ar'),
   description_en: text('description_en'),
   category: text('category').notNull(),
+  /**
+   * fixed = flat fee for the service
+   * per_guest = price_omr × guest count (e.g. buffet)
+   */
+  pricing_model: text('pricing_model').default('fixed').notNull(),
   price_omr: decimal('price_omr', { precision: 10, scale: 2 }).notNull(),
   image_url: text('image_url'),
   is_active: boolean('is_active').default(true).notNull(),
@@ -188,6 +193,13 @@ export const orders = pgTable('orders', {
 
   /** paymob | bank_transfer | stripe (legacy) */
   payment_method: text('payment_method').default('bank_transfer').notNull(),
+  /**
+   * Fine-grained channel for tracking:
+   * visa | mastercard | apple_pay | card | bank_transfer | stripe | paymob | unknown
+   */
+  payment_channel: text('payment_channel'),
+  /** Last 4 digits when paid by card (never full PAN). */
+  payment_card_last4: text('payment_card_last4'),
   /** unpaid | pending_verification | paid | failed | refunded | partially_refunded */
   payment_status: text('payment_status').default('unpaid').notNull(),
   stripe_checkout_session_id: text('stripe_checkout_session_id'),
@@ -217,6 +229,7 @@ export const site_visits = pgTable('site_visits', {
   created_at: timestamp('created_at').defaultNow(),
 }, (table) => [
   index('site_visits_created_at_idx').on(table.created_at),
+  index('site_visits_visitor_id_idx').on(table.visitor_id),
 ])
 
 export const admin_notifications = pgTable('admin_notifications', {

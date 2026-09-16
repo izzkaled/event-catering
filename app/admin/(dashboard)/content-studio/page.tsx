@@ -1,8 +1,5 @@
-import { ContentStudioPanel } from '@/components/admin/content-studio-panel'
-
-export const dynamic = 'force-dynamic'
+import { redirect } from 'next/navigation'
 
 export default function AdminContentStudioPage() {
-  return <ContentStudioPanel />
+  redirect('/admin')
 }
-

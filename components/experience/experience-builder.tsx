@@ -19,10 +19,16 @@ import { saveReturnTo } from '@/lib/auth/session-storage'
 import { MUSCAT_AREAS, MUSCAT_AREAS_EN, PREFERRED_TIMES, PREFERRED_TIMES_EN } from '@/lib/constants'
 import { CATALOG_SERVICES, getServiceById } from '@/lib/experience/catalog'
 import { OCCASION_OPTIONS } from '@/lib/experience/filters'
-import { calculateExperiencePrice, formatOmr } from '@/lib/experience/pricing'
+import {
+  calculateExperiencePrice,
+  formatOmr,
+  formatServicePriceLabel,
+  serviceLineTotal,
+} from '@/lib/experience/pricing'
 import { createEmptyDraft, getActiveDraftId, getDraft, saveDraft } from '@/lib/experience/save'
 import { weekdayArFromIsoDate } from '@/lib/packages/semantics'
 import type {
+  CatalogService,
   ExperienceDraft,
   ExperiencePackage,
   OccasionType,
@@ -79,13 +85,17 @@ const VENUES: { id: VenueType; ar: string; en: string }[] = [
 
 type Props = {
   pkg: ExperiencePackage
+  /** Live services from admin library (preferred). Falls back to static catalog. */
+  services?: CatalogService[]
   initialDraftId?: string | null
 }
 
-export function ExperienceBuilder({ pkg, initialDraftId }: Props) {
+export function ExperienceBuilder({ pkg, services, initialDraftId }: Props) {
   const { lang, t } = useLanguage()
   const router = useRouter()
   const searchParams = useSearchParams()
+  const catalog = services?.length ? services : CATALOG_SERVICES
+  const resolveService = (id: string) => catalog.find((s) => s.id === id) || getServiceById(id)
   const [step, setStep] = useState(0)
   const [draft, setDraft] = useState<ExperienceDraft>(() =>
     createEmptyDraft({
@@ -159,8 +169,9 @@ export function ExperienceBuilder({ pkg, initialDraftId }: Props) {
         guests: draft.guests,
         selectedServiceIds: draft.selectedServiceIds,
         venueType: draft.venueType,
+        servicesCatalog: catalog,
       }),
-    [pkg, draft],
+    [pkg, draft, catalog],
   )
 
   const update = (patch: Partial<ExperienceDraft>) => {
@@ -497,7 +508,8 @@ export function ExperienceBuilder({ pkg, initialDraftId }: Props) {
             >
               <div className="space-y-8">
                 {SERVICE_GROUPS.map((group) => {
-                  const items = CATALOG_SERVICES.filter((s) => s.category === group.id)
+                  const items = catalog.filter((s) => s.category === group.id)
+                  if (!items.length) return null
                   return (
                     <div key={group.id}>
                       <h3 className="mb-3 font-ios text-base font-semibold">
@@ -507,6 +519,7 @@ export function ExperienceBuilder({ pkg, initialDraftId }: Props) {
                         {items.map((service) => {
                           const included = pkg.included_service_ids.includes(service.id)
                           const active = draft.selectedServiceIds.includes(service.id)
+                          const line = serviceLineTotal(service, draft.guests)
                           return (
                             <button
                               key={service.id}
@@ -533,11 +546,23 @@ export function ExperienceBuilder({ pkg, initialDraftId }: Props) {
                                     {lang === 'ar' ? 'مشمولة في الباقة' : 'Included in package'}
                                   </p>
                                 )}
+                                {!included && service.pricing_model === 'per_guest' && (
+                                  <p className="mt-2 text-xs font-medium text-amber-800">
+                                    {lang === 'ar'
+                                      ? `يتغير مع عدد الضيوف (${draft.guests} ضيف)`
+                                      : `Scales with guests (${draft.guests})`}
+                                  </p>
+                                )}
                               </div>
                               <div className="shrink-0 text-end">
                                 {!included && (
                                   <p className="text-sm font-semibold text-primary">
-                                    + {formatOmr(service.price_omr, lang)}
+                                    + {formatServicePriceLabel(service, draft.guests, lang)}
+                                  </p>
+                                )}
+                                {!included && service.pricing_model === 'per_guest' && (
+                                  <p className="ltr-data mt-1 text-[11px] text-muted-foreground">
+                                    = {formatOmr(line, lang)}
                                   </p>
                                 )}
                                 <p className="mt-2 text-xs font-medium">
@@ -579,7 +604,7 @@ export function ExperienceBuilder({ pkg, initialDraftId }: Props) {
                     draft.selectedServiceIds
                       .filter((id) => !pkg.included_service_ids.includes(id))
                       .map((id) => {
-                        const s = getServiceById(id)
+                        const s = resolveService(id)
                         return s ? (lang === 'ar' ? s.name_ar : s.name_en) : id
                       })
                       .join(' · ') || (lang === 'ar' ? 'لا يوجد' : 'None')

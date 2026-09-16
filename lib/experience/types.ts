@@ -36,7 +36,10 @@ export type CatalogService = {
   description_ar: string
   description_en: string
   category: ServiceCategory
+  /** Unit price: flat fee OR per-guest rate depending on pricing_model */
   price_omr: number
+  /** fixed = one fee; per_guest = price_omr × guests */
+  pricing_model?: 'fixed' | 'per_guest'
   image?: string | null
 }
 

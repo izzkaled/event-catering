@@ -8,7 +8,11 @@ export const adminPaymentSelect = {
   customer_name: orders.customer_name,
   customer_phone: orders.customer_phone,
   price_omr: orders.price_omr,
+  commission_omr: orders.commission_omr,
+  net_revenue_omr: orders.net_revenue_omr,
   payment_method: orders.payment_method,
+  payment_channel: orders.payment_channel,
+  payment_card_last4: orders.payment_card_last4,
   payment_status: orders.payment_status,
   paymob_transaction_id: orders.paymob_transaction_id,
   payment_reference: orders.payment_reference,
@@ -25,7 +29,11 @@ export type AdminPaymentRow = {
   customer_name: string
   customer_phone: string
   price_omr: string
+  commission_omr: string
+  net_revenue_omr: string
   payment_method: string
+  payment_channel: string | null
+  payment_card_last4: string | null
   payment_status: string
   paymob_transaction_id: string | null
   payment_reference: string | null

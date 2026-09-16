@@ -74,12 +74,12 @@ export function BrandLogo({
       </span>
       {(showText || subtitle) && (
         <span className="min-w-0 flex flex-col leading-none">
-          <span className={cn('font-ios truncate font-semibold tracking-tight', word, s.text)}>
+          <span className={cn('font-en truncate font-semibold tracking-tight', word, s.text)}>
             EVENT
           </span>
           <span
             className={cn(
-              'mt-1 font-ios font-medium uppercase tracking-[0.28em]',
+              'mt-1 font-en font-medium uppercase tracking-[0.28em]',
               sub,
               s.sub,
             )}

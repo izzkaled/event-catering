@@ -18,7 +18,12 @@ export const dynamic = 'force-dynamic'
 export const metadata: Metadata = {
   title: { absolute: SEO_TITLE_DEFAULT },
   description: SEO_DESCRIPTION,
-  alternates: { canonical: SITE_URL },
+  alternates: { canonical: '/' },
+  openGraph: {
+    title: SEO_TITLE_DEFAULT,
+    description: SEO_DESCRIPTION,
+    url: SITE_URL,
+  },
 }
 
 export default function HomePage() {

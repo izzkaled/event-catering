@@ -1,4 +1,5 @@
 import { createHmac, timingSafeEqual } from 'crypto'
+import { resolvePublicSiteUrl } from '@/lib/seo'
 
 /** Oman default — override with PAYMOB_BASE_URL for Egypt/KSA/UAE. */
 export function getPaymobBaseUrl(): string {
@@ -72,11 +73,11 @@ export function omrToPaymobAmount(omr: number | string): number {
 }
 
 export function getAppUrl(): string {
-  return (
+  return resolvePublicSiteUrl(
     process.env.NEXT_PUBLIC_SITE_URL ||
-    process.env.APP_URL ||
-    'http://localhost:3000'
-  ).replace(/\/$/, '')
+      process.env.APP_URL ||
+      (process.env.NODE_ENV === 'development' ? 'http://localhost:3000' : undefined),
+  )
 }
 
 export type PaymobBillingCustomer = {

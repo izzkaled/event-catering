@@ -41,6 +41,7 @@ export async function POST(request: Request) {
         description_ar: body.description_ar || null,
         description_en: body.description_en || null,
         category,
+        pricing_model: body.pricing_model === 'per_guest' ? 'per_guest' : 'fixed',
         price_omr: Number(body.price_omr || 0).toFixed(2),
         image_url: body.image_url || null,
         is_active: body.is_active !== false,

@@ -1,8 +1,5 @@
-import { AIAssistantPanel } from '@/components/admin/ai-assistant-panel'
-
-export const dynamic = 'force-dynamic'
+import { redirect } from 'next/navigation'
 
 export default function AdminAIAssistantPage() {
-  return <AIAssistantPanel />
+  redirect('/admin')
 }
-

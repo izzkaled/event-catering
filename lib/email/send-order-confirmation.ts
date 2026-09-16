@@ -7,6 +7,7 @@ import { buildInvoicePdfBuffer } from '@/lib/invoices/invoice-pdf'
 import { emailLogoHtml } from '@/lib/email/brand-header'
 import { getResendFromAddress } from '@/lib/email/send-otp-email'
 import { escapeHtml } from '@/lib/security/escape-html'
+import { SITE_URL } from '@/lib/seo'
 
 export type OrderConfirmationEvent =
   | 'created'
@@ -179,7 +180,7 @@ export async function sendOrderConfirmation(input: {
   const { orderId, event } = input
   const resendKey = process.env.RESEND_API_KEY?.trim()
   const adminEmail = process.env.ADMIN_EMAIL?.trim()
-  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000').replace(/\/$/, '')
+  const siteUrl = SITE_URL
   const whatsapp = process.env.NEXT_PUBLIC_WHATSAPP || '96877222432'
   const from = getResendFromAddress()
 

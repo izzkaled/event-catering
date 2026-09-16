@@ -1,9 +1,31 @@
 /** Shared SEO copy for Event Catering (Arabic + English). */
 
-/** Production canonical host (override with NEXT_PUBLIC_SITE_URL). */
-export const SITE_URL = (
-  process.env.NEXT_PUBLIC_SITE_URL || 'https://event-om.netlify.app'
-).replace(/\/$/, '')
+/** Canonical production origin — always www, never the Netlify default host. */
+export const PRODUCTION_SITE_URL = 'https://www.event-om.com'
+
+const LEGACY_PUBLIC_HOSTS = new Set(['event-om.netlify.app', 'event-om.com'])
+
+/** Resolve a public origin and fold aliases onto the canonical www host. */
+export function resolvePublicSiteUrl(raw?: string | null): string {
+  const fallback = (raw?.trim() || process.env.NEXT_PUBLIC_SITE_URL?.trim() || PRODUCTION_SITE_URL).replace(
+    /\/$/,
+    '',
+  )
+  try {
+    const host = new URL(fallback).hostname.toLowerCase()
+    if (LEGACY_PUBLIC_HOSTS.has(host)) return PRODUCTION_SITE_URL
+  } catch {
+    return PRODUCTION_SITE_URL
+  }
+  return fallback
+}
+
+export const SITE_URL = resolvePublicSiteUrl()
+
+export function absoluteUrl(path = '/'): string {
+  if (!path || path === '/') return `${SITE_URL}/`
+  return `${SITE_URL}${path.startsWith('/') ? path : `/${path}`}`
+}
 
 export const SITE_NAME_AR = 'إيفنت كاترينج'
 export const SITE_NAME_EN = 'Event Catering'
@@ -32,6 +54,8 @@ export const SEO_KEYWORDS = [
   'Event Catering',
   'Event Catering Oman',
   'event-om',
+  'event-om.com',
+  'www.event-om.com',
   'ضيافة عمان',
   'باقات ضيافة مسقط',
   'ضيافة جهات حكومية',

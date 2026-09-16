@@ -32,6 +32,7 @@ export function LanguageSwitcher({ size = 'sm', className }: LanguageSwitcherPro
             className={cn(
               'rounded-[0.65rem] font-bold transition-all',
               isLg ? 'min-h-11 min-w-11 px-4' : 'min-h-8 min-w-[2.25rem] px-2 sm:min-h-7',
+              code === 'ar' ? 'font-ar' : 'font-en',
               active
                 ? 'bg-background text-primary shadow-sm ring-1 ring-primary/20'
                 : 'text-muted-foreground hover:bg-background/60 hover:text-foreground',

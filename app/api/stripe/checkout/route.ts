@@ -6,6 +6,7 @@ import { getSessionUser } from '@/lib/auth/get-session-user'
 import { checkRateLimit, getClientIp } from '@/lib/auth/rate-limit'
 import { getOmrExchangeRate, getStripeCurrency, isStripeEnabled } from '@/lib/stripe/config'
 import { formatStripeDisplayAmount, getStripe, omrToStripeAmount } from '@/lib/stripe/server'
+import { resolvePublicSiteUrl } from '@/lib/seo'
 
 export const dynamic = 'force-dynamic'
 
@@ -43,7 +44,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Order already paid' }, { status: 400 })
   }
 
-  const origin = (process.env.NEXT_PUBLIC_SITE_URL || new URL(request.url).origin).replace(/\/$/, '')
+  const origin = resolvePublicSiteUrl(process.env.NEXT_PUBLIC_SITE_URL || new URL(request.url).origin)
   const currency = getStripeCurrency()
   const exchangeRate = getOmrExchangeRate()
   const amount = omrToStripeAmount(order.price_omr, exchangeRate)

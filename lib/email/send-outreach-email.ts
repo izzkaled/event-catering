@@ -2,6 +2,7 @@ import { Resend } from 'resend'
 import { emailLogoHtml } from '@/lib/email/brand-header'
 import { escapeHtml } from '@/lib/security/escape-html'
 import { getResendFromAddress, isResendSandboxFrom, resendSandboxOwnerHint } from '@/lib/email/send-otp-email'
+import { SITE_URL } from '@/lib/seo'
 
 const APP_NAME = 'Speedy Cleaning'
 
@@ -56,7 +57,7 @@ export async function sendOutreachEmail(input: OutreachEmailInput) {
   }
 
   const resend = new Resend(apiKey)
-  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000').replace(/\/$/, '')
+  const siteUrl = SITE_URL
   const whatsapp = process.env.NEXT_PUBLIC_WHATSAPP || '96877222432'
   const companyLine = input.companyName?.trim()
     ? `<p style="color:#64748b;font-size:13px">إلى: ${escapeHtml(input.companyName.trim())}</p>`

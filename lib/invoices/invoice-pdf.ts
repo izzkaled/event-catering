@@ -3,6 +3,7 @@ import type { Order } from '@/lib/db/schema'
 import fs from 'node:fs'
 import path from 'node:path'
 import { getLogoBase64 } from '@/lib/invoices/logo'
+import { resolvePublicSiteUrl } from '@/lib/seo'
 
 type InvoiceKind = 'requested' | 'confirmed'
 type InvoiceAudience = 'customer' | 'admin'
@@ -230,7 +231,7 @@ export function buildInvoicePdfBuffer(
   doc.setFont('helvetica', 'normal')
 
   const supportWhatsApp = safe(process.env.NEXT_PUBLIC_WHATSAPP || '96877222432').replace(/\D/g, '')
-  const siteUrl = safe(process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000').replace(/\/$/, '')
+  const siteUrl = resolvePublicSiteUrl(process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000')
   const supportWhatsAppDisplay = supportWhatsApp.startsWith('968')
     ? `+968 ${supportWhatsApp.slice(3)}`
     : `+${supportWhatsApp}`

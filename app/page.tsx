@@ -5,9 +5,7 @@ import { Hero } from '@/components/home/hero'
 import { IntroSection } from '@/components/home/intro-section'
 import { OccasionsSection } from '@/components/home/occasions-section'
 import { HowItWorks } from '@/components/home/how-it-works'
-import { CustomExperience } from '@/components/home/custom-experience'
-import { AudienceSections } from '@/components/home/audience-sections'
-import { ValueTrustSections } from '@/components/home/value-trust-sections'
+import { StoryZoomSection, ValueTrustStrip } from '@/components/home/story-zoom-section'
 import { FaqSection } from '@/components/home/faq-section'
 import { CtaBanner } from '@/components/home/cta-banner'
 import { HomeChatbot } from '@/components/home/home-chatbot'
@@ -34,11 +32,8 @@ export default function HomePage() {
         <IntroSection />
         <OccasionsSection />
         <HowItWorks />
-        <div className="bg-[#f3eee6]">
-          <CustomExperience />
-          <AudienceSections />
-          <ValueTrustSections />
-        </div>
+        <StoryZoomSection />
+        <ValueTrustStrip />
         <FaqSection limit={4} />
         <CtaBanner />
       </main>

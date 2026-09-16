@@ -273,8 +273,14 @@ export function OverviewPanel() {
                   {tx('CEO 9% · مطور 3% · بوابة حسب الطريقة', 'CEO 9% · Dev 3% · gateway by method')}
                 </p>
               </div>
-              <Button asChild variant="outline" size="sm" className="ms-auto">
-                <Link href="/admin/payments">{tx('التفاصيل', 'Details')}</Link>
+              <Button
+                render={<Link href="/admin/payments" />}
+                nativeButton={false}
+                variant="outline"
+                size="sm"
+                className="ms-auto"
+              >
+                {tx('التفاصيل', 'Details')}
               </Button>
             </CardHeader>
             <CardContent>

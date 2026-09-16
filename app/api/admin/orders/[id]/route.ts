@@ -2,8 +2,9 @@ import { NextResponse } from 'next/server'
 import { eq } from 'drizzle-orm'
 import { verifyAdmin } from '@/lib/admin-auth'
 import { db } from '@/lib/db'
-import { orders, type OrderStatus } from '@/lib/db/schema'
+import { admin_notifications, orders, type OrderStatus } from '@/lib/db/schema'
 import { triggerOrderConfirmation } from '@/lib/security/trigger-confirmation'
+import { eventFromOrderStatus } from '@/lib/email/send-order-confirmation'
 
 export const dynamic = 'force-dynamic'
 
@@ -20,20 +21,22 @@ export async function PATCH(request: Request, context: RouteContext) {
     const body = await request.json()
 
     const updates: Record<string, unknown> = { updated_at: new Date() }
-    let becameConfirmed = false
-    let becameCancelled = false
 
     const [current] = await db.select().from(orders).where(eq(orders.id, id)).limit(1)
     if (!current) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+
+    let statusChanged = false
+    let newStatus: OrderStatus | null = null
 
     if (body.status !== undefined) {
       if (!ALLOWED.includes(body.status)) {
         return NextResponse.json({ error: 'Invalid status' }, { status: 400 })
       }
       updates.status = body.status
-      becameCancelled = body.status === 'cancelled' && current.status !== 'cancelled'
+      statusChanged = current.status !== body.status
+      newStatus = body.status as OrderStatus
+
       if (body.status === 'cancelled') {
-        // Payment not received — zero financial amounts
         updates.price_omr = '0.00'
         updates.commission_omr = '0.00'
         updates.net_revenue_omr = '0.00'
@@ -44,25 +47,21 @@ export async function PATCH(request: Request, context: RouteContext) {
           d.setMonth(d.getMonth() + 1)
           updates.end_date = d.toISOString().slice(0, 10)
         }
-        becameConfirmed = current.status !== body.status && body.status === 'confirmed'
       }
     }
 
-    const [order] = await db
-      .update(orders)
-      .set(updates)
-      .where(eq(orders.id, id))
-      .returning()
-
+    const [order] = await db.update(orders).set(updates).where(eq(orders.id, id)).returning()
     if (!order) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
-    // On confirmation, send customer a "confirmed" PDF invoice
-    if (becameConfirmed) {
-      triggerOrderConfirmation(order.id, 'confirmed')
-    }
-
-    if (becameCancelled) {
-      triggerOrderConfirmation(order.id, 'cancelled')
+    if (statusChanged && newStatus) {
+      const event = eventFromOrderStatus(newStatus)
+      if (event) {
+        await db.insert(admin_notifications).values({
+          order_id: order.id,
+          message: `تحديث حالة الطلب ${order.order_number}: ${newStatus}`,
+        })
+        triggerOrderConfirmation(order.id, event)
+      }
     }
 
     return NextResponse.json(order)

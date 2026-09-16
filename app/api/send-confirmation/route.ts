@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import {
   sendOrderConfirmation,
-  type OrderConfirmationEvent,
+  isOrderEmailEvent,
 } from '@/lib/email/send-order-confirmation'
 import { verifyInternalApi } from '@/lib/security/internal-api'
 import { checkRateLimit, getClientIp } from '@/lib/auth/rate-limit'
@@ -22,14 +22,14 @@ export async function POST(request: Request) {
 
     const body = (await request.json().catch(() => null)) as {
       orderId?: string
-      event?: OrderConfirmationEvent
+      event?: string
     } | null
     const orderId = body?.orderId
     const event = body?.event
     if (!orderId || !event) {
       return NextResponse.json({ error: 'Missing orderId or event' }, { status: 400 })
     }
-    if (event !== 'created' && event !== 'confirmed' && event !== 'cancelled') {
+    if (!isOrderEmailEvent(event)) {
       return NextResponse.json({ error: 'Invalid event' }, { status: 400 })
     }
 

@@ -47,7 +47,7 @@ export async function fulfillPaymobOrder(opts: {
     message: `تم الدفع عبر Paymob: ${order.order_number}`,
   })
 
-  triggerOrderConfirmation(order.id, 'confirmed')
+  triggerOrderConfirmation(order.id, 'paid')
 
   return { ok: true, orderNumber: order.order_number }
 }
@@ -81,7 +81,7 @@ export async function approveBankTransfer(
     message: `تمت الموافقة على التحويل البنكي: ${order.order_number}`,
   })
 
-  triggerOrderConfirmation(orderId, 'confirmed')
+  triggerOrderConfirmation(orderId, 'paid')
 
   return { ok: true, orderNumber: order.order_number }
 }
@@ -108,6 +108,8 @@ export async function rejectBankTransfer(
     order_id: orderId,
     message: `رُفض التحويل البنكي: ${order.order_number}`,
   })
+
+  triggerOrderConfirmation(orderId, 'payment_failed')
 
   return { ok: true }
 }

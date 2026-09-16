@@ -182,7 +182,7 @@ export default function ProfilePage() {
       href: '/subscriptions',
       icon: ClipboardList,
       title: t('طلباتي', 'My requests'),
-      desc: t('تابع حالة طلبات الضيافة', 'Track your hospitality requests'),
+      desc: t('تابع حالة الطلب والدفع', 'Track request and payment status'),
       accent: 'bg-primary/10 text-primary',
     },
     {

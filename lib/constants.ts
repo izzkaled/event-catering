@@ -60,13 +60,31 @@ export const ORDER_STATUS_LABELS: Record<string, { ar: string; en: string }> = {
   completed: { ar: 'مكتمل', en: 'Completed' },
 }
 
-/** Tailwind classes for subscription/order status badges */
+/** Tailwind classes for order status badges */
 export const ORDER_STATUS_COLORS: Record<string, string> = {
   pending: 'bg-amber-100 text-amber-900 border-amber-200',
   confirmed: 'bg-primary/10 text-primary border-primary/25',
   active: 'bg-sky-100 text-sky-900 border-sky-200',
   cancelled: 'bg-rose-100 text-rose-900 border-rose-200',
   completed: 'bg-slate-100 text-slate-800 border-slate-200',
+}
+
+export const PAYMENT_STATUS_LABELS: Record<string, { ar: string; en: string }> = {
+  unpaid: { ar: 'غير مدفوع', en: 'Unpaid' },
+  pending_verification: { ar: 'بانتظار التحقق من التحويل', en: 'Pending verification' },
+  paid: { ar: 'مدفوع', en: 'Paid' },
+  failed: { ar: 'فشل الدفع / مرفوض', en: 'Payment failed' },
+  refunded: { ar: 'مسترد', en: 'Refunded' },
+  partially_refunded: { ar: 'مسترد جزئياً', en: 'Partially refunded' },
+}
+
+export const PAYMENT_STATUS_COLORS: Record<string, string> = {
+  unpaid: 'bg-slate-100 text-slate-800 border-slate-200',
+  pending_verification: 'bg-amber-100 text-amber-900 border-amber-200',
+  paid: 'bg-emerald-100 text-emerald-900 border-emerald-200',
+  failed: 'bg-rose-100 text-rose-900 border-rose-200',
+  refunded: 'bg-slate-100 text-slate-700 border-slate-200',
+  partially_refunded: 'bg-orange-100 text-orange-900 border-orange-200',
 }
 
 export function addOneMonth(isoDate: string): string {

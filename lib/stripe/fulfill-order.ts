@@ -33,7 +33,7 @@ export async function fulfillStripeOrder(
     message: `تم الدفع عبر Stripe: ${order.order_number}`,
   })
 
-  triggerOrderConfirmation(orderId, 'confirmed')
+  triggerOrderConfirmation(orderId, 'paid')
 
   return { ok: true, orderNumber: order.order_number }
 }

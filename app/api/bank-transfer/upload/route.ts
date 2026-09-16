@@ -91,7 +91,7 @@ export async function POST(request: Request) {
       message: `تحويل بنكي بانتظار التحقق: ${order.order_number}`,
     })
 
-    triggerOrderConfirmation(order.id, 'created')
+    triggerOrderConfirmation(order.id, 'payment_pending')
 
     return NextResponse.json({
       ok: true,

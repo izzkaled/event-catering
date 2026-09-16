@@ -3,14 +3,19 @@
 import * as React from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { CalendarDays, Clock, Package, Sparkles } from 'lucide-react'
+import { CalendarDays, Clock, Download, MapPin, Package, Sparkles } from 'lucide-react'
 import { SiteHeader } from '@/components/site-header'
 import { SiteFooter } from '@/components/site-footer'
 import { useLanguage } from '@/components/language-provider'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { ORDER_STATUS_COLORS, ORDER_STATUS_LABELS } from '@/lib/constants'
+import {
+  ORDER_STATUS_COLORS,
+  ORDER_STATUS_LABELS,
+  PAYMENT_STATUS_COLORS,
+  PAYMENT_STATUS_LABELS,
+} from '@/lib/constants'
+import { formatGuests, formatServiceHours } from '@/lib/packages/semantics'
 import type { Order } from '@/lib/db/schema'
 import { cn } from '@/lib/utils'
 
@@ -59,8 +64,8 @@ export default function MySubscriptionsPage() {
             <h1 className="text-xl font-bold tracking-tight sm:text-2xl">{t('طلباتي', 'My requests')}</h1>
             <p className="mt-1 text-sm text-muted-foreground">
               {t(
-                'طلبات الباقات والحالة بعد تأكيد الإدارة',
-                'Your package requests and status after admin confirmation',
+                'تابع حالة طلب الضيافة والدفع من هنا',
+                'Track your hospitality request and payment status here',
               )}
             </p>
           </div>
@@ -78,8 +83,8 @@ export default function MySubscriptionsPage() {
               </CardTitle>
               <CardDescription>
                 {t(
-                  'اختر باقة مناسبة وستظهر طلباتك هنا بانتظار تأكيد الإدارة.',
-                  'Choose a package and your requests will appear here pending admin confirmation.',
+                  'اختر باقة مناسبة وستظهر طلباتك هنا مع حالة المراجعة والدفع.',
+                  'Choose a package and your requests will appear here with review and payment status.',
                 )}
               </CardDescription>
             </CardHeader>
@@ -93,12 +98,15 @@ export default function MySubscriptionsPage() {
           <div className="space-y-4">
             {subscriptions.map((sub) => {
               const statusKey = sub.status || 'pending'
-              const label = ORDER_STATUS_LABELS[statusKey]
-              const statusText = lang === 'ar' ? label?.ar : label?.en
+              const payKey = sub.payment_status || 'unpaid'
+              const statusLabel = ORDER_STATUS_LABELS[statusKey]
+              const payLabel = PAYMENT_STATUS_LABELS[payKey]
+              const statusText = lang === 'ar' ? statusLabel?.ar : statusLabel?.en
+              const payText = lang === 'ar' ? payLabel?.ar : payLabel?.en
               const packageName =
                 lang === 'ar'
-                  ? sub.package_name_ar || `${sub.hours_per_visit}س / ${sub.visits_per_week}ز`
-                  : sub.package_name_en || `${sub.hours_per_visit}h / ${sub.visits_per_week}v`
+                  ? sub.package_name_ar || `${formatServiceHours(sub.hours_per_visit, 'ar')}`
+                  : sub.package_name_en || `${formatServiceHours(sub.hours_per_visit, 'en')}`
 
               return (
                 <Card key={sub.id} className="overflow-hidden">
@@ -107,24 +115,34 @@ export default function MySubscriptionsPage() {
                       <CardTitle className="text-lg">{packageName}</CardTitle>
                       <CardDescription className="font-mono text-xs">{sub.order_number}</CardDescription>
                     </div>
-                    <span
-                      className={cn(
-                        'inline-flex rounded-full border px-3 py-1 text-xs font-semibold',
-                        ORDER_STATUS_COLORS[statusKey] || ORDER_STATUS_COLORS.pending,
-                      )}
-                    >
-                      {statusText || statusKey}
-                    </span>
+                    <div className="flex flex-wrap justify-end gap-2">
+                      <span
+                        className={cn(
+                          'inline-flex rounded-full border px-3 py-1 text-xs font-semibold',
+                          ORDER_STATUS_COLORS[statusKey] || ORDER_STATUS_COLORS.pending,
+                        )}
+                      >
+                        {statusText || statusKey}
+                      </span>
+                      <span
+                        className={cn(
+                          'inline-flex rounded-full border px-3 py-1 text-xs font-semibold',
+                          PAYMENT_STATUS_COLORS[payKey] || PAYMENT_STATUS_COLORS.unpaid,
+                        )}
+                      >
+                        {payText || payKey}
+                      </span>
+                    </div>
                   </CardHeader>
                   <CardContent className="grid gap-3 text-sm sm:grid-cols-2">
                     <div className="flex items-start gap-2 text-muted-foreground">
                       <Package className="mt-0.5 size-4 shrink-0 text-primary" />
                       <div>
-                        <div className="font-medium text-foreground">{t('نوع الاشتراك', 'Subscription type')}</div>
+                        <div className="font-medium text-foreground">{t('تفاصيل الباقة', 'Package details')}</div>
                         <div>
                           {t(
-                            `${sub.hours_per_visit} ساعات · ${sub.visits_per_week} زيارات/أسبوع · ${sub.visits_per_month} شهرياً`,
-                            `${sub.hours_per_visit} hours · ${sub.visits_per_week} visits/week · ${sub.visits_per_month}/month`,
+                            `${formatGuests(sub.visits_per_week, 'ar')} · ${formatServiceHours(sub.hours_per_visit, 'ar')}`,
+                            `${formatGuests(sub.visits_per_week, 'en')} · ${formatServiceHours(sub.hours_per_visit, 'en')}`,
                           )}
                         </div>
                       </div>
@@ -132,12 +150,11 @@ export default function MySubscriptionsPage() {
                     <div className="flex items-start gap-2 text-muted-foreground">
                       <CalendarDays className="mt-0.5 size-4 shrink-0 text-primary" />
                       <div>
-                        <div className="font-medium text-foreground">{t('مدة الاشتراك', 'Duration')}</div>
+                        <div className="font-medium text-foreground">{t('تاريخ الفعالية', 'Event date')}</div>
                         <div dir="ltr" className="text-start">
                           {sub.start_date}
-                          {sub.end_date ? ` → ${sub.end_date}` : ''}
+                          {sub.end_date && sub.end_date !== sub.start_date ? ` → ${sub.end_date}` : ''}
                         </div>
-                        <div className="text-xs">{t('شهر واحد (قابل للتجديد)', 'One month (renewable)')}</div>
                       </div>
                     </div>
                     <div className="flex items-start gap-2 text-muted-foreground">
@@ -145,22 +162,78 @@ export default function MySubscriptionsPage() {
                       <div>
                         <div className="font-medium text-foreground">{t('الوقت المفضل', 'Preferred time')}</div>
                         <div>{sub.preferred_time}</div>
-                        <div className="text-xs">{(sub.preferred_days || []).join(' · ')}</div>
+                        {(sub.preferred_days || []).length > 0 ? (
+                          <div className="text-xs">{(sub.preferred_days || []).join(' · ')}</div>
+                        ) : null}
                       </div>
                     </div>
-                    <div className="rounded-lg bg-secondary/40 p-3">
-                      <div className="text-xs text-muted-foreground">{t('السعر الشهري', 'Monthly price')}</div>
-                      <div className="text-lg font-bold text-foreground">{sub.price_omr} OMR</div>
-                      {statusKey === 'pending' && (
-                        <Badge variant="outline" className="mt-2 border-amber-300 text-amber-800">
-                          {t('بانتظار تأكيد الإدارة', 'Awaiting admin confirmation')}
-                        </Badge>
-                      )}
-                      {(statusKey === 'confirmed' || statusKey === 'active') && (
-                        <Badge variant="outline" className="mt-2 border-primary/30 text-primary">
-                          {t('تم تأكيد حجز الاشتراك', 'Subscription booking confirmed')}
-                        </Badge>
-                      )}
+                    <div className="flex items-start gap-2 text-muted-foreground">
+                      <MapPin className="mt-0.5 size-4 shrink-0 text-primary" />
+                      <div>
+                        <div className="font-medium text-foreground">{t('الموقع', 'Location')}</div>
+                        <div>{sub.customer_area}</div>
+                        {sub.customer_address ? (
+                          <div className="text-xs leading-relaxed">{sub.customer_address}</div>
+                        ) : null}
+                      </div>
+                    </div>
+                    <div className="rounded-lg bg-secondary/40 p-3 sm:col-span-2">
+                      <div className="flex flex-wrap items-end justify-between gap-3">
+                        <div>
+                          <div className="text-xs text-muted-foreground">{t('السعر الاسترشادي', 'Indicative price')}</div>
+                          <div className="text-lg font-bold text-foreground">{sub.price_omr} OMR</div>
+                        </div>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="gap-1.5"
+                          render={
+                            <a
+                              href={`/api/invoice/${encodeURIComponent(sub.order_number)}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            />
+                          }
+                          nativeButton={false}
+                        >
+                          <Download className="size-3.5" />
+                          {t('فاتورة PDF', 'PDF invoice')}
+                        </Button>
+                      </div>
+                      {statusKey === 'pending' && payKey === 'unpaid' ? (
+                        <p className="mt-2 text-xs text-amber-800">
+                          {t(
+                            'طلبك قيد المراجعة — سنتواصل معك لتأكيد العرض والدفع.',
+                            'Your request is under review — we will contact you to confirm the quote and payment.',
+                          )}
+                        </p>
+                      ) : null}
+                      {payKey === 'pending_verification' ? (
+                        <p className="mt-2 text-xs text-amber-800">
+                          {t(
+                            'استلمنا إيصال التحويل وهو بانتظار التحقق.',
+                            'We received your transfer receipt and it is pending verification.',
+                          )}
+                        </p>
+                      ) : null}
+                      {payKey === 'paid' ? (
+                        <p className="mt-2 text-xs text-emerald-800">
+                          {t('تم تأكيد الدفع بنجاح.', 'Payment confirmed successfully.')}
+                        </p>
+                      ) : null}
+                      {payKey === 'failed' ? (
+                        <p className="mt-2 text-xs text-rose-800">
+                          {t(
+                            'فشل الدفع أو رُفض الإيصال — يرجى التواصل معنا لإعادة المحاولة.',
+                            'Payment failed or receipt rejected — please contact us to try again.',
+                          )}
+                        </p>
+                      ) : null}
+                      {statusKey === 'cancelled' ? (
+                        <p className="mt-2 text-xs text-rose-800">
+                          {t('تم إلغاء هذا الطلب.', 'This request was cancelled.')}
+                        </p>
+                      ) : null}
                     </div>
                   </CardContent>
                 </Card>

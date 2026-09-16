@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { CheckCircle2, Copy, MessageCircle, Download } from 'lucide-react'
+import { CheckCircle2, Copy, MessageCircle, Download, Mail } from 'lucide-react'
 import { toast } from 'sonner'
 import type { Order } from '@/lib/db/schema'
 import {
@@ -31,6 +31,7 @@ export function OrdersPanel() {
   const [areaFilter, setAreaFilter] = useState('')
   const [search, setSearch] = useState('')
   const [updatingId, setUpdatingId] = useState<string | null>(null)
+  const [notifyingId, setNotifyingId] = useState<string | null>(null)
 
   const fetchOrders = useCallback(async () => {
     const res = await fetch('/api/admin/orders')
@@ -67,6 +68,33 @@ export function OrdersPanel() {
       }
     } finally {
       setUpdatingId(null)
+    }
+  }
+
+  const resendNotification = async (id: string) => {
+    setNotifyingId(id)
+    try {
+      const res = await fetch(`/api/admin/orders/${id}/notify`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
+      })
+      const data = (await res.json().catch(() => null)) as
+        | { success?: boolean; error?: string; skipped?: boolean }
+        | null
+      if (res.ok && data?.success !== false) {
+        toast.success(
+          data?.skipped
+            ? 'تم التخطي — تحقق من RESEND_API_KEY على Netlify'
+            : 'تم إعادة إرسال الإشعار',
+        )
+      } else {
+        toast.error(data?.error || 'فشل إرسال الإشعار')
+      }
+    } catch {
+      toast.error('فشل إرسال الإشعار')
+    } finally {
+      setNotifyingId(null)
     }
   }
 
@@ -296,6 +324,16 @@ export function OrdersPanel() {
                     >
                       <Download className="size-3.5" />
                       فاتورة PDF
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      disabled={notifyingId === order.id}
+                      onClick={() => resendNotification(order.id)}
+                      className="gap-1"
+                    >
+                      <Mail className="size-3.5" />
+                      {notifyingId === order.id ? 'جاري الإرسال...' : 'إعادة إرسال'}
                     </Button>
                     {order.notes ? (
                       <details className="max-w-[220px] text-xs text-muted-foreground">

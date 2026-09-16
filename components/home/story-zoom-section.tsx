@@ -71,12 +71,11 @@ const PANELS: Panel[] = [
   },
 ]
 
-const SEGMENT_VH = 100
+const SEGMENT_VH = 155
 
-/**
- * One sticky stage: scroll drives zoom-in on brand imagery + panel swap.
- * No blur on text — panels stay readable; image zooms behind.
- */
+function easeOutCubic(t: number) {
+  return 1 - Math.pow(1 - t, 3)
+}
 export function StoryZoomSection() {
   const { t, lang } = useLanguage()
   const trackRef = useRef<HTMLDivElement>(null)
@@ -137,8 +136,10 @@ export function StoryZoomSection() {
   }
 
   const local = (progress * PANELS.length) % 1
-  const zoom = reduceMotion ? 1.04 : 1 + local * 0.18
-  const fill = ((index + Math.min(1, local + 0.15)) / PANELS.length) * 100
+  const eased = easeOutCubic(Math.min(1, Math.max(0, local)))
+  // Longer, smoother zoom per panel
+  const zoom = reduceMotion ? 1.06 : 1 + eased * 0.32
+  const fill = ((index + Math.min(1, local + 0.12)) / PANELS.length) * 100
 
   const labels = useMemo(
     () => PANELS.map((p) => ({ id: p.id, label: p.kicker })),
@@ -167,8 +168,11 @@ export function StoryZoomSection() {
               <div
                 className="absolute inset-0 will-change-transform"
                 style={{
-                  transform: i === index ? `scale(${zoom})` : 'scale(1.05)',
-                  transition: i === index ? 'none' : 'transform 0.6s ease',
+                  transform: i === index ? `scale(${zoom})` : 'scale(1.08)',
+                  transition:
+                    i === index
+                      ? 'transform 120ms linear'
+                      : 'transform 700ms cubic-bezier(0.22, 1, 0.36, 1), opacity 700ms ease',
                 }}
               >
                 <Image
@@ -180,8 +184,10 @@ export function StoryZoomSection() {
                   className="object-cover"
                 />
               </div>
-              <div className="absolute inset-0 bg-gradient-to-t from-[#2a122a]/88 via-[#2a122a]/45 to-[#2a122a]/25" />
-              <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(201,168,108,0.18),transparent_55%)]" />
+              {/* Light veil — keep brand photo colors visible */}
+              <div className="absolute inset-0 bg-gradient-to-t from-[#2a122a]/58 via-[#2a122a]/12 to-transparent" />
+              <div className="absolute inset-x-0 bottom-0 h-[48%] bg-gradient-to-t from-[#2a122a]/72 via-[#2a122a]/28 to-transparent" />
+              <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(201,168,108,0.12),transparent_50%)]" />
             </div>
           ))}
         </div>
@@ -206,20 +212,20 @@ export function StoryZoomSection() {
                     id={panel.id}
                     aria-hidden={!on}
                     className={cn(
-                      'absolute inset-0 flex flex-col justify-end overflow-y-auto pb-2 transition-all duration-500 ease-out',
+                      'absolute inset-0 flex flex-col justify-end overflow-y-auto pb-2 transition-all duration-700 ease-[cubic-bezier(0.22,1,0.36,1)]',
                       on
                         ? 'pointer-events-auto translate-y-0 opacity-100'
-                        : 'pointer-events-none translate-y-4 opacity-0',
+                        : 'pointer-events-none translate-y-6 opacity-0',
                     )}
                   >
                     <div className="max-w-2xl text-start text-white">
-                      <p className="mb-2 font-ios text-[0.7rem] font-medium uppercase tracking-[0.28em] text-[#c9a86c]">
+                      <p className="mb-2 font-ios text-[0.7rem] font-medium uppercase tracking-[0.28em] text-[#e0c48a]">
                         {panel.kicker}
                       </p>
-                      <h2 className="text-balance font-ios text-3xl font-semibold tracking-tight sm:text-4xl lg:text-[2.6rem]">
+                      <h2 className="text-balance font-ios text-3xl font-semibold tracking-tight text-white drop-shadow-[0_2px_12px_rgba(0,0,0,0.35)] sm:text-4xl lg:text-[2.6rem]">
                         {t(panel.titleKey)}
                       </h2>
-                      <p className="mt-3 max-w-xl text-[1.02rem] leading-relaxed text-white/85">
+                      <p className="mt-3 max-w-xl text-[1.02rem] leading-relaxed text-white/92 drop-shadow-[0_1px_8px_rgba(0,0,0,0.25)]">
                         {t(panel.bodyKey)}
                       </p>
                     </div>
@@ -234,12 +240,12 @@ export function StoryZoomSection() {
                         {panel.points.map((point) => (
                           <li
                             key={point.titleKey}
-                            className="border-s-2 border-[#c9a86c]/70 bg-black/20 ps-3 py-2 backdrop-blur-[2px]"
+                            className="border-s-2 border-[#c9a86c]/80 bg-[#2a122a]/35 ps-3 py-2 backdrop-blur-[1px]"
                           >
                             <h3 className="font-ios text-sm font-semibold text-white">
                               {t(point.titleKey)}
                             </h3>
-                            <p className="mt-1 text-xs leading-relaxed text-white/75">
+                            <p className="mt-1 text-xs leading-relaxed text-white/80">
                               {t(point.descKey)}
                             </p>
                           </li>

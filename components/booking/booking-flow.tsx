@@ -28,6 +28,7 @@ import {
 import { normalizePhone } from '@/lib/auth/phone'
 import type { PackageWithSection } from '@/lib/packages/types'
 import { toExperiencePackage } from '@/lib/packages/experience-map'
+import { trackEvent } from '@/lib/analytics'
 
 import {
   MUSCAT_AREAS,
@@ -295,6 +296,19 @@ export function BookingFlow({ packages }: { packages: PackageWithSection[] }) {
         order_number: string
         needsPayment?: boolean
       }
+
+      trackEvent('generate_lead', {
+        currency: 'OMR',
+        value: Number(selectedPkg.price_omr) || 0,
+        order_number: order.order_number,
+        package_id: selectedPkg.id,
+        package_name: selectedPkg.name_en || selectedPkg.name_ar,
+      })
+      trackEvent('begin_checkout', {
+        currency: 'OMR',
+        value: Number(selectedPkg.price_omr) || 0,
+        order_number: order.order_number,
+      })
 
       // Always go to payment method picker (Paymob card / bank transfer)
       router.push(`/booking/payment?order=${encodeURIComponent(order.order_number)}`)

@@ -81,10 +81,18 @@ export function JsonLdBusiness() {
         inLanguage: ['ar', 'en'],
         publisher: { '@id': `${SITE_URL}/#organization` },
         potentialAction: {
-          '@type': 'ReserveAction',
-          target: `${SITE_URL}/packages`,
-          name: 'Request hospitality package | اطلب باقة ضيافة',
+          '@type': 'SearchAction',
+          target: {
+            '@type': 'EntryPoint',
+            urlTemplate: `${SITE_URL}/packages?q={search_term_string}`,
+          },
+          'query-input': 'required name=search_term_string',
         },
+        hasPart: [
+          { '@type': 'WebPage', name: 'Packages', url: `${SITE_URL}/packages` },
+          { '@type': 'WebPage', name: 'Find experience', url: `${SITE_URL}/experience/find` },
+          { '@type': 'WebPage', name: 'FAQ', url: `${SITE_URL}/faq` },
+        ],
       },
     ],
   }

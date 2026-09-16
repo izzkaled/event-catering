@@ -1,0 +1,38 @@
+# Event Catering | إيفنت كاترينج
+
+> Hospitality packages platform in Oman for government, corporate, and private events.
+> منصة باقات ضيافة في عُمان للجهات الحكومية والشركات والمناسبات الخاصة.
+
+Website: https://event-om.netlify.app
+Contact: WhatsApp +968 7722 2432
+Email: izzkaled@gmail.com
+
+## What we offer
+
+- Browse curated hospitality packages (official, corporate, openings)
+- Customize guests, schedule, and services
+- Submit a request for quote coordination with catering partners
+- Muscat and surrounding areas in Oman
+
+## Key pages
+
+- [Home](https://event-om.netlify.app/): Brand overview and how Event Catering works
+- [Packages](https://event-om.netlify.app/packages): All hospitality packages with indicative pricing
+- [Find my experience](https://event-om.netlify.app/experience/find): Guided package recommendations
+- [FAQ](https://event-om.netlify.app/faq): Common questions about packages, pricing, and requests
+- [Login](https://event-om.netlify.app/auth/login): Customer account access
+
+## Brand names
+
+- Event Catering
+- إيفنت كاترينج
+- Event Catering Oman
+
+## Language
+
+Arabic (primary) and English. Primary market: Muscat, Oman.
+
+## Optional
+
+- Sitemap: https://event-om.netlify.app/sitemap.xml
+- Robots: https://event-om.netlify.app/robots.txt

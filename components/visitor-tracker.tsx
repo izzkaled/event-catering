@@ -3,7 +3,7 @@
 import { useEffect } from 'react'
 import { usePathname } from 'next/navigation'
 
-const VISITOR_KEY = 'speedy_visitor_id'
+const VISITOR_KEY = 'event_visitor_id'
 const HEARTBEAT_MS = 5 * 60 * 1000
 
 function getVisitorId() {

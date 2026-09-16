@@ -2,12 +2,13 @@
 
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { CalendarCheck, Download, Loader2, XCircle } from 'lucide-react'
 import { SiteHeader } from '@/components/site-header'
 import { SiteFooter } from '@/components/site-footer'
 import { useLanguage } from '@/components/language-provider'
 import { Button } from '@/components/ui/button'
+import { trackEvent } from '@/lib/analytics'
 
 const WHATSAPP = process.env.NEXT_PUBLIC_WHATSAPP || '96877222432'
 
@@ -34,6 +35,7 @@ export function BookingSuccessContent() {
   const [verifying, setVerifying] = useState(orderNumber !== '---')
   const [txnId, setTxnId] = useState<string | null>(params.get('id'))
   const [amount, setAmount] = useState<string | null>(null)
+  const purchaseTracked = useRef(false)
 
   useEffect(() => {
     if (orderNumber === '---') {
@@ -43,6 +45,17 @@ export function BookingSuccessContent() {
 
     let cancelled = false
     let attempts = 0
+
+    const markPurchase = (data: StatusPayload) => {
+      if (purchaseTracked.current) return
+      purchaseTracked.current = true
+      trackEvent('purchase', {
+        currency: 'OMR',
+        value: Number(data.amountOmr) || 0,
+        transaction_id: data.transactionId || data.orderNumber || orderNumber,
+        order_number: data.orderNumber || orderNumber,
+      })
+    }
 
     const poll = async () => {
       try {
@@ -58,6 +71,7 @@ export function BookingSuccessContent() {
           setTxnId(data.transactionId || null)
           setAmount(data.amountOmr || null)
           setVerifying(false)
+          markPurchase(data)
           return
         }
 

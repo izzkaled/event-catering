@@ -5,6 +5,8 @@ import { LanguageProvider } from '@/components/language-provider'
 import { VisitorTracker } from '@/components/visitor-tracker'
 import { MobileBottomNav } from '@/components/mobile-bottom-nav'
 import { SplashScreen } from '@/components/splash-screen'
+import { SiteAnalyticsProvider } from '@/components/analytics/site-analytics-provider'
+import { getGoogleSiteVerification } from '@/lib/analytics'
 import {
   OG_IMAGE,
   SEO_DESCRIPTION,
@@ -30,6 +32,8 @@ const geistMono = Geist_Mono({
   variable: '--font-geist-mono',
   subsets: ['latin'],
 })
+
+const googleVerification = getGoogleSiteVerification()
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -87,6 +91,9 @@ export const metadata: Metadata = {
       'max-video-preview': -1,
     },
   },
+  ...(googleVerification
+    ? { verification: { google: googleVerification } }
+    : {}),
   manifest: '/manifest.json',
   icons: {
     icon: [
@@ -120,6 +127,7 @@ export default function RootLayout({
           <SplashScreen />
           {children}
           <VisitorTracker />
+          <SiteAnalyticsProvider />
           <MobileBottomNav />
         </LanguageProvider>
         <Toaster position="top-center" richColors />

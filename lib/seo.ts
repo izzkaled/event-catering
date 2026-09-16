@@ -30,7 +30,8 @@ export const SEO_DESCRIPTION = `${SEO_DESCRIPTION_AR} ${SEO_DESCRIPTION_EN}`
 export const SEO_KEYWORDS = [
   'إيفنت كاترينج',
   'Event Catering',
-  'event-catering-om',
+  'Event Catering Oman',
+  'event-om',
   'ضيافة عمان',
   'باقات ضيافة مسقط',
   'ضيافة جهات حكومية',
@@ -44,6 +45,9 @@ export const SEO_KEYWORDS = [
   'ضيافة مؤتمرات',
   'ضيافة افتتاح',
   'ضيافة اجتماعات',
+  'كاترينج مسقط',
+  'طلب ضيافة أونلاين',
+  'Muscat catering packages',
 ]
 
 export const OG_IMAGE = '/images/brand/brand-table.webp'

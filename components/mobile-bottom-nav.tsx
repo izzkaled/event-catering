@@ -43,6 +43,11 @@ export function MobileBottomNav() {
           nav.style.removeProperty('transform')
           return
         }
+        // Don't fight pinch-zoom — only offset for keyboard / browser chrome.
+        if ((vv.scale ?? 1) > 1.01) {
+          nav.style.removeProperty('transform')
+          return
+        }
         const shift = Math.round(window.innerHeight - vv.height - vv.offsetTop)
         nav.style.transform = shift ? `translate3d(0, ${-shift}px, 0)` : 'translate3d(0, 0, 0)'
       }

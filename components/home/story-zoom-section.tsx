@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
@@ -71,47 +71,113 @@ const PANELS: Panel[] = [
   },
 ]
 
-const SEGMENT_VH = 155
-
 function easeOutCubic(t: number) {
   return 1 - Math.pow(1 - t, 3)
 }
+
 export function StoryZoomSection() {
   const { t, lang } = useLanguage()
   const trackRef = useRef<HTMLDivElement>(null)
-  const [index, setIndex] = useState(0)
-  const [progress, setProgress] = useState(0)
-  const [reduceMotion, setReduceMotion] = useState(false)
+  const fillRef = useRef<HTMLDivElement>(null)
+  const zoomLayerRefs = useRef<(HTMLDivElement | null)[]>([])
+  const panelLayerRefs = useRef<(HTMLDivElement | null)[]>([])
+  const articleRefs = useRef<(HTMLElement | null)[]>([])
   const lastIndex = useRef(0)
+  const [index, setIndex] = useState(0)
+  const prefs = useRef({ narrow: false, reduceMotion: false, segmentVh: 155, zoomStrength: 0.28 })
 
   useEffect(() => {
-    setReduceMotion(window.matchMedia('(prefers-reduced-motion: reduce)').matches)
-  }, [])
-
-  const sync = useCallback(() => {
-    const track = trackRef.current
-    if (!track) return
-    const rect = track.getBoundingClientRect()
-    const top = window.scrollY + rect.top
-    const scrollable = Math.max(1, track.offsetHeight - window.innerHeight)
-    const p = Math.min(1, Math.max(0, (window.scrollY - top) / scrollable))
-    const next = Math.min(PANELS.length - 1, Math.floor(p * PANELS.length + 1e-4))
-    setProgress(p)
-    if (next !== lastIndex.current) {
-      lastIndex.current = next
-      setIndex(next)
+    const narrowMq = window.matchMedia('(max-width: 767px)')
+    const motionMq = window.matchMedia('(prefers-reduced-motion: reduce)')
+    const applyPrefs = () => {
+      const narrow = narrowMq.matches
+      prefs.current = {
+        narrow,
+        reduceMotion: motionMq.matches,
+        segmentVh: narrow ? 110 : 155,
+        zoomStrength: narrow ? 0.12 : 0.24,
+      }
+      if (trackRef.current) {
+        trackRef.current.style.height = `${PANELS.length * prefs.current.segmentVh}vh`
+      }
     }
-  }, [])
-
-  useEffect(() => {
-    sync()
-    window.addEventListener('scroll', sync, { passive: true })
-    window.addEventListener('resize', sync)
+    applyPrefs()
+    narrowMq.addEventListener('change', applyPrefs)
+    motionMq.addEventListener('change', applyPrefs)
     return () => {
-      window.removeEventListener('scroll', sync)
-      window.removeEventListener('resize', sync)
+      narrowMq.removeEventListener('change', applyPrefs)
+      motionMq.removeEventListener('change', applyPrefs)
     }
-  }, [sync])
+  }, [])
+
+  useEffect(() => {
+    let raf = 0
+    let ticking = false
+
+    const paint = () => {
+      ticking = false
+      const track = trackRef.current
+      if (!track) return
+
+      const { reduceMotion, zoomStrength } = prefs.current
+      const rect = track.getBoundingClientRect()
+      const top = window.scrollY + rect.top
+      const scrollable = Math.max(1, track.offsetHeight - window.innerHeight)
+      const p = Math.min(1, Math.max(0, (window.scrollY - top) / scrollable))
+      const next = Math.min(PANELS.length - 1, Math.floor(p * PANELS.length + 1e-4))
+      const local = (p * PANELS.length) % 1
+      const eased = easeOutCubic(Math.min(1, Math.max(0, local)))
+      const zoom = reduceMotion ? 1.03 : 1 + eased * zoomStrength
+      const fill = ((next + Math.min(1, local + 0.12)) / PANELS.length) * 100
+
+      // Direct DOM — no React re-render on scroll
+      const zoomEl = zoomLayerRefs.current[next]
+      if (zoomEl) zoomEl.style.transform = `scale3d(${zoom}, ${zoom}, 1)`
+      if (fillRef.current) fillRef.current.style.width = `${fill}%`
+
+      if (next !== lastIndex.current) {
+        const prev = lastIndex.current
+        lastIndex.current = next
+
+        const prevZoom = zoomLayerRefs.current[prev]
+        if (prevZoom) {
+          prevZoom.style.transform = 'scale3d(1.06, 1.06, 1)'
+          prevZoom.style.willChange = 'auto'
+        }
+        if (zoomEl) zoomEl.style.willChange = 'transform'
+
+        panelLayerRefs.current.forEach((el, i) => {
+          if (!el) return
+          el.style.opacity = i === next ? '1' : '0'
+        })
+        articleRefs.current.forEach((el, i) => {
+          if (!el) return
+          const on = i === next
+          el.style.opacity = on ? '1' : '0'
+          el.style.transform = on ? 'translate3d(0,0,0)' : 'translate3d(0,12px,0)'
+          el.style.pointerEvents = on ? 'auto' : 'none'
+          el.setAttribute('aria-hidden', on ? 'false' : 'true')
+        })
+
+        setIndex(next)
+      }
+    }
+
+    const onScroll = () => {
+      if (ticking) return
+      ticking = true
+      raf = requestAnimationFrame(paint)
+    }
+
+    paint()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    window.addEventListener('resize', onScroll, { passive: true })
+    return () => {
+      cancelAnimationFrame(raf)
+      window.removeEventListener('scroll', onScroll)
+      window.removeEventListener('resize', onScroll)
+    }
+  }, [])
 
   useEffect(() => {
     const jump = () => {
@@ -135,12 +201,6 @@ export function StoryZoomSection() {
     window.scrollTo({ top: top + ((i + 0.2) / PANELS.length) * scrollable, behavior: 'smooth' })
   }
 
-  const local = (progress * PANELS.length) % 1
-  const eased = easeOutCubic(Math.min(1, Math.max(0, local)))
-  // Longer, smoother zoom per panel
-  const zoom = reduceMotion ? 1.06 : 1 + eased * 0.32
-  const fill = ((index + Math.min(1, local + 0.12)) / PANELS.length) * 100
-
   const labels = useMemo(
     () => PANELS.map((p) => ({ id: p.id, label: p.kicker })),
     [],
@@ -150,29 +210,40 @@ export function StoryZoomSection() {
     <div
       ref={trackRef}
       id="story"
-      className="relative bg-[#f3eee6]"
-      style={{ height: `${PANELS.length * SEGMENT_VH}vh` }}
+      className="relative bg-[#2a122a]"
+      style={{ height: `${PANELS.length * 155}vh` }}
     >
-      <div className="sticky top-0 flex h-[100dvh] max-h-[100dvh] flex-col overflow-hidden">
-        {/* Full-bleed image stage with scroll zoom */}
-        <div className="absolute inset-0">
+      <div
+        className={cn(
+          // Sit under the sticky site header so the cream bar doesn't cut the image
+          'sticky top-14 sm:top-[4.25rem] z-30 flex flex-col overflow-hidden overscroll-y-contain touch-pan-y bg-[#2a122a]',
+          'h-[calc(100svh-3.5rem)] max-h-[calc(100svh-3.5rem)] sm:h-[calc(100svh-4.25rem)] sm:max-h-[calc(100svh-4.25rem)]',
+          // keep copy above the mobile bottom nav
+          'pb-[calc(4.25rem+env(safe-area-inset-bottom,0px))] md:pb-0',
+        )}
+      >
+        <div className="absolute inset-0 overflow-hidden contain-paint">
           {PANELS.map((panel, i) => (
             <div
               key={panel.id}
-              className={cn(
-                'absolute inset-0 transition-opacity duration-700 ease-out',
-                i === index ? 'opacity-100' : 'opacity-0',
-              )}
-              aria-hidden={i !== index}
+              ref={(el) => {
+                panelLayerRefs.current[i] = el
+              }}
+              className="absolute inset-0 overflow-hidden"
+              style={{
+                opacity: i === 0 ? 1 : 0,
+                transition: 'opacity 280ms ease-out',
+              }}
+              aria-hidden={i !== 0}
             >
               <div
-                className="absolute inset-0 will-change-transform"
+                ref={(el) => {
+                  zoomLayerRefs.current[i] = el
+                }}
+                className="absolute inset-[-6%] origin-center backface-hidden"
                 style={{
-                  transform: i === index ? `scale(${zoom})` : 'scale(1.08)',
-                  transition:
-                    i === index
-                      ? 'transform 120ms linear'
-                      : 'transform 700ms cubic-bezier(0.22, 1, 0.36, 1), opacity 700ms ease',
+                  transform: 'scale3d(1.06, 1.06, 1)',
+                  willChange: i === 0 ? 'transform' : 'auto',
                 }}
               >
                 <Image
@@ -180,21 +251,22 @@ export function StoryZoomSection() {
                   alt=""
                   fill
                   priority={i === 0}
+                  loading={i === 0 ? 'eager' : 'lazy'}
                   sizes="100vw"
-                  className="object-cover"
+                  quality={70}
+                  draggable={false}
+                  className="pointer-events-none select-none object-cover"
                 />
               </div>
-              {/* Light veil — keep brand photo colors visible */}
-              <div className="absolute inset-0 bg-gradient-to-t from-[#2a122a]/58 via-[#2a122a]/12 to-transparent" />
-              <div className="absolute inset-x-0 bottom-0 h-[48%] bg-gradient-to-t from-[#2a122a]/72 via-[#2a122a]/28 to-transparent" />
-              <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(201,168,108,0.12),transparent_50%)]" />
+              <div className="pointer-events-none absolute inset-0 bg-linear-to-t from-[#2a122a]/60 via-[#2a122a]/15 to-transparent" />
+              <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[52%] bg-linear-to-t from-[#2a122a]/72 via-[#2a122a]/25 to-transparent" />
             </div>
           ))}
         </div>
 
         <div className="relative z-10 flex min-h-0 flex-1 flex-col">
-          <div className="site-container flex min-h-0 flex-1 flex-col py-6 sm:py-8">
-            <div className="mb-4 flex items-center justify-between gap-3">
+          <div className="site-container flex min-h-0 flex-1 flex-col py-4 sm:py-8">
+            <div className="mb-3 flex shrink-0 items-center justify-between gap-3 sm:mb-4">
               <p className="font-ios text-[0.65rem] font-medium uppercase tracking-[0.28em] text-[#c9a86c]">
                 {lang === 'ar' ? 'لمن نقدّم' : 'Who we serve'}
               </p>
@@ -204,87 +276,94 @@ export function StoryZoomSection() {
             </div>
 
             <div className="relative min-h-0 flex-1">
-              {PANELS.map((panel, i) => {
-                const on = i === index
-                return (
-                  <article
-                    key={panel.id}
-                    id={panel.id}
-                    aria-hidden={!on}
-                    className={cn(
-                      'absolute inset-0 flex flex-col justify-end overflow-y-auto pb-2 transition-all duration-700 ease-[cubic-bezier(0.22,1,0.36,1)]',
-                      on
-                        ? 'pointer-events-auto translate-y-0 opacity-100'
-                        : 'pointer-events-none translate-y-6 opacity-0',
-                    )}
-                  >
-                    <div className="max-w-2xl text-start text-white">
-                      <p className="mb-2 font-ios text-[0.7rem] font-medium uppercase tracking-[0.28em] text-[#e0c48a]">
-                        {panel.kicker}
-                      </p>
-                      <h2 className="text-balance font-ios text-3xl font-semibold tracking-tight text-white drop-shadow-[0_2px_12px_rgba(0,0,0,0.35)] sm:text-4xl lg:text-[2.6rem]">
-                        {t(panel.titleKey)}
-                      </h2>
-                      <p className="mt-3 max-w-xl text-[1.02rem] leading-relaxed text-white/92 drop-shadow-[0_1px_8px_rgba(0,0,0,0.25)]">
-                        {t(panel.bodyKey)}
-                      </p>
-                    </div>
+              {PANELS.map((panel, i) => (
+                <article
+                  key={panel.id}
+                  id={panel.id}
+                  ref={(el) => {
+                    articleRefs.current[i] = el
+                  }}
+                  aria-hidden={i !== 0}
+                  className="absolute inset-0 flex flex-col justify-end"
+                  style={{
+                    opacity: i === 0 ? 1 : 0,
+                    transform: i === 0 ? 'translate3d(0,0,0)' : 'translate3d(0,12px,0)',
+                    pointerEvents: i === 0 ? 'auto' : 'none',
+                    transition: 'opacity 280ms ease, transform 280ms ease',
+                  }}
+                >
+                  <div className="max-w-2xl text-start text-white">
+                    <p className="mb-1.5 font-ios text-[0.65rem] font-medium uppercase tracking-[0.28em] text-[#e0c48a] sm:mb-2 sm:text-[0.7rem]">
+                      {panel.kicker}
+                    </p>
+                    <h2 className="text-balance font-ios text-[1.7rem] font-semibold leading-tight tracking-tight text-white sm:text-4xl lg:text-[2.6rem]">
+                      {t(panel.titleKey)}
+                    </h2>
+                    <p className="mt-2 max-w-xl text-[0.95rem] leading-relaxed text-white/90 sm:mt-3 sm:text-[1.02rem]">
+                      {t(panel.bodyKey)}
+                    </p>
+                  </div>
 
-                    {panel.points ? (
-                      <ul
-                        className={cn(
-                          'mt-6 grid gap-4',
-                          panel.points.length > 3 ? 'sm:grid-cols-2 lg:grid-cols-4' : 'sm:grid-cols-3',
-                        )}
-                      >
-                        {panel.points.map((point) => (
-                          <li
-                            key={point.titleKey}
-                            className="border-s-2 border-[#c9a86c]/80 bg-[#2a122a]/35 ps-3 py-2 backdrop-blur-[1px]"
-                          >
-                            <h3 className="font-ios text-sm font-semibold text-white">
-                              {t(point.titleKey)}
-                            </h3>
-                            <p className="mt-1 text-xs leading-relaxed text-white/80">
-                              {t(point.descKey)}
-                            </p>
-                          </li>
-                        ))}
-                      </ul>
-                    ) : null}
+                  {panel.points ? (
+                    <ul
+                      className={cn(
+                        'mt-3 hidden gap-2.5 sm:mt-6 sm:grid sm:gap-4',
+                        panel.points.length > 3
+                          ? 'sm:grid-cols-2 lg:grid-cols-4'
+                          : 'sm:grid-cols-3',
+                      )}
+                    >
+                      {panel.points.map((point) => (
+                        <li
+                          key={point.titleKey}
+                          className="border-s-2 border-[#c9a86c]/80 bg-[#2a122a]/40 ps-2.5 py-1.5 sm:ps-3 sm:py-2"
+                        >
+                          <h3 className="font-ios text-xs font-semibold text-white sm:text-sm">
+                            {t(point.titleKey)}
+                          </h3>
+                          <p className="mt-0.5 text-[11px] leading-relaxed text-white/80 sm:mt-1 sm:text-xs">
+                            {t(point.descKey)}
+                          </p>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : null}
 
-                    <div className="mt-6">
-                      <Button
-                        render={<Link href={panel.ctaHref} />}
-                        nativeButton={false}
-                        className="h-11 rounded-full bg-[#c9a86c] px-7 font-ios text-[#2a122a] hover:bg-[#d4b57a]"
-                      >
-                        {t(panel.ctaKey)}
-                      </Button>
-                    </div>
-                  </article>
-                )
-              })}
+                  <div className="mt-4 sm:mt-6">
+                    <Button
+                      render={<Link href={panel.ctaHref} />}
+                      nativeButton={false}
+                      className="h-11 rounded-full bg-[#c9a86c] px-7 font-ios text-[#2a122a] hover:bg-[#d4b57a]"
+                    >
+                      {t(panel.ctaKey)}
+                    </Button>
+                  </div>
+                </article>
+              ))}
             </div>
 
-            <nav className="mt-4 shrink-0" aria-label={lang === 'ar' ? 'أقسام القصة' : 'Story panels'}>
-              <div className="mb-3 h-0.5 overflow-hidden rounded-full bg-white/20">
+            <nav
+              className="mt-3 shrink-0 sm:mt-4"
+              aria-label={lang === 'ar' ? 'أقسام القصة' : 'Story panels'}
+            >
+              <div className="mb-2.5 h-0.5 overflow-hidden rounded-full bg-white/20 sm:mb-3">
                 <div
-                  className="h-full rounded-full bg-[#c9a86c] transition-[width] duration-300 ease-out"
-                  style={{ width: `${fill}%` }}
+                  ref={fillRef}
+                  className="h-full rounded-full bg-[#c9a86c]"
+                  style={{ width: `${100 / PANELS.length}%` }}
                 />
               </div>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-1.5 sm:gap-2">
                 {labels.map((item, i) => (
                   <button
                     key={item.id}
                     type="button"
                     onClick={() => goTo(i)}
                     className={cn(
-                      'rounded-full px-3 py-1.5 font-ios text-[11px] font-medium tracking-wide transition-colors sm:text-xs',
+                      'rounded-full px-2.5 py-1 font-ios text-[10px] font-medium tracking-wide transition-colors sm:px-3 sm:py-1.5 sm:text-xs',
                       i === index
                         ? 'bg-white text-[#4a234a]'
-                        : 'bg-white/10 text-white/80 hover:bg-white/20',
+                        : 'bg-white/10 text-white/80 active:bg-white/20',
                     )}
                     aria-current={i === index ? 'true' : undefined}
                   >
@@ -292,15 +371,13 @@ export function StoryZoomSection() {
                   </button>
                 ))}
               </div>
-              <p className="mt-2 text-[11px] text-white/55">
-                {lang === 'ar' ? 'مرّر للتكبير والتنقل بين الأقسام' : 'Scroll to zoom and move between panels'}
+              <p className="mt-2 text-[10px] text-white/55 sm:text-[11px]">
+                {lang === 'ar' ? 'مرّر للتنقل بين الأقسام' : 'Scroll to move between panels'}
               </p>
             </nav>
           </div>
         </div>
       </div>
-
-      {/* Keep value/trust as compact readable strip after the zoom stage ends */}
     </div>
   )
 }

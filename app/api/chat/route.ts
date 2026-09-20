@@ -51,8 +51,7 @@ LINK RULES (critical):
 - Never use old paths like /#packages or /booking?package=UUID for browsing packages
 - "my requests" / طلباتي → [/subscriptions](/subscriptions)
 - profile / حسابي → [/profile](/profile)
-- login → [/auth/login](/auth/login)
-- forgot password → [/auth/forgot](/auth/forgot)
+- login → [/auth/login](/auth/login) (Google or email OTP — no password)
 - all packages → [/packages](/packages)
 - find experience → [/experience/find](/experience/find)
 - WhatsApp → use the WhatsApp URL from the catalog

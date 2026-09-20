@@ -27,8 +27,8 @@ function RequestReceivedInner() {
       </h1>
       <p className="mt-3 max-w-md text-base leading-relaxed text-muted-foreground">
         {ar
-          ? 'استلمنا طلب الضيافة. سيراجعه فريقنا ويتواصل معك قريباً. أرسلنا تأكيداً وفاتورة PDF إلى بريدك إن وُجد.'
-          : 'We received your hospitality request. Our team will review it and contact you soon. A confirmation and PDF invoice were emailed if you provided an address.'}
+          ? 'استلمنا طلب الضيافة. سيراجعه فريقنا ويتواصل معك قريباً. أرسلنا تأكيداً وملخص الطلب PDF إلى بريدك إن وُجد.'
+          : 'We received your hospitality request. Our team will review it and contact you soon. A confirmation and PDF order summary were emailed if you provided an address.'}
       </p>
 
       <p className="mt-6 rounded-full border border-[#C9A86C]/40 bg-white/80 px-5 py-2.5 text-sm text-[#4A234A]">
@@ -49,7 +49,7 @@ function RequestReceivedInner() {
             className="h-11 gap-2"
           >
             <FileText className="size-4" />
-            {ar ? 'تحميل الفاتورة' : 'Download invoice'}
+            {ar ? 'تحميل الملخص' : 'Download summary'}
           </Button>
         )}
         <Button

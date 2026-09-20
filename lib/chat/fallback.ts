@@ -33,7 +33,7 @@ export function fallbackChatReply(
   const wantsBook = /حجز|احجز|book|ابدأ|ابدا|order|طلب|اطلب|صمّم|صمم|تجرب/.test(q)
   const wantsPay = /دفع|بطاقة|تحويل|pay|card|bank|ابل|apple/.test(q)
   const wantsWhatsapp = /واتس|whatsapp|تواصل|كلم|اتصل/.test(q)
-  const wantsLogin = /دخول|login|تسجيل|password|كلمة المرور|نسيت/.test(q)
+  const wantsLogin = /دخول|login|تسجيل|otp|رمز/.test(q)
 
   if (wantsMySubs) {
     return ar
@@ -43,8 +43,8 @@ export function fallbackChatReply(
 
   if (wantsLogin) {
     return ar
-      ? `${hi}، سجّل الدخول من هنا:\n${md('تسجيل الدخول', ctx.login_url)}\n\nنسيت كلمة المرور؟\n${md('استعادة كلمة المرور', ctx.forgot_url)}`
-      : `${hi} — sign in here:\n${md('Log in', ctx.login_url)}\n\nForgot password?\n${md('Reset password', ctx.forgot_url)}`
+      ? `${hi}، سجّل الدخول من هنا:\n${md('تسجيل الدخول', ctx.login_url)}\n\nالدخول بـ Google أو البريد ورمز OTP — بدون كلمة مرور.`
+      : `${hi} — sign in here:\n${md('Log in', ctx.login_url)}\n\nUse Google or email OTP — no password.`
   }
 
   if (wantsWhatsapp) {

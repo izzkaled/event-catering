@@ -73,7 +73,7 @@ function eventCopy(event: OrderConfirmationEvent, orderNo: string) {
         customerSubject: `تم استلام طلبك ${orderNo} | Event Catering`,
         customerTitle: 'تم استلام طلبك بنجاح',
         customerBody:
-          'استلمنا طلب الضيافة. سيراجعه فريق إيفنت كاترينج ويتواصل معك خلال 24 ساعة. الفاتورة PDF مرفقة (غير مدفوعة حالياً).',
+          'استلمنا طلب الضيافة. سيراجعه فريق إيفنت كاترينج ويتواصل معك خلال 24 ساعة. ملخص الطلب PDF مرفق.',
         adminSubject: `طلب ضيافة جديد: ${orderNo}`,
         adminTitle: 'طلب ضيافة جديد',
       }
@@ -113,7 +113,7 @@ function eventCopy(event: OrderConfirmationEvent, orderNo: string) {
       return {
         customerSubject: `تم تأكيد الدفع ${orderNo} | Event Catering`,
         customerTitle: 'تم الدفع بنجاح',
-        customerBody: 'استلمنا الدفع. فاتورة مدفوعة PDF مرفقة بهذا البريد.',
+        customerBody: 'استلمنا الدفع بنجاح. الفاتورة المدفوعة PDF مرفقة.',
         adminSubject: `دفع مؤكد: ${orderNo}`,
         adminTitle: 'تم تأكيد الدفع',
       }
@@ -194,9 +194,6 @@ export async function sendOrderConfirmation(input: {
 
   const resend = new Resend(resendKey)
   const customerEmail = await resolveCustomerEmail(order)
-  const isSameRecipient =
-    Boolean(customerEmail && adminEmail) &&
-    customerEmail!.toLowerCase() === adminEmail!.toLowerCase()
 
   const name = escapeHtml(order.customer_name)
   const orderNo = escapeHtml(order.order_number)
@@ -205,13 +202,20 @@ export async function sendOrderConfirmation(input: {
   )
   const phoneHtml = escapeHtml(formatPhoneDisplay(order.customer_phone))
   const areaHtml = escapeHtml(order.customer_area)
-  const emailHtml = escapeHtml(customerEmail)
+  const addressHtml = escapeHtml(order.customer_address)
+  const emailHtml = escapeHtml(customerEmail || order.customer_email || '')
   const priceHtml = escapeHtml(order.price_omr)
   const startHtml = escapeHtml(order.start_date)
+  const timeHtml = escapeHtml(order.preferred_time)
+  const daysHtml = escapeHtml((order.preferred_days || []).filter(Boolean).join(' · ') || '—')
   const guestsHtml = escapeHtml(String(order.visits_per_week))
-  const notesHtml = escapeHtml((order.notes || '').slice(0, 500))
+  const hoursHtml = escapeHtml(String(order.hours_per_visit))
+  const notesHtml = escapeHtml(order.notes || '')
   const statusAr = escapeHtml(statusLabel(order).ar)
   const payAr = escapeHtml(paymentLabel(order).ar)
+  const payMethodHtml = escapeHtml(
+    [order.payment_method, order.payment_channel].filter(Boolean).join(' · ') || '—',
+  )
   const safeSite = escapeHtml(siteUrl)
   const safeWa = escapeHtml(whatsapp)
   const waLink = `https://wa.me/${order.customer_phone.replace(/\D/g, '')}`
@@ -232,39 +236,64 @@ export async function sendOrderConfirmation(input: {
       <p>مرحباً ${name}،</p>
       <p><strong>رقم الطلب:</strong> ${orderNo}</p>
       <p><strong>الباقة:</strong> ${packageLabel}</p>
-      <p><strong>الضيوف:</strong> ${guestsHtml} | <strong>التاريخ:</strong> ${startHtml}</p>
+      <p><strong>الضيوف:</strong> ${guestsHtml} · <strong>التاريخ:</strong> ${startHtml} · <strong>الوقت:</strong> ${timeHtml}</p>
       ${statusBox}
       <p>${copy.customerBody}</p>
       <p><a href="https://wa.me/${safeWa}" style="color:#4A234A">واتساب الدعم</a>
          · <a href="${safeSite}/profile" style="color:#4A234A">حسابي</a></p>
-      ${shouldAttachPdf(event) ? '<p style="margin-top:16px;color:#666">الفاتورة PDF مرفقة.</p>' : ''}
+      ${shouldAttachPdf(event) ? '<p style="margin-top:16px;color:#666">ملخص الطلب PDF مرفق.</p>' : ''}
     </div>
   `
 
   const adminHtml = `
-    <div dir="rtl" style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;color:#2a1a2a">
+    <div dir="rtl" style="font-family:Arial,sans-serif;max-width:640px;margin:0 auto;color:#2a1a2a">
       ${emailLogoHtml(siteUrl)}
       <h2 style="color:#4A234A">${copy.adminTitle}: ${orderNo}</h2>
-      <p><strong>العميل:</strong> ${name} | <strong>الجوال:</strong> ${phoneHtml} | <strong>المنطقة:</strong> ${areaHtml}</p>
-      ${customerEmail ? `<p><strong>الإيميل:</strong> ${emailHtml}</p>` : ''}
-      <p><strong>الباقة:</strong> ${packageLabel}</p>
+      <h3 style="margin:20px 0 8px;color:#4A234A">بيانات العميل</h3>
+      <p style="line-height:1.8;margin:0">
+        <strong>الاسم:</strong> ${name}<br/>
+        <strong>الجوال:</strong> ${phoneHtml}<br/>
+        ${emailHtml ? `<strong>الإيميل:</strong> ${emailHtml}<br/>` : ''}
+        <strong>المنطقة:</strong> ${areaHtml}<br/>
+        <strong>العنوان / المكان:</strong> ${addressHtml}
+      </p>
+      <h3 style="margin:20px 0 8px;color:#4A234A">ماذا يريد العميل</h3>
+      <p style="line-height:1.8;margin:0">
+        <strong>الباقة:</strong> ${packageLabel}<br/>
+        <strong>الضيوف:</strong> ${guestsHtml}<br/>
+        <strong>ساعات الخدمة:</strong> ${hoursHtml}<br/>
+        <strong>تاريخ المناسبة:</strong> ${startHtml}<br/>
+        <strong>الوقت:</strong> ${timeHtml}<br/>
+        <strong>اليوم:</strong> ${daysHtml}
+      </p>
       ${statusBox}
-      ${notesHtml ? `<p style="white-space:pre-wrap;background:#f8f4f0;padding:12px;border-radius:8px">${notesHtml}</p>` : ''}
-      <p><a href="${escapeHtml(waLink)}">واتساب العميل</a> · <a href="${safeSite}/admin/orders">الطلبات</a></p>
+      <p style="margin:8px 0"><strong>طريقة الدفع:</strong> ${payMethodHtml}</p>
+      ${
+        notesHtml
+          ? `<h3 style="margin:20px 0 8px;color:#4A234A">ملخص الطلب الكامل</h3>
+             <pre style="white-space:pre-wrap;background:#f8f4f0;padding:14px;border-radius:8px;font-family:Arial,sans-serif;line-height:1.6;margin:0">${notesHtml}</pre>`
+          : ''
+      }
+      <p style="margin-top:18px">
+        <a href="${escapeHtml(waLink)}">واتساب العميل</a>
+         · <a href="${safeSite}/admin/orders">لوحة الطلبات</a>
+      </p>
+      ${shouldAttachPdf(event) ? '<p style="margin-top:12px;color:#666">ملف PDF بتفاصيل الطلب مرفق.</p>' : ''}
     </div>
   `
 
   const kind = pdfKind(order, event)
-  const filename =
+  const customerFilename =
     event === 'paid'
       ? `invoice-paid-${order.order_number}.pdf`
-      : `invoice-${event}-${order.order_number}.pdf`
+      : `order-summary-${order.order_number}.pdf`
+  const adminFilename = `order-details-${order.order_number}.pdf`
 
-  const attachments = shouldAttachPdf(event)
-    ? [pdfAttachment(order, kind, filename, 'customer')]
+  const customerAttachments = shouldAttachPdf(event)
+    ? [pdfAttachment(order, kind, customerFilename, 'customer')]
     : undefined
   const adminAttachments = shouldAttachPdf(event)
-    ? [pdfAttachment(order, kind, `admin-${filename}`, 'admin')]
+    ? [pdfAttachment(order, kind, adminFilename, 'admin')]
     : undefined
 
   const sends: Promise<unknown>[] = []
@@ -276,12 +305,13 @@ export async function sendOrderConfirmation(input: {
         to: customerEmail,
         subject: copy.customerSubject,
         html: customerHtml,
-        attachments,
+        attachments: customerAttachments,
       }),
     )
   }
 
-  if (notifyAdmin(event) && adminEmail && !isSameRecipient) {
+  // Always notify ADMIN_EMAIL with the detailed order PDF (even if same as customer).
+  if (notifyAdmin(event) && adminEmail) {
     sends.push(
       resend.emails.send({
         from,
@@ -298,7 +328,7 @@ export async function sendOrderConfirmation(input: {
   return {
     success: true,
     customerEmailed: Boolean(customerEmail),
-    adminEmailed: notifyAdmin(event) && Boolean(adminEmail) && !isSameRecipient,
+    adminEmailed: notifyAdmin(event) && Boolean(adminEmail),
   }
 }
 

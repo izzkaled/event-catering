@@ -9,6 +9,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { authClient } from '@/lib/auth-client'
+import { sendEmailSignInOtp } from '@/components/auth/auth-email-form'
+import {
+  COMPLETE_PROFILE_PATH,
+  isCustomerProfileComplete,
+} from '@/lib/auth/profile-completeness'
 import {
   clearAuthSessionKeys,
   clearReturnTo,
@@ -28,6 +33,27 @@ function authErrorMessage(error: unknown): string {
     if (typeof message === 'string' && message.trim()) return message
   }
   return 'Verification failed'
+}
+
+type EmailOtpClient = {
+  emailOtp: {
+    verifyEmail: (args: { email: string; otp: string }) => Promise<{ data: unknown; error: unknown }>
+  }
+  signIn: {
+    emailOtp?: (args: { email: string; otp: string }) => Promise<{ data: unknown; error: unknown }>
+  }
+}
+
+async function verifyEmailOtp(email: string, otp: string) {
+  const client = authClient as unknown as EmailOtpClient
+
+  if (typeof client.signIn.emailOtp === 'function') {
+    const signInResult = await client.signIn.emailOtp({ email, otp })
+    if (!signInResult.error) return
+  }
+
+  const { error } = await client.emailOtp.verifyEmail({ email, otp })
+  if (error) throw new Error(authErrorMessage(error))
 }
 
 export function AuthVerifyForm() {
@@ -60,7 +86,7 @@ export function AuthVerifyForm() {
     let cancelled = false
     ;(async () => {
       try {
-        await sendOtp(false)
+        await sendEmailSignInOtp(email, lang)
         if (!cancelled) {
           toast.message(
             t('تم إرسال رمز التحقق إلى بريدك', 'Verification code sent to your email'),
@@ -88,25 +114,13 @@ export function AuthVerifyForm() {
     return () => window.clearInterval(timer)
   }, [cooldown])
 
-  const sendOtp = async (showToast = true) => {
-    if (!email) return
-    const { error } = await authClient.emailOtp.sendVerificationOtp({
-      email,
-      type: 'email-verification',
-    })
-    if (error) throw new Error(authErrorMessage(error))
-
-    if (showToast) {
-      toast.success(t('تم إرسال الرمز إلى بريدك', 'Code sent to your email'))
-    }
-    setCooldown(RESEND_COOLDOWN_SEC)
-  }
-
   const resend = async () => {
     if (!email || cooldown > 0) return
     setLoading(true)
     try {
-      await sendOtp(true)
+      await sendEmailSignInOtp(email, lang)
+      toast.success(t('تم إرسال الرمز إلى بريدك', 'Code sent to your email'))
+      setCooldown(RESEND_COOLDOWN_SEC)
     } catch (e) {
       toast.error(e instanceof Error ? e.message : 'Failed to resend')
     } finally {
@@ -123,30 +137,35 @@ export function AuthVerifyForm() {
 
     setLoading(true)
     try {
-      const { error } = await authClient.emailOtp.verifyEmail({
-        email,
-        otp: code.trim(),
-      })
-      if (error) throw new Error(authErrorMessage(error))
+      await verifyEmailOtp(email, code.trim())
 
-      // Ensure profile row exists in Neon DB
-      await fetch('/api/profile', { credentials: 'include' }).catch(() => null)
+      const profileRes = await fetch('/api/profile', { credentials: 'include' })
+      const profileData = (await profileRes.json().catch(() => null)) as {
+        user?: { role?: string; name?: string | null; phone?: string | null; area?: string | null }
+      } | null
 
       if (adminOnly) {
-        const profileRes = await fetch('/api/profile', { credentials: 'include' })
-        const profileData = (await profileRes.json().catch(() => null)) as {
-          user?: { role?: string }
-        } | null
         if (!profileRes.ok || profileData?.user?.role !== 'admin') {
           await authClient.signOut().catch(() => null)
           throw new Error(t('هذا الحساب غير مصرح له بالدخول', 'This account is not authorized for admin'))
         }
+        clearAuthSessionKeys()
+        clearReturnTo()
+        toast.success(t('تم التحقق وتسجيل الدخول', 'Verified and signed in'))
+        window.location.href = '/admin'
+        return
       }
 
-      const destination = adminOnly ? '/admin' : getReturnTo('/profile')
       clearAuthSessionKeys()
-      clearReturnTo()
       toast.success(t('تم التحقق وتسجيل الدخول', 'Verified and signed in'))
+
+      if (!isCustomerProfileComplete(profileData?.user)) {
+        window.location.href = COMPLETE_PROFILE_PATH
+        return
+      }
+
+      const destination = getReturnTo('/profile')
+      clearReturnTo()
       window.location.href = destination
     } catch (e) {
       toast.error(e instanceof Error ? e.message : 'Verification failed')
@@ -159,20 +178,13 @@ export function AuthVerifyForm() {
 
   return (
     <div dir={dir} className="site-container-tight py-10">
-      <Card>
+      <Card className="border-border/80 shadow-xl shadow-primary/5">
         <CardHeader>
           <CardTitle>{t('رمز التحقق', 'Verification code')}</CardTitle>
           <CardDescription>
             {t('أدخل الرمز المرسل إلى', 'Enter the code sent to')}{' '}
             <span className="font-medium text-foreground" dir="ltr">
               {email}
-            </span>
-            <br />
-            <span className="text-xs">
-              {t(
-                'المرسل: auth@mail.myneon.app — تحقق من Spam إن لزم.',
-                'Sender: auth@mail.myneon.app — check Spam if needed.',
-              )}
             </span>
           </CardDescription>
         </CardHeader>

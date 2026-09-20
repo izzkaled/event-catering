@@ -4,7 +4,7 @@ import * as React from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
-import { CheckCircle2, Lock, Mail, ShieldCheck, Sparkles, User } from 'lucide-react'
+import { CheckCircle2, Mail, ShieldCheck, Sparkles } from 'lucide-react'
 import { useLanguage } from '@/components/language-provider'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -14,12 +14,9 @@ import { GoogleSignInButton } from '@/components/auth/google-sign-in-button'
 import { authClient } from '@/lib/auth-client'
 import {
   getAuthEmail,
-  getAuthName,
   getReturnTo,
   saveAuthEmail,
   saveAuthMode,
-  saveAuthName,
-  clearReturnTo,
   captureRedirectFromSearch,
   markOtpAlreadySent,
 } from '@/lib/auth/session-storage'
@@ -27,6 +24,22 @@ import {
 type AuthEmailFormProps = {
   mode?: 'login' | 'signup'
   adminOnly?: boolean
+}
+
+type EmailOtpClient = {
+  emailOtp: {
+    sendVerificationOtp: (args: {
+      email: string
+      type: 'sign-in' | 'email-verification' | 'forget-password'
+    }) => Promise<{ data: unknown; error: unknown }>
+  }
+  signIn: {
+    emailOtp?: (args: {
+      email: string
+      otp: string
+      name?: string
+    }) => Promise<{ data: unknown; error: unknown }>
+  }
 }
 
 function authErrorMessage(error: unknown, lang: 'ar' | 'en' = 'en'): string {
@@ -56,12 +69,32 @@ function FieldIcon({ children }: { children: React.ReactNode }) {
   )
 }
 
+/** Send passwordless OTP (prefer sign-in; fall back to email-verification). */
+export async function sendEmailSignInOtp(email: string, lang: 'ar' | 'en' = 'en') {
+  const client = authClient as unknown as EmailOtpClient
+  const signInAttempt = await client.emailOtp.sendVerificationOtp({
+    email,
+    type: 'sign-in',
+  })
+  if (!signInAttempt.error) {
+    return { type: 'sign-in' as const }
+  }
+
+  const verifyAttempt = await client.emailOtp.sendVerificationOtp({
+    email,
+    type: 'email-verification',
+  })
+  if (!verifyAttempt.error) {
+    return { type: 'email-verification' as const }
+  }
+
+  throw new Error(authErrorMessage(signInAttempt.error || verifyAttempt.error, lang))
+}
+
 export function AuthEmailForm({ mode = 'login', adminOnly = false }: AuthEmailFormProps) {
   const router = useRouter()
   const { dir, lang } = useLanguage()
-  const [name, setName] = React.useState('')
   const [email, setEmail] = React.useState('')
-  const [password, setPassword] = React.useState('')
   const [loading, setLoading] = React.useState(false)
 
   const t = (ar: string, en: string) => (lang === 'ar' ? ar : en)
@@ -69,22 +102,12 @@ export function AuthEmailForm({ mode = 'login', adminOnly = false }: AuthEmailFo
   React.useEffect(() => {
     captureRedirectFromSearch(window.location.search)
     const storedEmail = getAuthEmail()
-    const storedName = getAuthName()
     if (storedEmail) setEmail(storedEmail)
-    if (storedName && mode === 'signup') setName(storedName)
-  }, [mode])
+  }, [])
 
-  const finishLoggedIn = async () => {
-    await fetch('/api/profile', { credentials: 'include' }).catch(() => null)
-    const destination = adminOnly ? '/admin' : getReturnTo('/profile')
-    clearReturnTo()
-    window.location.href = destination
-  }
-
-  const goVerify = (targetEmail: string, nextMode: 'login' | 'signup') => {
+  const goVerify = (targetEmail: string) => {
     saveAuthEmail(targetEmail)
-    saveAuthMode(nextMode)
-    if (name.trim()) saveAuthName(name.trim())
+    saveAuthMode(mode)
     markOtpAlreadySent()
     router.push(adminOnly ? '/auth/verify?admin=1' : '/auth/verify')
   }
@@ -95,141 +118,14 @@ export function AuthEmailForm({ mode = 'login', adminOnly = false }: AuthEmailFo
       toast.error(t('أدخل بريداً إلكترونياً صالحاً', 'Enter a valid email address'))
       return
     }
-    if (password.length < 8) {
-      toast.error(t('كلمة المرور يجب أن تكون 8 أحرف على الأقل', 'Password must be at least 8 characters'))
-      return
-    }
-    if (mode === 'signup' && !name.trim()) {
-      toast.error(t('الاسم مطلوب', 'Name is required'))
-      return
-    }
 
     setLoading(true)
     try {
-      if (mode === 'signup') {
-        const { data, error } = await authClient.signUp.email({
-          email: normalizedEmail,
-          password,
-          name: name.trim(),
-        })
-        if (error) throw new Error(authErrorMessage(error, lang))
-
-        if (data?.user && !data.user.emailVerified) {
-          const { error: otpError } = await authClient.emailOtp.sendVerificationOtp({
-            email: normalizedEmail,
-            type: 'email-verification',
-          })
-          if (otpError) {
-            throw new Error(authErrorMessage(otpError, lang))
-          }
-          toast.success(t('تحقق من بريدك لإدخال رمز OTP', 'Check your email for the OTP code'))
-          goVerify(normalizedEmail, 'signup')
-          return
-        }
-
-        toast.success(t('تم إنشاء الحساب', 'Account created'))
-        await finishLoggedIn()
-        return
-      }
-
-      const { data, error } = await authClient.signIn.email({
-        email: normalizedEmail,
-        password,
-      })
-
-      if (error) {
-        const message = authErrorMessage(error, lang)
-        const messageLower = message.toLowerCase()
-        const code =
-          typeof error === 'object' && error !== null && 'code' in error
-            ? String((error as { code?: unknown }).code || '')
-            : ''
-
-        if (code === 'TOO_MANY_ATTEMPTS' || messageLower.includes('too many failed')) {
-          throw new Error(message)
-        }
-
-        if (messageLower.includes('verif') || messageLower.includes('email not verified')) {
-          const { error: otpError } = await authClient.emailOtp.sendVerificationOtp({
-            email: normalizedEmail,
-            type: 'email-verification',
-          })
-          if (otpError) {
-            throw new Error(authErrorMessage(otpError, lang))
-          }
-          toast.message(t('يلزم التحقق من البريد أولاً', 'Please verify your email first'))
-          goVerify(normalizedEmail, 'login')
-          return
-        }
-
-        // Google-only accounts return INVALID_EMAIL_OR_PASSWORD (they have no password).
-        if (
-          code === 'INVALID_EMAIL_OR_PASSWORD' ||
-          messageLower.includes('invalid email or password') ||
-          messageLower.includes('invalid credentials')
-        ) {
-          toast.error(
-            t(
-              'البريد أو كلمة المرور غير صحيحة. إذا سجّلت عبر Google، استخدم الزر أعلاه.',
-              'Wrong email or password. If you signed up with Google, use the button above.',
-            ),
-          )
-          return
-        }
-
-        if (
-          messageLower.includes('not found') ||
-          messageLower.includes('no user') ||
-          messageLower.includes('user not found') ||
-          messageLower.includes('does not exist')
-        ) {
-          saveAuthEmail(normalizedEmail)
-          saveAuthMode('signup')
-          toast.error(
-            t(
-              'تعذر تسجيل الدخول. إذا لم يكن لديك حساب، سجّل الآن.',
-              'Could not sign in. If you don’t have an account, sign up.',
-            ),
-            {
-              action: {
-                label: t('إنشاء حساب', 'Sign up'),
-                onClick: () => router.push('/auth/signup'),
-              },
-            },
-          )
-          return
-        }
-
-        throw new Error(message)
-      }
-
-      if (adminOnly) {
-        const profileRes = await fetch('/api/profile', { credentials: 'include' })
-        const profileData = (await profileRes.json().catch(() => null)) as {
-          user?: { role?: string }
-        } | null
-        if (!profileRes.ok || profileData?.user?.role !== 'admin') {
-          await authClient.signOut().catch(() => null)
-          throw new Error(t('هذا الحساب غير مصرح له بالدخول', 'This account is not authorized for admin'))
-        }
-      }
-
-      if (data?.user && !data.user.emailVerified) {
-        const { error: otpError } = await authClient.emailOtp.sendVerificationOtp({
-          email: normalizedEmail,
-          type: 'email-verification',
-        })
-        if (otpError) {
-          throw new Error(authErrorMessage(otpError, lang))
-        }
-        goVerify(normalizedEmail, 'login')
-        return
-      }
-
-      toast.success(t('تم تسجيل الدخول بنجاح', 'Logged in successfully'))
-      await finishLoggedIn()
+      await sendEmailSignInOtp(normalizedEmail, lang)
+      toast.success(t('تحقق من بريدك لإدخال رمز OTP', 'Check your email for the OTP code'))
+      goVerify(normalizedEmail)
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : t('فشل تسجيل الدخول', 'Sign-in failed'))
+      toast.error(e instanceof Error ? e.message : t('تعذر إرسال الرمز', 'Could not send code'))
     } finally {
       setLoading(false)
     }
@@ -239,7 +135,7 @@ export function AuthEmailForm({ mode = 'login', adminOnly = false }: AuthEmailFo
     t('تتبع طلباتك من مكان واحد', 'Track all your requests in one place'),
     t('حفظ بياناتك لطلب أسرع', 'Save details for faster requests'),
     t('استلام العروض والفواتير على بريدك', 'Receive quotes and invoices by email'),
-    t('تسجيل دخول آمن عبر Google أو البريد', 'Secure login with Google or email'),
+    t('تسجيل دخول آمن عبر Google أو البريد وOTP', 'Secure login with Google or email OTP'),
   ]
 
   const formCard = (
@@ -254,9 +150,9 @@ export function AuthEmailForm({ mode = 'login', adminOnly = false }: AuthEmailFo
         </CardTitle>
         <CardDescription className="text-base">
           {adminOnly
-            ? t('سجّل الدخول بـ Google أو البريد وكلمة المرور', 'Sign in with Google or email')
+            ? t('سجّل الدخول بـ Google أو البريد ورمز OTP', 'Sign in with Google or email OTP')
             : mode === 'signup'
-              ? t('انضم إلينا واطلب ضيافة مناسبتك بسهولة', 'Join us and request hospitality for your occasion')
+              ? t('انضم إلينا عبر Google أو البريد ورمز التحقق', 'Join with Google or email OTP')
               : t('مرحباً بعودتك! سجّل دخولك للمتابعة', 'Welcome back! Sign in to continue')}
         </CardDescription>
       </CardHeader>
@@ -266,26 +162,6 @@ export function AuthEmailForm({ mode = 'login', adminOnly = false }: AuthEmailFo
           <span className="relative z-10 bg-card px-3">{t('أو بالبريد الإلكتروني', 'or with email')}</span>
           <span className="absolute inset-x-0 top-1/2 border-t border-border" />
         </div>
-
-        {mode === 'signup' && (
-          <div className="space-y-1.5">
-            <Label htmlFor="auth-name">{t('الاسم الكامل', 'Full name')}</Label>
-            <div className="relative">
-              <FieldIcon>
-                <User className="size-4" />
-              </FieldIcon>
-              <Input
-                id="auth-name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                autoComplete="name"
-                disabled={loading}
-                className="h-11 ps-10 text-base"
-                placeholder={t('مثال: أحمد الهنائي', 'e.g. Ahmed Al-Hinai')}
-              />
-            </div>
-          </div>
-        )}
 
         <div className="space-y-1.5">
           <Label htmlFor="auth-email">{t('البريد الإلكتروني', 'Email')}</Label>
@@ -310,50 +186,17 @@ export function AuthEmailForm({ mode = 'login', adminOnly = false }: AuthEmailFo
           </div>
         </div>
 
-        <div className="space-y-1.5">
-          <div className="flex items-center justify-between gap-2">
-            <Label htmlFor="auth-password">{t('كلمة المرور', 'Password')}</Label>
-            {mode === 'login' && (
-              <Link
-                href="/auth/forgot"
-                className="text-xs font-semibold text-brand-terracotta underline-offset-4 hover:underline"
-              >
-                {t('نسيت كلمة المرور؟', 'Forgot password?')}
-              </Link>
-            )}
-          </div>
-          <div className="relative">
-            <FieldIcon>
-              <Lock className="size-4" />
-            </FieldIcon>
-            <Input
-              id="auth-password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
-              disabled={loading}
-              className="h-11 ps-10 text-base"
-              placeholder={mode === 'signup' ? t('8 أحرف على الأقل', 'At least 8 characters') : '••••••••'}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') submit()
-              }}
-            />
-          </div>
-          {mode === 'signup' && (
-            <p className="text-xs text-muted-foreground">
-              {t('استخدم 8 أحرف أو أكثر لحماية حسابك', 'Use 8+ characters to secure your account')}
-            </p>
-          )}
-        </div>
-
         <Button className="h-11 w-full text-base shadow-md shadow-primary/15" onClick={submit} disabled={loading}>
           {loading
-            ? t('جارٍ...', 'Please wait...')
+            ? t('جارٍ إرسال الرمز...', 'Sending code...')
             : mode === 'signup'
-              ? t('إنشاء الحساب', 'Create account')
+              ? t('إرسال رمز التحقق', 'Send verification code')
               : t('تسجيل الدخول', 'Log in')}
         </Button>
+
+        <p className="text-center text-xs text-muted-foreground">
+          {t('سندخل بحسابك عبر رمز OTP — بدون كلمة مرور', 'Sign in with an email OTP — no password')}
+        </p>
 
         {!adminOnly && (
           <p className="text-center text-sm text-muted-foreground">
@@ -382,7 +225,11 @@ export function AuthEmailForm({ mode = 'login', adminOnly = false }: AuthEmailFo
         )}
 
         {!adminOnly && (
-          <Button variant="ghost" className="w-full text-muted-foreground" onClick={() => router.push(getReturnTo('/'))}>
+          <Button
+            variant="ghost"
+            className="w-full text-muted-foreground"
+            onClick={() => router.push(getReturnTo('/'))}
+          >
             {t('إلغاء والعودة', 'Cancel and go back')}
           </Button>
         )}
@@ -405,8 +252,8 @@ export function AuthEmailForm({ mode = 'login', adminOnly = false }: AuthEmailFo
               </h2>
               <p className="text-sm leading-relaxed text-muted-foreground">
                 {t(
-                  'احفظ بياناتك، تابع اشتراكاتك، واستلم تأكيدات الحجز والفواتير مباشرة.',
-                  'Save your details, track subscriptions, and get booking confirmations and invoices.',
+                  'احفظ بياناتك، تابع طلباتك، واستلم تأكيدات الحجز والفواتير مباشرة.',
+                  'Save your details, track requests, and get booking confirmations and invoices.',
                 )}
               </p>
             </div>

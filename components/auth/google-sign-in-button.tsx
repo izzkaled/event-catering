@@ -17,6 +17,7 @@ function isAuthPath(path: string) {
     path.startsWith('/auth/login') ||
     path.startsWith('/auth/signup') ||
     path.startsWith('/auth/verify') ||
+    path.startsWith('/auth/complete-profile') ||
     path.startsWith('/login') ||
     path.startsWith('/signup') ||
     path.startsWith('/admin/login')

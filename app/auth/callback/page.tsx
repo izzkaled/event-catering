@@ -2,6 +2,10 @@
 
 import * as React from 'react'
 import { authClient } from '@/lib/auth-client'
+import {
+  COMPLETE_PROFILE_PATH,
+  isCustomerProfileComplete,
+} from '@/lib/auth/profile-completeness'
 import { clearReturnTo, getReturnTo } from '@/lib/auth/session-storage'
 
 export default function AuthCallbackPage() {
@@ -27,14 +31,14 @@ export default function AuthCallbackPage() {
 
         if (authed) {
           const profileRes = await fetch('/api/profile', { credentials: 'include' }).catch(() => null)
+          const profileData = (await profileRes?.json().catch(() => null)) as {
+            user?: { role?: string; name?: string | null; phone?: string | null; area?: string | null }
+          } | null
           const destination = getReturnTo('/profile')
-          clearReturnTo()
 
           if (destination.startsWith('/admin')) {
-            const profileData = (await profileRes?.json().catch(() => null)) as {
-              user?: { role?: string }
-            } | null
             if (profileRes?.ok && profileData?.user?.role === 'admin') {
+              clearReturnTo()
               window.location.href = '/admin'
               return
             }
@@ -43,6 +47,12 @@ export default function AuthCallbackPage() {
             return
           }
 
+          if (!isCustomerProfileComplete(profileData?.user)) {
+            window.location.href = COMPLETE_PROFILE_PATH
+            return
+          }
+
+          clearReturnTo()
           window.location.href = destination
           return
         }

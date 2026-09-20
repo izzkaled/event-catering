@@ -32,7 +32,7 @@ export default function HomePage() {
       <JsonLdBusiness />
       <JsonLdFaq />
       <SiteHeader />
-      <main className="min-w-0 flex-1 overflow-x-clip">
+      <main className="min-w-0 flex-1">
         <Hero />
         <IntroSection />
         <OccasionsSection />

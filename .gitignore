@@ -44,3 +44,5 @@ netlify-deploy-log*.txt
 # Local catalog image uploads (fallback when Blobs/Cloudinary unavailable)
 public/uploads/
 !public/uploads/.gitkeep
+
+tmp/

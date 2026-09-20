@@ -9,11 +9,15 @@ import { cn } from '@/lib/utils'
 
 const HIDDEN_PREFIXES = ['/admin', '/auth', '/booking', '/experience']
 
+/** Spacer height: floating bar (~3.5rem) + float gap + safe area */
+const NAV_SPACE =
+  'h-[calc(4.75rem+env(safe-area-inset-bottom,0px))] md:hidden'
+
 export function MobileBottomNav() {
   const pathname = usePathname()
   const { t, dir, lang } = useLanguage()
   const [loggedIn, setLoggedIn] = useState(false)
-  const navRef = useRef<HTMLElement>(null)
+  const shellRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     fetch('/api/profile')
@@ -23,33 +27,35 @@ export function MobileBottomNav() {
 
   const hidden = HIDDEN_PREFIXES.some((p) => pathname?.startsWith(p))
 
-  /** Keep bar stuck to the visible screen bottom (mobile browser chrome / keyboard). */
+  /**
+   * Keep the floating dock in the visible viewport when mobile chrome
+   * resizes — without fighting pinch-zoom.
+   */
   useEffect(() => {
     if (hidden) return
 
     let disposed = false
+    let raf = 0
     let sync: (() => void) | null = null
-    let nav: HTMLElement | null = null
 
     const attach = () => {
       if (disposed) return
-      nav = navRef.current
-      if (!nav) return
+      const shell = shellRef.current
+      if (!shell) return
 
       sync = () => {
-        if (!nav) return
-        const vv = window.visualViewport
-        if (!vv) {
-          nav.style.removeProperty('transform')
-          return
-        }
-        // Don't fight pinch-zoom — only offset for keyboard / browser chrome.
-        if ((vv.scale ?? 1) > 1.01) {
-          nav.style.removeProperty('transform')
-          return
-        }
-        const shift = Math.round(window.innerHeight - vv.height - vv.offsetTop)
-        nav.style.transform = shift ? `translate3d(0, ${-shift}px, 0)` : 'translate3d(0, 0, 0)'
+        cancelAnimationFrame(raf)
+        raf = requestAnimationFrame(() => {
+          const vv = window.visualViewport
+          if (!vv || (vv.scale ?? 1) > 1.01) {
+            shell.style.removeProperty('transform')
+            return
+          }
+          const shift = Math.round(window.innerHeight - vv.height - vv.offsetTop)
+          // Only nudge when keyboard/chrome actually eats space
+          shell.style.transform =
+            shift > 8 ? `translate3d(0, ${-shift}px, 0)` : 'translate3d(0, 0, 0)'
+        })
       }
 
       sync()
@@ -59,11 +65,12 @@ export function MobileBottomNav() {
       window.addEventListener('orientationchange', sync)
     }
 
-    const raf = window.requestAnimationFrame(attach)
+    const start = window.requestAnimationFrame(attach)
 
     return () => {
       disposed = true
-      window.cancelAnimationFrame(raf)
+      window.cancelAnimationFrame(start)
+      cancelAnimationFrame(raf)
       if (sync) {
         window.visualViewport?.removeEventListener('resize', sync)
         window.visualViewport?.removeEventListener('scroll', sync)
@@ -90,7 +97,6 @@ export function MobileBottomNav() {
       label: t('nav.packages'),
       icon: Layers,
       active: pathname?.startsWith('/packages') || pathname?.startsWith('/experience'),
-      highlight: true,
     },
     {
       href: accountHref,
@@ -105,47 +111,63 @@ export function MobileBottomNav() {
 
   return (
     <>
-      <div className="h-[calc(4rem+env(safe-area-inset-bottom,0px))] md:hidden" aria-hidden />
+      <div className={NAV_SPACE} aria-hidden />
 
-      <nav
-        ref={navRef}
-        dir={dir}
-        aria-label={lang === 'ar' ? 'التنقل السفلي' : 'Bottom navigation'}
-        className="fixed inset-x-0 bottom-0 z-50 border-t border-border/80 bg-background/95 pb-[env(safe-area-inset-bottom,0px)] shadow-[0_-2px_16px_color-mix(in_srgb,#223826_8%,transparent)] backdrop-blur-md md:hidden [transform:translate3d(0,0,0)] [backface-visibility:hidden]"
+      <div
+        ref={shellRef}
+        className="pointer-events-none fixed inset-x-0 bottom-0 z-50 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom,0px))] pt-1 md:hidden backface-hidden transform-[translate3d(0,0,0)]"
       >
-        <ul className="grid h-16 grid-cols-3">
-          {items.map((item) => {
-            const Icon = item.icon
-            return (
-              <li key={item.href} className="min-w-0">
-                <Link
-                  href={item.href}
-                  className={cn(
-                    'flex h-full min-w-0 flex-col items-center justify-center gap-1 px-1 py-2 transition-colors',
-                    item.active
-                      ? 'text-primary'
-                      : 'text-muted-foreground active:text-foreground',
-                  )}
-                >
-                  <span
+        <nav
+          dir={dir}
+          aria-label={lang === 'ar' ? 'التنقل السفلي' : 'Bottom navigation'}
+          className={cn(
+            'pointer-events-auto mx-auto w-full max-w-md',
+            'rounded-[1.65rem] border border-white/50',
+            'bg-[#faf7f2]/88 shadow-[0_10px_40px_-12px_rgba(42,18,42,0.35),0_2px_8px_-2px_rgba(42,18,42,0.12)]',
+            'backdrop-blur-xl backdrop-saturate-150',
+            'ring-1 ring-black/4',
+          )}
+        >
+          <ul className="grid h-[3.35rem] grid-cols-3 px-1.5">
+            {items.map((item) => {
+              const Icon = item.icon
+              return (
+                <li key={item.href} className="min-w-0">
+                  <Link
+                    href={item.href}
                     className={cn(
-                      'flex size-9 shrink-0 items-center justify-center rounded-xl',
-                      item.highlight &&
-                        'bg-primary text-primary-foreground shadow-sm shadow-primary/20',
-                      item.active && !item.highlight && 'bg-primary/10',
+                      'relative flex h-full min-w-0 flex-col items-center justify-center gap-0.5 rounded-2xl px-1 transition-colors',
+                      'active:scale-[0.96]',
+                      item.active ? 'text-[#4A234A]' : 'text-[#4A234A]/45',
                     )}
                   >
-                    <Icon className="size-5" strokeWidth={item.active ? 2.5 : 2} />
-                  </span>
-                  <span className="w-full truncate text-center text-[11px] font-semibold leading-none">
-                    {item.label}
-                  </span>
-                </Link>
-              </li>
-            )
-          })}
-        </ul>
-      </nav>
+                    {item.active ? (
+                      <span
+                        aria-hidden
+                        className="absolute inset-x-3 top-1.5 h-8 rounded-full bg-[#4A234A]/08"
+                      />
+                    ) : null}
+                    <Icon
+                      className="relative size-[1.35rem]"
+                      strokeWidth={item.active ? 2.4 : 1.75}
+                      fill={item.active ? 'currentColor' : 'none'}
+                      fillOpacity={item.active ? 0.18 : 0}
+                    />
+                    <span
+                      className={cn(
+                        'relative w-full truncate text-center text-[10px] leading-none tracking-wide',
+                        item.active ? 'font-semibold' : 'font-medium',
+                      )}
+                    >
+                      {item.label}
+                    </span>
+                  </Link>
+                </li>
+              )
+            })}
+          </ul>
+        </nav>
+      </div>
     </>
   )
 }

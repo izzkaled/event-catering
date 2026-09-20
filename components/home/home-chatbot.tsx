@@ -244,7 +244,7 @@ export function HomeChatbot() {
         aria-label={ar ? 'مساعد إيفنت' : 'Event Helper'}
         className={cn(
           'fixed z-[46] start-3 sm:start-6',
-          'bottom-[calc(9.5rem+env(safe-area-inset-bottom,0px))] md:bottom-[7rem]',
+          'bottom-[calc(10.25rem+env(safe-area-inset-bottom,0px))] md:bottom-[7rem]',
           'flex w-[min(22.5rem,calc(100vw-1.5rem))] flex-col overflow-hidden',
           'rounded-[1.75rem] border border-brand-sand/30 bg-brand-cream/98 shadow-[0_20px_50px_-12px_color-mix(in_srgb,var(--brand-palm)_35%,transparent)] backdrop-blur-xl',
           'transition-[opacity,transform] duration-300 ease-out origin-bottom',
@@ -386,7 +386,7 @@ export function HomeChatbot() {
       <div
         className={cn(
           'fixed z-[45] start-3 sm:start-6',
-          'bottom-[calc(4.75rem+env(safe-area-inset-bottom,0px))] md:bottom-6',
+          'bottom-[calc(5.5rem+env(safe-area-inset-bottom,0px))] md:bottom-6',
           'flex flex-col items-center gap-2',
         )}
       >

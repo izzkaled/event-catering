@@ -219,7 +219,7 @@ export function StoryZoomSection() {
           'sticky top-14 sm:top-[4.25rem] z-30 flex flex-col overflow-hidden overscroll-y-contain touch-pan-y bg-[#2a122a]',
           'h-[calc(100svh-3.5rem)] max-h-[calc(100svh-3.5rem)] sm:h-[calc(100svh-4.25rem)] sm:max-h-[calc(100svh-4.25rem)]',
           // keep copy above the mobile bottom nav
-          'pb-[calc(4.25rem+env(safe-area-inset-bottom,0px))] md:pb-0',
+          'pb-[calc(5.25rem+env(safe-area-inset-bottom,0px))] md:pb-0',
         )}
       >
         <div className="absolute inset-0 overflow-hidden contain-paint">

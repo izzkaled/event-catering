@@ -21,7 +21,7 @@ export function WhatsAppButton() {
         onBooking
           ? 'bottom-[calc(5.25rem+env(safe-area-inset-bottom,0px))] sm:bottom-6'
           : hasBottomNav
-            ? 'bottom-[calc(4.75rem+env(safe-area-inset-bottom,0px))] md:bottom-6'
+            ? 'bottom-[calc(5.5rem+env(safe-area-inset-bottom,0px))] md:bottom-6'
             : 'bottom-[max(1rem,env(safe-area-inset-bottom,0px))] sm:bottom-6',
       )}
     >

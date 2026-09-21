@@ -44,14 +44,14 @@ export const SEO_TITLE_EN = 'Catering & Event Hospitality Oman | Event Catering'
 export const SEO_TITLE_DEFAULT = 'كاترينج وضيافة مناسبات عُمان | إيفنت كاترينج'
 
 export const SEO_DESCRIPTION_AR =
-  'كاترينج وضيافة مناسبات في عُمان: جهات حكومية، شركات، اجتماعات، مؤتمرات، افتتاحات ومناسبات خاصة. باقات جاهزة أو تخصيص حسب الضيوف والخدمات والموقع — من الطلب حتى التنفيذ في مسقط وباقي المحافظات.'
+  'كاترينج وضيافة مناسبات في عُمان للجهات الحكومية والشركات والمناسبات الخاصة. اختر باقة أو خصّص تجربتك وأرسل الطلب أونلاين.'
 
 export const SEO_DESCRIPTION_EN =
-  'Catering and event hospitality across Oman — government, corporate, meetings, conferences, openings and private occasions. Ready packages or custom guests, services and venue — coordinated from request to delivery nationwide.'
+  'Catering and event hospitality across Oman for government, corporate and private occasions. Choose a package or customize — then submit your request online.'
 
 /**
  * Primary meta description for Oman SERP (Arabic).
- * Packed with intents; ~155–165 chars is the practical Google display band.
+ * Two short sentences ≈ 140–155 chars — Google’s practical snippet band.
  */
 export const SEO_DESCRIPTION = SEO_DESCRIPTION_AR
 

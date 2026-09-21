@@ -10,7 +10,7 @@ export const dynamic = 'force-dynamic'
 export const metadata: Metadata = {
   title: 'صمم ضيافتك | كاترينج مخصص حسب المناسبة في عُمان',
   description:
-    'أجب عن بضعة أسئلة وسنرشّح كاترينج وضيافة تناسب نوع المناسبة، عدد الضيوف والميزانية في عُمان — حكومي، شركات أو خاص.',
+    'أجب عن بضعة أسئلة وسنرشّح كاترينج وضيافة تناسب مناسبتك وميزانيتك في عُمان.',
   keywords: [
     'تخصيص ضيافة',
     'كاترينج حسب المناسبة',
@@ -20,7 +20,7 @@ export const metadata: Metadata = {
   alternates: { canonical: `${SITE_URL}/experience/find` },
   openGraph: {
     title: 'صمم ضيافتك | كاترينج مخصص في عُمان',
-    description: 'ترشيح باقات كاترينج وضيافة حسب مناسبتك وميزانيتك في عُمان.',
+    description: 'ترشيح كاترينج وضيافة حسب مناسبتك وميزانيتك في عُمان.',
     url: `${SITE_URL}/experience/find`,
   },
 }

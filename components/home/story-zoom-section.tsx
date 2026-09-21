@@ -83,6 +83,7 @@ const NAV_ACTIVE =
 export function StoryZoomSection() {
   const { t, lang } = useLanguage()
   const trackRef = useRef<HTMLDivElement>(null)
+  const stageRef = useRef<HTMLDivElement>(null)
   const fillRef = useRef<HTMLDivElement>(null)
   const counterRef = useRef<HTMLParagraphElement>(null)
   const zoomLayerRefs = useRef<(HTMLDivElement | null)[]>([])
@@ -92,6 +93,7 @@ export function StoryZoomSection() {
   const lastIndex = useRef(0)
   const active = useRef(false)
   const lastZoom = useRef(0)
+  const lastFill = useRef(-1)
   const prefs = useRef({ narrow: false, reduceMotion: false, segmentVh: 155, zoomStrength: 0.28 })
 
   useEffect(() => {
@@ -103,7 +105,8 @@ export function StoryZoomSection() {
         narrow,
         reduceMotion: motionMq.matches,
         segmentVh: narrow ? 110 : 155,
-        zoomStrength: narrow ? 0.12 : 0.24,
+        // Weaker zoom = fewer expensive full-bleed resamples on mobile GPUs
+        zoomStrength: narrow ? 0.08 : 0.16,
       }
       if (trackRef.current) {
         trackRef.current.style.height = `${PANELS.length * prefs.current.segmentVh}vh`
@@ -122,31 +125,46 @@ export function StoryZoomSection() {
     let raf = 0
     let ticking = false
     let listening = false
+    let settleTimer = 0
+
+    const setScrolling = (on: boolean) => {
+      const stage = stageRef.current
+      if (!stage) return
+      if (on) stage.dataset.scrolling = '1'
+      else delete stage.dataset.scrolling
+    }
+
+    const markScrolling = () => {
+      setScrolling(true)
+      window.clearTimeout(settleTimer)
+      settleTimer = window.setTimeout(() => setScrolling(false), 140)
+    }
+
+    const showPanel = (el: HTMLDivElement | null, on: boolean) => {
+      if (!el) return
+      // visibility:hidden drops inactive full-bleed images off the compositor
+      el.style.opacity = on ? '1' : '0'
+      el.style.visibility = on ? 'visible' : 'hidden'
+      el.style.contentVisibility = on ? 'visible' : 'hidden'
+      el.setAttribute('aria-hidden', on ? 'false' : 'true')
+    }
 
     const setPanel = (next: number) => {
       const prev = lastIndex.current
       lastIndex.current = next
 
-      const prevZoom = zoomLayerRefs.current[prev]
-      if (prevZoom && prev !== next) {
-        prevZoom.style.transform = 'scale3d(1.06, 1.06, 1)'
-        prevZoom.style.willChange = 'auto'
+      if (prev !== next) {
+        const prevZoom = zoomLayerRefs.current[prev]
+        if (prevZoom) prevZoom.style.transform = 'scale3d(1, 1, 1)'
       }
 
-      const zoomEl = zoomLayerRefs.current[next]
-      if (zoomEl && active.current) zoomEl.style.willChange = 'transform'
+      panelLayerRefs.current.forEach((el, i) => showPanel(el, i === next))
 
-      panelLayerRefs.current.forEach((el, i) => {
-        if (!el) return
-        const on = i === next
-        el.style.opacity = on ? '1' : '0'
-        el.setAttribute('aria-hidden', on ? 'false' : 'true')
-      })
       articleRefs.current.forEach((el, i) => {
         if (!el) return
         const on = i === next
         el.style.opacity = on ? '1' : '0'
-        el.style.transform = on ? 'translate3d(0,0,0)' : 'translate3d(0,12px,0)'
+        el.style.transform = on ? 'translate3d(0,0,0)' : 'translate3d(0,10px,0)'
         el.style.pointerEvents = on ? 'auto' : 'none'
         el.setAttribute('aria-hidden', on ? 'false' : 'true')
       })
@@ -162,11 +180,16 @@ export function StoryZoomSection() {
       }
     }
 
-    const releaseGpu = () => {
+    const resetLayers = () => {
       zoomLayerRefs.current.forEach((el) => {
         if (!el) return
+        el.style.transform = 'scale3d(1, 1, 1)'
         el.style.willChange = 'auto'
       })
+      panelLayerRefs.current.forEach((el, i) => showPanel(el, i === lastIndex.current))
+      lastZoom.current = 0
+      lastFill.current = -1
+      setScrolling(false)
     }
 
     const paint = () => {
@@ -176,16 +199,16 @@ export function StoryZoomSection() {
 
       const rect = track.getBoundingClientRect()
       const vh = window.innerHeight
-      // Fully above or below the sticky story range — stop GPU work
       const inView = rect.bottom > 0 && rect.top < vh
       if (!inView) {
         if (active.current) {
           active.current = false
-          releaseGpu()
+          resetLayers()
         }
         return
       }
       active.current = true
+      markScrolling()
 
       const { reduceMotion, zoomStrength } = prefs.current
       const top = window.scrollY + rect.top
@@ -194,16 +217,20 @@ export function StoryZoomSection() {
       const next = Math.min(PANELS.length - 1, Math.floor(p * PANELS.length + 1e-4))
       const local = (p * PANELS.length) % 1
       const eased = easeOutCubic(Math.min(1, Math.max(0, local)))
-      const zoom = reduceMotion ? 1.03 : 1 + eased * zoomStrength
-      const fill = ((next + Math.min(1, local + 0.12)) / PANELS.length) * 100
+      // Quantize — cuts style thrash that stacks up after many passes
+      const rawZoom = reduceMotion ? 1.02 : 1 + eased * zoomStrength
+      const zoom = Math.round(rawZoom * 50) / 50
+      const fill = Math.round(((next + Math.min(1, local + 0.12)) / PANELS.length) * 1000) / 10
 
-      // Skip transform writes when change is imperceptible (cuts main-thread thrash on re-entry)
-      if (Math.abs(zoom - lastZoom.current) > 0.001) {
+      if (zoom !== lastZoom.current) {
         lastZoom.current = zoom
         const zoomEl = zoomLayerRefs.current[next]
         if (zoomEl) zoomEl.style.transform = `scale3d(${zoom}, ${zoom}, 1)`
       }
-      if (fillRef.current) fillRef.current.style.width = `${fill}%`
+      if (fill !== lastFill.current && fillRef.current) {
+        lastFill.current = fill
+        fillRef.current.style.width = `${fill}%`
+      }
 
       if (next !== lastIndex.current) setPanel(next)
     }
@@ -228,24 +255,24 @@ export function StoryZoomSection() {
       window.removeEventListener('scroll', onScroll)
       window.removeEventListener('resize', onScroll)
       cancelAnimationFrame(raf)
+      window.clearTimeout(settleTimer)
       ticking = false
       active.current = false
-      releaseGpu()
+      resetLayers()
     }
 
-    // Only attach scroll work while the story track is near the viewport
     const io = new IntersectionObserver(
       (entries) => {
         const visible = entries.some((e) => e.isIntersecting)
         if (visible) startListening()
         else stopListening()
       },
-      { root: null, rootMargin: '20% 0px', threshold: 0 },
+      // Tighter margin — detach scroll work sooner when leaving the story
+      { root: null, rootMargin: '8% 0px', threshold: 0 },
     )
 
     const track = trackRef.current
     if (track) io.observe(track)
-    // First paint in case we're already mid-section (back navigation / restored scroll)
     startListening()
 
     return () => {
@@ -289,31 +316,34 @@ export function StoryZoomSection() {
       style={{ height: `${PANELS.length * 155}vh` }}
     >
       <div
+        ref={stageRef}
         className={cn(
-          // Sit under the sticky site header so the cream bar doesn't cut the image
-          'sticky top-14 sm:top-[4.25rem] z-30 flex flex-col overflow-hidden overscroll-y-contain touch-pan-y bg-[#2a122a]',
+          'story-zoom-stage sticky top-14 sm:top-[4.25rem] z-30 flex flex-col overflow-hidden overscroll-y-contain touch-pan-y bg-[#2a122a]',
           'h-[calc(100svh-3.5rem)] max-h-[calc(100svh-3.5rem)] sm:h-[calc(100svh-4.25rem)] sm:max-h-[calc(100svh-4.25rem)]',
-          // keep copy above the mobile bottom nav
           'pb-[calc(5.25rem+env(safe-area-inset-bottom,0px))] md:pb-0',
         )}
       >
-        <div className="absolute inset-0 overflow-hidden contain-paint">
+        <div className="absolute inset-0 overflow-hidden [contain:paint]">
           {PANELS.map((panel, i) => (
             <div
               key={panel.id}
               ref={(el) => {
                 panelLayerRefs.current[i] = el
-                if (el) el.style.opacity = i === lastIndex.current ? '1' : '0'
+                if (!el) return
+                const on = i === lastIndex.current
+                el.style.opacity = on ? '1' : '0'
+                el.style.visibility = on ? 'visible' : 'hidden'
+                el.style.contentVisibility = on ? 'visible' : 'hidden'
               }}
-              className="absolute inset-0 overflow-hidden transition-[opacity] duration-[280ms] ease-out"
+              className="absolute inset-0 overflow-hidden"
               aria-hidden={i !== lastIndex.current}
             >
               <div
                 ref={(el) => {
                   zoomLayerRefs.current[i] = el
-                  if (el && !el.style.transform) el.style.transform = 'scale3d(1.06, 1.06, 1)'
+                  if (el && !el.style.transform) el.style.transform = 'scale3d(1, 1, 1)'
                 }}
-                className="absolute inset-[-6%] origin-center backface-hidden"
+                className="absolute inset-[-4%] origin-center"
               >
                 <Image
                   src={panel.image}
@@ -322,7 +352,7 @@ export function StoryZoomSection() {
                   priority={i === 0}
                   loading={i === 0 ? 'eager' : 'lazy'}
                   sizes="100vw"
-                  quality={70}
+                  quality={65}
                   draggable={false}
                   className="pointer-events-none select-none object-cover"
                 />
@@ -358,11 +388,11 @@ export function StoryZoomSection() {
                     if (!el) return
                     const on = i === lastIndex.current
                     el.style.opacity = on ? '1' : '0'
-                    el.style.transform = on ? 'translate3d(0,0,0)' : 'translate3d(0,12px,0)'
+                    el.style.transform = on ? 'translate3d(0,0,0)' : 'translate3d(0,10px,0)'
                     el.style.pointerEvents = on ? 'auto' : 'none'
                   }}
                   aria-hidden={i !== lastIndex.current}
-                  className="absolute inset-0 flex flex-col justify-end transition-[opacity,transform] duration-[280ms] ease"
+                  className="story-zoom-copy absolute inset-0 flex flex-col justify-end"
                 >
                   <div className="max-w-2xl text-start text-white">
                     <p className="mb-1.5 font-ios text-[0.65rem] font-medium uppercase tracking-[0.28em] text-[#e0c48a] sm:mb-2 sm:text-[0.7rem]">

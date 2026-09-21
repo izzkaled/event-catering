@@ -685,6 +685,17 @@
   }
 }
 
+/* Story zoom: soft copy fade only when idle — disable while scrolling to avoid GPU queue buildup */
+.story-zoom-copy {
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
+}
+
+.story-zoom-stage[data-scrolling='1'] .story-zoom-copy {
+  transition: none !important;
+}
+
 /* Story focus: one sharp section, others softly dimmed (not unreadable) */
 .drama-panel {
   will-change: transform, opacity, filter;

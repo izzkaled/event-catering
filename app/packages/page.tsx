@@ -8,12 +8,21 @@ import { SITE_URL } from '@/lib/seo'
 export const dynamic = 'force-dynamic'
 
 export const metadata: Metadata = {
-  title: 'باقات الضيافة | Hospitality Packages',
+  title: 'باقات كاترينج وضيافة عُمان | حكومي وشركات ومناسبات',
   description:
-    'تصفّح باقات إيفنت كاترينج للجهات والشركات والمناسبات في عُمان، ثم خصّص تجربتك وأرسل الطلب. Browse Event Catering packages and customize your experience.',
+    'تصفّح باقات الكاترينج والضيافة في عُمان: جهات حكومية، شركات، اجتماعات، مؤتمرات، افتتاحات ومناسبات خاصة. خصّص حسب الضيوف والخدمات وأرسل الطلب أونلاين.',
+  keywords: [
+    'باقات كاترينج عمان',
+    'باقات ضيافة مسقط',
+    'ضيافة حكومية',
+    'ضيافة شركات',
+    'catering packages Oman',
+  ],
   alternates: { canonical: `${SITE_URL}/packages` },
   openGraph: {
-    title: 'باقات الضيافة | Hospitality Packages',
+    title: 'باقات كاترينج وضيافة عُمان | حكومي وشركات ومناسبات',
+    description:
+      'باقات كاترينج وضيافة للجهات والشركات والمناسبات في عُمان — تخصيص وطلب أونلاين.',
     url: `${SITE_URL}/packages`,
   },
 }

@@ -8,14 +8,15 @@ import { Button } from '@/components/ui/button'
 import { SITE_NAME, SITE_URL } from '@/lib/seo'
 
 export const metadata: Metadata = {
-  title: 'أسئلة شائعة | FAQ — ضيافة وباقات المناسبات',
+  title: 'أسئلة شائعة كاترينج وضيافة عُمان | FAQ',
   description:
-    'إجابات عن باقات الضيافة، الأسعار الاسترشادية، الجهات الحكومية والشركات، وكيف ترسل طلباً عبر إيفنت كاترينج في عُمان. FAQ for hospitality packages with Event Catering Oman.',
+    'إجابات عن كاترينج المناسبات، باقات الضيافة، الأسعار، الجهات الحكومية والشركات، والتخصيص والطلب أونلاين عبر إيفنت كاترينج في عُمان.',
+  keywords: ['أسئلة كاترينج', 'أسعار ضيافة عمان', 'FAQ catering Oman'],
   alternates: { canonical: `${SITE_URL}/faq` },
   openGraph: {
-    title: `FAQ | ${SITE_NAME}`,
+    title: `أسئلة شائعة | ${SITE_NAME}`,
     description:
-      'Hospitality packages, indicative pricing, government & corporate events — Event Catering Oman.',
+      'كاترينج، ضيافة، أسعار استرشادية، جهات حكومية وشركات — إيفنت كاترينج عُمان.',
     url: `${SITE_URL}/faq`,
   },
 }

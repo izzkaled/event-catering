@@ -31,47 +31,90 @@ export const SITE_NAME_AR = 'إيفنت كاترينج'
 export const SITE_NAME_EN = 'Event Catering'
 export const SITE_NAME = 'Event Catering | إيفنت كاترينج'
 
-export const SEO_TITLE_AR =
-  'إيفنت كاترينج | باقات ضيافة وتصميم تجربة للمناسبات في عُمان'
-export const SEO_TITLE_EN =
-  'Event Catering | Hospitality Packages & Experience Design in Oman'
+/** Arabic title — multi-intent keywords first, brand last (Oman-wide). */
+export const SEO_TITLE_AR = 'كاترينج وضيافة مناسبات عُمان | إيفنت كاترينج'
+/** English title — parallel intents for EN queries. */
+export const SEO_TITLE_EN = 'Catering & Event Hospitality Oman | Event Catering'
 
-/** Default browser tab / Google snippet title (bilingual, brand first). */
-export const SEO_TITLE_DEFAULT =
-  'Event Catering | ضيافة بالباقات — جهات حكومية وشركات في عُمان'
+/**
+ * Default Google title link.
+ * Covers: كاترينج + ضيافة + مناسبات + عُمان (not city-only), brand at end.
+ * Kept concise enough to reduce truncation/rewrite while matching more queries.
+ */
+export const SEO_TITLE_DEFAULT = 'كاترينج وضيافة مناسبات عُمان | إيفنت كاترينج'
 
 export const SEO_DESCRIPTION_AR =
-  'إيفنت كاترينج منصة ضيافة بالباقات في عُمان. تصفّح الباقات، خصّص تجربتك حسب الضيوف والموعد والخدمات، وأرسل طلباً ننسّقه مع مزوّدي الضيافة للمناسبات الرسمية والاجتماعات والشركات.'
+  'كاترينج وضيافة مناسبات في عُمان: جهات حكومية، شركات، اجتماعات، مؤتمرات، افتتاحات ومناسبات خاصة. باقات جاهزة أو تخصيص حسب الضيوف والخدمات والموقع — من الطلب حتى التنفيذ في مسقط وباقي المحافظات.'
 
 export const SEO_DESCRIPTION_EN =
-  'Event Catering is a hospitality packages platform in Oman. Browse packages, customize guests, schedule and services, then submit a request we coordinate with catering partners for official, corporate and private events.'
+  'Catering and event hospitality across Oman — government, corporate, meetings, conferences, openings and private occasions. Ready packages or custom guests, services and venue — coordinated from request to delivery nationwide.'
 
-/** Combined for meta description. */
-export const SEO_DESCRIPTION = `${SEO_DESCRIPTION_AR} ${SEO_DESCRIPTION_EN}`
+/**
+ * Primary meta description for Oman SERP (Arabic).
+ * Packed with intents; ~155–165 chars is the practical Google display band.
+ */
+export const SEO_DESCRIPTION = SEO_DESCRIPTION_AR
 
+/**
+ * Broad keyword net for discovery (AR + EN + cities + occasion types).
+ * Complements title/description — not a substitute for on-page content.
+ */
 export const SEO_KEYWORDS = [
+  // Brand
   'إيفنت كاترينج',
   'Event Catering',
   'Event Catering Oman',
   'event-om',
   'event-om.com',
   'www.event-om.com',
+  // Core AR intents
+  'كاترينج عمان',
+  'كاترينج عُمان',
+  'كاترينج مسقط',
   'ضيافة عمان',
-  'باقات ضيافة مسقط',
+  'ضيافة عُمان',
+  'ضيافة مناسبات',
+  'ضيافة مناسبات عمان',
+  'كاترينج مناسبات',
+  'باقات ضيافة',
+  'باقات كاترينج',
+  'طلب ضيافة أونلاين',
+  'تصميم تجربة ضيافة',
+  // Audience / occasion AR
   'ضيافة جهات حكومية',
   'ضيافة شركات عُمان',
-  'تصميم تجربة ضيافة',
-  'كاترينج مناسبات مسقط',
+  'ضيافة شركات مسقط',
+  'ضيافة مؤتمرات',
+  'ضيافة اجتماعات',
+  'ضيافة افتتاح',
+  'ضيافة حفل توقيع',
+  'ضيافة ورش عمل',
+  'بوفيه مناسبات عمان',
+  'تموين مناسبات مسقط',
+  // Cities / regions AR (nationwide coverage)
+  'كاترينج مسقط',
+  'كاترينج صلالة',
+  'كاترينج صحار',
+  'كاترينج نزوى',
+  'كاترينج البريمي',
+  'ضيافة مسقط',
+  'ضيافة صلالة',
+  // EN intents
+  'catering Oman',
+  'event catering Oman',
+  'event catering Muscat',
   'hospitality packages Oman',
+  'corporate catering Oman',
   'corporate catering Muscat',
   'government event catering Oman',
+  'conference catering Oman',
+  'meeting catering Muscat',
+  'opening ceremony catering Oman',
+  'private event catering Oman',
   'customize catering experience',
-  'ضيافة مؤتمرات',
-  'ضيافة افتتاح',
-  'ضيافة اجتماعات',
-  'كاترينج مسقط',
-  'طلب ضيافة أونلاين',
-  'Muscat catering packages',
+  'online catering request Oman',
+  'catering Salalah',
+  'catering Sohar',
 ]
 
 export const OG_IMAGE = '/images/brand/brand-table.webp'

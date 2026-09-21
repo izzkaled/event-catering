@@ -8,12 +8,19 @@ import { SITE_URL } from '@/lib/seo'
 export const dynamic = 'force-dynamic'
 
 export const metadata: Metadata = {
-  title: 'اعثر على تجربتك | Find My Experience',
+  title: 'صمم ضيافتك | كاترينج مخصص حسب المناسبة في عُمان',
   description:
-    'أجب عن بضعة أسئلة وسنرشّح باقات ضيافة تناسب مناسبتك وميزانيتك. Answer a few questions and get package recommendations from Event Catering.',
+    'أجب عن بضعة أسئلة وسنرشّح كاترينج وضيافة تناسب نوع المناسبة، عدد الضيوف والميزانية في عُمان — حكومي، شركات أو خاص.',
+  keywords: [
+    'تخصيص ضيافة',
+    'كاترينج حسب المناسبة',
+    'find catering Oman',
+    'custom hospitality package',
+  ],
   alternates: { canonical: `${SITE_URL}/experience/find` },
   openGraph: {
-    title: 'اعثر على تجربتك | Find My Experience',
+    title: 'صمم ضيافتك | كاترينج مخصص في عُمان',
+    description: 'ترشيح باقات كاترينج وضيافة حسب مناسبتك وميزانيتك في عُمان.',
     url: `${SITE_URL}/experience/find`,
   },
 }

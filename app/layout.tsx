@@ -54,8 +54,8 @@ export const metadata: Metadata = {
   authors: [{ name: SITE_NAME, url: SITE_URL }],
   creator: SITE_NAME,
   publisher: SITE_NAME,
-  category: 'hospitality catering',
-  classification: 'Event Catering — Hospitality Packages Oman',
+  category: 'event catering',
+  classification: 'Event Catering — Catering, Hospitality & Occasions across Oman',
   alternates: {
     canonical: '/',
     languages: {
@@ -71,13 +71,13 @@ export const metadata: Metadata = {
     url: SITE_URL,
     siteName: SITE_NAME,
     title: SEO_TITLE_DEFAULT,
-    description: `${SEO_DESCRIPTION_AR} — ${SEO_DESCRIPTION_EN}`,
+    description: SEO_DESCRIPTION_AR,
     images: [
       {
         url: OG_IMAGE,
         width: 1200,
         height: 630,
-        alt: 'Event Catering | إيفنت كاترينج — ضيافة بالباقات',
+        alt: 'إيفنت كاترينج — كاترينج وضيافة مناسبات في عُمان',
       },
     ],
   },

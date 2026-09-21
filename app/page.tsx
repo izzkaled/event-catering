@@ -5,7 +5,7 @@ import { Hero } from '@/components/home/hero'
 import { IntroSection } from '@/components/home/intro-section'
 import { OccasionsSection } from '@/components/home/occasions-section'
 import { HowItWorks } from '@/components/home/how-it-works'
-import { StoryZoomSection, ValueTrustStrip } from '@/components/home/story-zoom-section'
+import { ValueTrustStrip } from '@/components/home/value-trust-strip'
 import { FaqSection } from '@/components/home/faq-section'
 import { CtaBanner } from '@/components/home/cta-banner'
 import { HomeChatbot } from '@/components/home/home-chatbot'
@@ -37,7 +37,6 @@ export default function HomePage() {
         <IntroSection />
         <OccasionsSection />
         <HowItWorks />
-        <StoryZoomSection />
         <ValueTrustStrip />
         <FaqSection limit={4} />
         <CtaBanner />

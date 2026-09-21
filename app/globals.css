@@ -216,7 +216,7 @@
 
 @layer utilities {
   .page-shell {
-    /* No overflow-x here — it breaks position:sticky (story zoom) and fixed bottom nav */
+    /* No overflow-x here — it breaks the fixed mobile bottom nav */
     @apply min-w-0 w-full max-w-full;
   }
   .text-safe {
@@ -683,17 +683,6 @@
     inset-inline-start: calc(94% - 0.75rem);
     transform: translateY(0);
   }
-}
-
-/* Story zoom: soft copy fade only when idle — disable while scrolling to avoid GPU queue buildup */
-.story-zoom-copy {
-  transition:
-    opacity 0.2s ease,
-    transform 0.2s ease;
-}
-
-.story-zoom-stage[data-scrolling='1'] .story-zoom-copy {
-  transition: none !important;
 }
 
 /* Story focus: one sharp section, others softly dimmed (not unreadable) */

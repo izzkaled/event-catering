@@ -9,6 +9,7 @@ import {
 } from '@/lib/cache/storefront'
 import { SITE_URL } from '@/lib/seo'
 
+export const dynamic = 'force-static'
 export const revalidate = STOREFRONT_REVALIDATE_SECONDS
 
 export const metadata: Metadata = {

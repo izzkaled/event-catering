@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { MARKETING_REVALIDATE_SECONDS } from '@/lib/cache/storefront'
 import { SITE_NAME, SITE_URL } from '@/lib/seo'
 
+export const dynamic = 'force-static'
 export const revalidate = MARKETING_REVALIDATE_SECONDS
 
 export const metadata: Metadata = {

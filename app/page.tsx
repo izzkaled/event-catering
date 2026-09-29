@@ -14,7 +14,8 @@ import { JsonLdFaq } from '@/components/seo/json-ld-faq'
 import { MARKETING_REVALIDATE_SECONDS } from '@/lib/cache/storefront'
 import { SEO_DESCRIPTION, SEO_TITLE_DEFAULT, SITE_URL } from '@/lib/seo'
 
-/** Marketing homepage — ISR so Netlify CDN can absorb traffic spikes. */
+/** Marketing homepage — static shell + ISR revalidation for CDN absorption. */
+export const dynamic = 'force-static'
 export const revalidate = MARKETING_REVALIDATE_SECONDS
 
 export const metadata: Metadata = {

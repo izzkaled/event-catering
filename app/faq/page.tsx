@@ -5,11 +5,10 @@ import { SiteFooter } from '@/components/site-footer'
 import { FaqSection } from '@/components/home/faq-section'
 import { JsonLdFaq } from '@/components/seo/json-ld-faq'
 import { Button } from '@/components/ui/button'
-import { MARKETING_REVALIDATE_SECONDS } from '@/lib/cache/storefront'
 import { SITE_NAME, SITE_URL } from '@/lib/seo'
 
 export const dynamic = 'force-static'
-export const revalidate = MARKETING_REVALIDATE_SECONDS
+export const revalidate = 300
 
 export const metadata: Metadata = {
   title: 'أسئلة شائعة كاترينج وضيافة عُمان | FAQ',

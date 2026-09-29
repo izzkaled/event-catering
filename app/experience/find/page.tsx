@@ -4,12 +4,11 @@ import { SiteFooter } from '@/components/site-footer'
 import { FindExperience } from '@/components/experience/find-experience'
 import {
   getExperiencePackagesCached,
-  STOREFRONT_REVALIDATE_SECONDS,
 } from '@/lib/cache/storefront'
 import { SITE_URL } from '@/lib/seo'
 
 export const dynamic = 'force-static'
-export const revalidate = STOREFRONT_REVALIDATE_SECONDS
+export const revalidate = 60
 
 export const metadata: Metadata = {
   title: 'صمم ضيافتك | كاترينج مخصص حسب المناسبة في عُمان',

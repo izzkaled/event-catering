@@ -5,12 +5,11 @@ import { PackagesCatalog } from '@/components/packages/packages-catalog'
 import {
   getActiveCategoriesCached,
   getPublishedPackagesCached,
-  STOREFRONT_REVALIDATE_SECONDS,
 } from '@/lib/cache/storefront'
 import { SITE_URL } from '@/lib/seo'
 
 export const dynamic = 'force-static'
-export const revalidate = STOREFRONT_REVALIDATE_SECONDS
+export const revalidate = 60
 
 export const metadata: Metadata = {
   title: 'باقات كاترينج وضيافة عُمان | حكومي وشركات ومناسبات',

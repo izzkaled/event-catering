@@ -7,11 +7,10 @@ import { PackageViewBeacon } from '@/components/packages/package-view-beacon'
 import { JsonLdPackage } from '@/components/seo/json-ld-package'
 import {
   getPublishedPackageBySlugCached,
-  STOREFRONT_REVALIDATE_SECONDS,
 } from '@/lib/cache/storefront'
 import { SITE_NAME, SITE_URL } from '@/lib/seo'
 
-export const revalidate = STOREFRONT_REVALIDATE_SECONDS
+export const revalidate = 60
 
 type Props = {
   params: Promise<{ slug: string }>

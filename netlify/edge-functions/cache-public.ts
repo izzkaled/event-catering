@@ -1,10 +1,14 @@
-import type { Config, Context } from '@netlify/edge-functions'
-
 /**
  * Next.js on Netlify often emits Cache-Control: private for App Router HTML.
  * Override CDN headers for anonymous public pages so Durable/Edge cache can absorb spikes.
  * HTML is safe to cache: auth state is fetched client-side, not baked into these routes.
+ *
+ * Deno edge runtime — kept out of the Next.js TypeScript project (see tsconfig exclude).
  */
+
+type EdgeContext = {
+  next: (options?: { sendConditionalRequest?: boolean }) => Promise<Response>
+}
 
 const MARKETING = new Set(['/', '/faq'])
 
@@ -19,7 +23,7 @@ function isPublicPath(pathname: string): boolean {
   return false
 }
 
-export default async (request: Request, context: Context) => {
+export default async (request: Request, context: EdgeContext) => {
   if (request.method !== 'GET' && request.method !== 'HEAD') return
 
   const { pathname } = new URL(request.url)
@@ -46,7 +50,7 @@ export default async (request: Request, context: Context) => {
   })
 }
 
-export const config: Config = {
+export const config = {
   path: ['/', '/faq', '/packages', '/packages/*', '/experience/find'],
   excludedPath: ['/packages/*/preview'],
   method: ['GET', 'HEAD'],

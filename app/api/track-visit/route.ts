@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { and, eq, gte } from 'drizzle-orm'
 import { db } from '@/lib/db'
 import { site_visits } from '@/lib/db/schema'
-import { checkRateLimit, getClientIp } from '@/lib/auth/rate-limit'
+import { getClientIp, limitRequest } from '@/lib/auth/rate-limit'
 
 export const dynamic = 'force-dynamic'
 
@@ -23,7 +23,7 @@ function isPrivatePage(page: string) {
 export async function POST(request: Request) {
   try {
     const ip = getClientIp(request)
-    if (!(await checkRateLimit(`track-visit:${ip}`))) {
+    if (!(await limitRequest(`track-visit:${ip}`, 'soft'))) {
       return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
     }
 

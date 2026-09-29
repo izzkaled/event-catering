@@ -4,7 +4,7 @@ import {
   isOrderEmailEvent,
 } from '@/lib/email/send-order-confirmation'
 import { verifyInternalApi } from '@/lib/security/internal-api'
-import { checkRateLimit, getClientIp } from '@/lib/auth/rate-limit'
+import { getClientIp, limitRequest } from '@/lib/auth/rate-limit'
 import { requireCloudflareProxy } from '@/lib/cloudflare/proxy'
 
 export async function POST(request: Request) {
@@ -16,7 +16,7 @@ export async function POST(request: Request) {
     if (denied) return denied
 
     const ip = getClientIp(request)
-    if (!(await checkRateLimit(`send-confirm:${ip}`))) {
+    if (!(await limitRequest(`send-confirm:${ip}`, 'write'))) {
       return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
     }
 

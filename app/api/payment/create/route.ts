@@ -3,7 +3,7 @@ import { eq } from 'drizzle-orm'
 import { db } from '@/lib/db'
 import { orders } from '@/lib/db/schema'
 import { getSessionUser } from '@/lib/auth/get-session-user'
-import { checkRateLimit, getClientIp } from '@/lib/auth/rate-limit'
+import { getClientIp, limitRequest } from '@/lib/auth/rate-limit'
 import {
   createPaymobIntention,
   isPaymobEnabled,
@@ -20,7 +20,7 @@ export const dynamic = 'force-dynamic'
 export async function POST(request: Request) {
   try {
     const ip = getClientIp(request)
-    if (!(await checkRateLimit(`payment-create:${ip}`))) {
+    if (!(await limitRequest(`payment-create:${ip}`, 'write'))) {
       return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
     }
 

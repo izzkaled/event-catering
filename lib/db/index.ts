@@ -2,6 +2,7 @@ import { config } from 'dotenv'
 import { resolve } from 'path'
 import { neon } from '@neondatabase/serverless'
 import { drizzle, type NeonHttpDatabase } from 'drizzle-orm/neon-http'
+import { resolveRuntimeDatabaseUrl } from '@/lib/db/connection-url'
 import * as schema from './schema'
 
 config({ path: resolve(process.cwd(), '.env.local'), override: true })
@@ -9,10 +10,7 @@ config({ path: resolve(process.cwd(), '.env.local'), override: true })
 type DB = NeonHttpDatabase<typeof schema>
 
 function createDb(): DB {
-  const url = process.env.DATABASE_URL
-  if (!url) {
-    throw new Error('DATABASE_URL is not set')
-  }
+  const url = resolveRuntimeDatabaseUrl()
   return drizzle(neon(url), { schema })
 }
 

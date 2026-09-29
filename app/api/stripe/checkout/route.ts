@@ -3,7 +3,7 @@ import { eq } from 'drizzle-orm'
 import { db } from '@/lib/db'
 import { orders } from '@/lib/db/schema'
 import { getSessionUser } from '@/lib/auth/get-session-user'
-import { checkRateLimit, getClientIp } from '@/lib/auth/rate-limit'
+import { getClientIp, limitRequest } from '@/lib/auth/rate-limit'
 import { getOmrExchangeRate, getStripeCurrency, isStripeEnabled } from '@/lib/stripe/config'
 import { formatStripeDisplayAmount, getStripe, omrToStripeAmount } from '@/lib/stripe/server'
 import { resolvePublicSiteUrl } from '@/lib/seo'
@@ -16,7 +16,7 @@ export async function POST(request: Request) {
   }
 
   const ip = getClientIp(request)
-  if (!(await checkRateLimit(`stripe-checkout:${ip}`))) {
+  if (!(await limitRequest(`stripe-checkout:${ip}`, 'write'))) {
     return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
   }
 

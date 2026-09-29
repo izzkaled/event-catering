@@ -72,6 +72,8 @@ export const packages = pgTable('packages', {
   index('packages_section_id_idx').on(table.section_id),
   index('packages_status_idx').on(table.status),
   index('packages_slug_idx').on(table.slug),
+  /** Speeds storefront listing: WHERE is_active AND status ORDER BY sort_order */
+  index('packages_published_sort_idx').on(table.is_active, table.status, table.sort_order),
 ])
 
 /** Dynamic filter categories / occasions managed by admin */

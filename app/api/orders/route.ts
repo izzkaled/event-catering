@@ -6,7 +6,7 @@ import { OMAN_PHONE_REGEX, normalizePhone } from '@/lib/constants'
 import { getSessionUser } from '@/lib/auth/get-session-user'
 import { safeSyncProfileFromOrder } from '@/lib/auth/profile-update'
 import { validateOrderPayload } from '@/lib/security/order-validation'
-import { checkRateLimit, getClientIp } from '@/lib/auth/rate-limit'
+import { getClientIp, limitRequest } from '@/lib/auth/rate-limit'
 import { requireTurnstile } from '@/lib/cloudflare/turnstile'
 import { isPaymobEnabled } from '@/lib/paymob/client'
 import { triggerOrderConfirmation } from '@/lib/security/trigger-confirmation'
@@ -16,7 +16,7 @@ export const dynamic = 'force-dynamic'
 export async function POST(request: Request) {
   try {
     const ip = getClientIp(request)
-    if (!(await checkRateLimit(`orders:${ip}`))) {
+    if (!(await limitRequest(`orders:${ip}`, 'write'))) {
       return NextResponse.json({ error: 'Too many requests. Try again later.' }, { status: 429 })
     }
 

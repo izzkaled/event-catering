@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { verifyAdmin } from '@/lib/admin-auth'
 import { generateWithGemini } from '@/lib/gemini'
 import { sendOutreachEmail } from '@/lib/email/send-outreach-email'
-import { checkRateLimit, getClientIp } from '@/lib/auth/rate-limit'
+import { getClientIp, limitRequest } from '@/lib/auth/rate-limit'
 
 export const dynamic = 'force-dynamic'
 
@@ -31,7 +31,7 @@ export async function POST(request: Request) {
   if (unauthorized) return unauthorized
 
   const ip = getClientIp(request)
-  if (!(await checkRateLimit(`outreach:${ip}`))) {
+  if (!(await limitRequest(`outreach:${ip}`, 'write'))) {
     return NextResponse.json({ error: 'طلبات كثيرة — حاول بعد قليل' }, { status: 429 })
   }
 

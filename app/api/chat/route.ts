@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { getClientIp } from '@/lib/auth/rate-limit'
+import { getClientIp, limitRequest } from '@/lib/auth/rate-limit'
 import { getSessionUser } from '@/lib/auth/get-session-user'
 import { generateWithGemini } from '@/lib/gemini'
 import { fallbackChatReply } from '@/lib/chat/fallback'
@@ -12,20 +12,6 @@ type ChatMessage = { role: 'user' | 'assistant'; content: string }
 
 const MAX_HISTORY = 8
 const MAX_MESSAGE_LEN = 500
-const CHAT_MAX = 30
-const CHAT_WINDOW_MS = 10 * 60 * 1000
-const chatAttempts = new Map<string, { count: number; firstAt: number }>()
-
-function allowChat(ip: string): boolean {
-  const now = Date.now()
-  const entry = chatAttempts.get(ip)
-  if (!entry || now - entry.firstAt > CHAT_WINDOW_MS) {
-    chatAttempts.set(ip, { count: 1, firstAt: now })
-    return true
-  }
-  entry.count += 1
-  return entry.count <= CHAT_MAX
-}
 
 function firstName(full: string | null | undefined): string | null {
   const n = full?.trim()
@@ -69,7 +55,7 @@ ${catalog}`
 
 export async function POST(req: Request) {
   const ip = getClientIp(req)
-  if (!allowChat(ip)) {
+  if (!(await limitRequest(`chat:${ip}`, 'chat'))) {
     return NextResponse.json(
       { error: 'too_many_requests', reply: 'لحظة من فضلك — حاول بعد قليل 🌿' },
       { status: 429 },

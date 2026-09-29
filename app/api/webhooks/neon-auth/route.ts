@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { checkRateLimit, getClientIp } from '@/lib/auth/rate-limit'
+import { getClientIp, limitRequest } from '@/lib/auth/rate-limit'
 import { verifyNeonAuthWebhook } from '@/lib/security/verify-webhook'
 
 export const dynamic = 'force-dynamic'
@@ -24,7 +24,7 @@ export async function POST(req: Request) {
   if (denied) return denied
 
   const ip = getClientIp(req)
-  if (!(await checkRateLimit(`neon-webhook:${ip}`))) {
+  if (!(await limitRequest(`neon-webhook:${ip}`, 'webhook'))) {
     return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
   }
 

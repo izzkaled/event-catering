@@ -3,7 +3,7 @@ import { eq } from 'drizzle-orm'
 import { db } from '@/lib/db'
 import { admin_notifications, orders } from '@/lib/db/schema'
 import { getSessionUser } from '@/lib/auth/get-session-user'
-import { checkRateLimit, getClientIp } from '@/lib/auth/rate-limit'
+import { getClientIp, limitRequest } from '@/lib/auth/rate-limit'
 import { getBankDetails, storeTransferReceipt } from '@/lib/paymob/bank'
 import { triggerOrderConfirmation } from '@/lib/security/trigger-confirmation'
 
@@ -23,7 +23,7 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const ip = getClientIp(request)
-    if (!(await checkRateLimit(`bank-transfer:${ip}`))) {
+    if (!(await limitRequest(`bank-transfer:${ip}`, 'write'))) {
       return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
     }
 

@@ -11,6 +11,8 @@ const statements = [
   'CREATE INDEX IF NOT EXISTS orders_created_at_idx ON orders (created_at)',
   'CREATE INDEX IF NOT EXISTS site_visits_created_at_idx ON site_visits (created_at)',
   'CREATE INDEX IF NOT EXISTS otp_codes_phone_idx ON otp_codes (phone)',
+  'CREATE INDEX IF NOT EXISTS packages_published_sort_idx ON packages (is_active, status, sort_order)',
+  'CREATE INDEX IF NOT EXISTS packages_slug_idx ON packages (slug)',
 ]
 
 for (const stmt of statements) {

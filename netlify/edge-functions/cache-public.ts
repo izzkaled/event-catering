@@ -24,7 +24,7 @@ function isPublicPath(pathname: string): boolean {
 }
 
 export default async (request: Request, context: EdgeContext) => {
-  if (request.method !== 'GET' && request.method !== 'HEAD') return
+  if (request.method !== 'GET') return
 
   const { pathname } = new URL(request.url)
   if (!isPublicPath(pathname)) return
@@ -53,6 +53,6 @@ export default async (request: Request, context: EdgeContext) => {
 export const config = {
   path: ['/', '/faq', '/packages', '/packages/*', '/experience/find'],
   excludedPath: ['/packages/*/preview'],
-  method: ['GET', 'HEAD'],
+  method: 'GET',
   onError: 'bypass',
 }

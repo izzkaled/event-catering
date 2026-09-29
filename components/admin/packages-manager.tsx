@@ -481,7 +481,7 @@ export function PackagesManager() {
                     {tx('تعديل', 'Edit')}
                   </Button>
                   <Button
-                    render={<Link href={`/packages/${pkg.slug}?preview=1`} target="_blank" />}
+                    render={<Link href={`/packages/${pkg.slug}/preview`} target="_blank" />}
                     nativeButton={false}
                     size="sm"
                     variant="outline"

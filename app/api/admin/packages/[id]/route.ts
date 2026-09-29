@@ -4,6 +4,7 @@ import { verifyAdmin } from '@/lib/admin-auth'
 import { db } from '@/lib/db'
 import { packages, packageServices } from '@/lib/db/schema'
 import { visitsPerMonthFromWeekly } from '@/lib/booking/schedule'
+import { revalidateStorefront } from '@/lib/cache/storefront'
 import { getAllPackagesAdmin, getMaxFeaturedPackages, getPackageWithServices } from '@/lib/packages/storefront'
 
 export const dynamic = 'force-dynamic'
@@ -147,6 +148,7 @@ export async function PATCH(request: Request, context: RouteContext) {
     }
 
     const full = await getPackageWithServices(id)
+    revalidateStorefront({ slug: pkg.slug })
     return NextResponse.json(full || pkg)
   } catch (error) {
     console.error('PATCH /api/admin/packages/[id]:', error)
@@ -162,6 +164,7 @@ export async function DELETE(_request: Request, context: RouteContext) {
     const { id } = await context.params
     const [pkg] = await db.delete(packages).where(eq(packages.id, id)).returning()
     if (!pkg) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+    revalidateStorefront({ slug: pkg.slug })
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('DELETE /api/admin/packages/[id]:', error)

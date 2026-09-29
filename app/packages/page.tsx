@@ -2,10 +2,14 @@ import type { Metadata } from 'next'
 import { SiteHeader } from '@/components/site-header'
 import { SiteFooter } from '@/components/site-footer'
 import { PackagesCatalog } from '@/components/packages/packages-catalog'
-import { getActiveCategories, getPublishedPackagesWithSections } from '@/lib/packages/queries'
+import {
+  getActiveCategoriesCached,
+  getPublishedPackagesCached,
+  STOREFRONT_REVALIDATE_SECONDS,
+} from '@/lib/cache/storefront'
 import { SITE_URL } from '@/lib/seo'
 
-export const dynamic = 'force-dynamic'
+export const revalidate = STOREFRONT_REVALIDATE_SECONDS
 
 export const metadata: Metadata = {
   title: 'باقات كاترينج وضيافة عُمان | حكومي وشركات ومناسبات',
@@ -28,8 +32,8 @@ export const metadata: Metadata = {
 
 export default async function PackagesPage() {
   const [packages, categories] = await Promise.all([
-    getPublishedPackagesWithSections(),
-    getActiveCategories(),
+    getPublishedPackagesCached(),
+    getActiveCategoriesCached(),
   ])
 
   return (

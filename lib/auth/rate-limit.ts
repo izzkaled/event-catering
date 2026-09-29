@@ -55,6 +55,21 @@ export async function checkRateLimit(key: string): Promise<boolean> {
   return checkMemoryRateLimit(key)
 }
 
+/** Soft per-IP budget for cheap public beacons (e.g. package view). */
+export async function checkSoftRateLimit(
+  key: string,
+  opts: { max: number; windowMs: number } = { max: 120, windowMs: 60_000 },
+): Promise<boolean> {
+  const now = Date.now()
+  const entry = memoryAttempts.get(`soft:${key}`)
+  if (!entry || now - entry.firstAt > opts.windowMs) {
+    memoryAttempts.set(`soft:${key}`, { count: 1, firstAt: now })
+    return true
+  }
+  entry.count += 1
+  return entry.count <= opts.max
+}
+
 export async function clearRateLimit(key: string): Promise<void> {
   memoryAttempts.delete(key)
 }

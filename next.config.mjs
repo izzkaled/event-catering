@@ -19,6 +19,20 @@ const nextConfig = {
     ]
   },
   async headers() {
+    const publicCdn = [
+      { key: 'Cache-Control', value: 'public, max-age=0, must-revalidate' },
+      {
+        key: 'Netlify-CDN-Cache-Control',
+        value: 'public, durable, s-maxage=60, stale-while-revalidate=3600',
+      },
+    ]
+    const marketingCdn = [
+      { key: 'Cache-Control', value: 'public, max-age=0, must-revalidate' },
+      {
+        key: 'Netlify-CDN-Cache-Control',
+        value: 'public, durable, s-maxage=300, stale-while-revalidate=86400',
+      },
+    ]
     return [
       {
         source: '/(.*)',
@@ -52,6 +66,18 @@ const nextConfig = {
           },
         ],
       },
+      { source: '/', headers: marketingCdn },
+      { source: '/faq', headers: marketingCdn },
+      { source: '/packages', headers: publicCdn },
+      { source: '/experience/find', headers: publicCdn },
+      {
+        source: '/packages/:slug/preview',
+        headers: [
+          { key: 'Cache-Control', value: 'private, no-store' },
+          { key: 'Netlify-CDN-Cache-Control', value: 'private, no-store' },
+        ],
+      },
+      { source: '/packages/:slug', headers: publicCdn },
     ]
   },
 }

@@ -4,6 +4,7 @@ import { verifyAdmin } from '@/lib/admin-auth'
 import { db } from '@/lib/db'
 import { packages, packageServices } from '@/lib/db/schema'
 import { getPackageWithServices } from '@/lib/packages/storefront'
+import { revalidateStorefront } from '@/lib/cache/storefront'
 
 export const dynamic = 'force-dynamic'
 
@@ -66,6 +67,7 @@ export async function POST(_request: Request, context: RouteContext) {
       })
     }
 
+    revalidateStorefront({ slug: copy.slug })
     return NextResponse.json(copy, { status: 201 })
   } catch (error) {
     console.error('POST duplicate package:', error)

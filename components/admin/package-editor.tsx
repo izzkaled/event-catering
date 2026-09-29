@@ -278,7 +278,7 @@ export function PackageEditor({ packageId }: { packageId?: string }) {
       </Button>
       {form.slug ? (
         <Button
-          render={<Link href={`/packages/${form.slug}?preview=1`} target="_blank" />}
+          render={<Link href={`/packages/${form.slug}/preview`} target="_blank" />}
           nativeButton={false}
           variant="outline"
           className="min-h-11 flex-1 sm:flex-none"

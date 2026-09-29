@@ -21,6 +21,44 @@
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
 
+# Public marketing / catalog — CDN durable cache (ISR also revalidates via Next)
+[[headers]]
+  for = "/"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+    Netlify-CDN-Cache-Control = "public, durable, s-maxage=300, stale-while-revalidate=86400"
+
+[[headers]]
+  for = "/faq"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+    Netlify-CDN-Cache-Control = "public, durable, s-maxage=300, stale-while-revalidate=86400"
+
+[[headers]]
+  for = "/packages"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+    Netlify-CDN-Cache-Control = "public, durable, s-maxage=60, stale-while-revalidate=3600"
+
+[[headers]]
+  for = "/experience/find"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+    Netlify-CDN-Cache-Control = "public, durable, s-maxage=60, stale-while-revalidate=3600"
+
+# Admin draft preview must never be cached
+[[headers]]
+  for = "/packages/*/preview"
+  [headers.values]
+    Cache-Control = "private, no-store"
+    Netlify-CDN-Cache-Control = "private, no-store"
+
+[[headers]]
+  for = "/packages/*"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+    Netlify-CDN-Cache-Control = "public, durable, s-maxage=60, stale-while-revalidate=3600"
+
 # Canonical domain is https://www.event-om.com
 # Set NEXT_PUBLIC_SITE_URL=https://www.event-om.com in Netlify env (build-time).
 [[redirects]]

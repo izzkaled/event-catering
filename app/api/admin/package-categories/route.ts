@@ -4,6 +4,7 @@ import { verifyAdmin } from '@/lib/admin-auth'
 import { db } from '@/lib/db'
 import { packageCategories } from '@/lib/db/schema'
 import { getActiveCategories } from '@/lib/packages/storefront'
+import { revalidateStorefront } from '@/lib/cache/storefront'
 
 export const dynamic = 'force-dynamic'
 
@@ -45,5 +46,6 @@ export async function POST(request: Request) {
       is_active: body.is_active !== false,
     })
     .returning()
+  revalidateStorefront()
   return NextResponse.json(row, { status: 201 })
 }

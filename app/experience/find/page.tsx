@@ -2,10 +2,13 @@ import type { Metadata } from 'next'
 import { SiteHeader } from '@/components/site-header'
 import { SiteFooter } from '@/components/site-footer'
 import { FindExperience } from '@/components/experience/find-experience'
-import { getExperiencePackages } from '@/lib/packages/queries'
+import {
+  getExperiencePackagesCached,
+  STOREFRONT_REVALIDATE_SECONDS,
+} from '@/lib/cache/storefront'
 import { SITE_URL } from '@/lib/seo'
 
-export const dynamic = 'force-dynamic'
+export const revalidate = STOREFRONT_REVALIDATE_SECONDS
 
 export const metadata: Metadata = {
   title: 'صمم ضيافتك | كاترينج مخصص حسب المناسبة في عُمان',
@@ -26,7 +29,7 @@ export const metadata: Metadata = {
 }
 
 export default async function FindExperiencePage() {
-  const packages = await getExperiencePackages()
+  const packages = await getExperiencePackagesCached()
 
   return (
     <div className="page-shell flex min-h-screen flex-col">

@@ -3,6 +3,7 @@ import { eq } from 'drizzle-orm'
 import { verifyAdmin } from '@/lib/admin-auth'
 import { db } from '@/lib/db'
 import { packageSections } from '@/lib/db/schema'
+import { revalidateStorefront } from '@/lib/cache/storefront'
 
 export const dynamic = 'force-dynamic'
 
@@ -35,6 +36,7 @@ export async function PATCH(request: Request, context: RouteContext) {
       .returning()
 
     if (!section) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+    revalidateStorefront()
     return NextResponse.json(section)
   } catch (error) {
     console.error('PATCH /api/admin/package-sections/[id]:', error)
@@ -50,6 +52,7 @@ export async function DELETE(_request: Request, context: RouteContext) {
     const { id } = await context.params
     const [section] = await db.delete(packageSections).where(eq(packageSections.id, id)).returning()
     if (!section) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+    revalidateStorefront()
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('DELETE /api/admin/package-sections/[id]:', error)

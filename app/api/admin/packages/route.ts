@@ -4,6 +4,7 @@ import { verifyAdmin } from '@/lib/admin-auth'
 import { db } from '@/lib/db'
 import { packages, packageServices } from '@/lib/db/schema'
 import { visitsPerMonthFromWeekly } from '@/lib/booking/schedule'
+import { revalidateStorefront } from '@/lib/cache/storefront'
 import { getAllPackagesAdmin, getMaxFeaturedPackages } from '@/lib/packages/storefront'
 
 export const dynamic = 'force-dynamic'
@@ -125,6 +126,7 @@ export async function POST(request: Request) {
       })
     }
 
+    revalidateStorefront({ slug: pkg.slug })
     return NextResponse.json(pkg, { status: 201 })
   } catch (error) {
     console.error('POST /api/admin/packages:', error)

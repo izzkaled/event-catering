@@ -3,6 +3,7 @@ import { eq } from 'drizzle-orm'
 import { verifyAdmin } from '@/lib/admin-auth'
 import { db } from '@/lib/db'
 import { packageCategories } from '@/lib/db/schema'
+import { revalidateStorefront } from '@/lib/cache/storefront'
 
 export const dynamic = 'force-dynamic'
 type RouteContext = { params: Promise<{ id: string }> }
@@ -18,6 +19,7 @@ export async function PATCH(request: Request, context: RouteContext) {
   }
   const [row] = await db.update(packageCategories).set(updates).where(eq(packageCategories.id, id)).returning()
   if (!row) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  revalidateStorefront()
   return NextResponse.json(row)
 }
 
@@ -31,5 +33,6 @@ export async function DELETE(_request: Request, context: RouteContext) {
     .where(eq(packageCategories.id, id))
     .returning()
   if (!row) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  revalidateStorefront()
   return NextResponse.json(row)
 }

@@ -3,6 +3,7 @@ import { asc } from 'drizzle-orm'
 import { verifyAdmin } from '@/lib/admin-auth'
 import { db } from '@/lib/db'
 import { packageSections } from '@/lib/db/schema'
+import { revalidateStorefront } from '@/lib/cache/storefront'
 
 export const dynamic = 'force-dynamic'
 
@@ -73,6 +74,7 @@ export async function POST(request: Request) {
         })
         .returning()
 
+      revalidateStorefront()
       return NextResponse.json(section, { status: 201 })
     } catch (insertError: unknown) {
       const message = insertError instanceof Error ? insertError.message : ''

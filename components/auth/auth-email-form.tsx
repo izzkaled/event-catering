@@ -194,9 +194,23 @@ export function AuthEmailForm({ mode = 'login', adminOnly = false }: AuthEmailFo
               : t('تسجيل الدخول', 'Log in')}
         </Button>
 
-        <p className="text-center text-xs text-muted-foreground">
-          {t('سندخل بحسابك عبر رمز OTP — بدون كلمة مرور', 'Sign in with an email OTP — no password')}
-        </p>
+        {mode === 'signup' && !adminOnly ? (
+          <p className="text-center text-[0.72rem] leading-relaxed text-muted-foreground">
+            {t('بالمتابعة فإنك توافق على ', 'By continuing you agree to our ')}
+            <Link href="/privacy" className="font-semibold text-primary underline-offset-4 hover:underline">
+              {t('سياسة الخصوصية', 'Privacy Policy')}
+            </Link>
+            {t(' و', ' and ')}
+            <Link href="/terms" className="font-semibold text-primary underline-offset-4 hover:underline">
+              {t('الشروط والأحكام', 'Terms')}
+            </Link>
+            .
+          </p>
+        ) : (
+          <p className="text-center text-xs text-muted-foreground">
+            {t('سندخل بحسابك عبر رمز OTP — بدون كلمة مرور', 'Sign in with an email OTP — no password')}
+          </p>
+        )}
 
         {!adminOnly && (
           <p className="text-center text-sm text-muted-foreground">
@@ -265,9 +279,22 @@ export function AuthEmailForm({ mode = 'login', adminOnly = false }: AuthEmailFo
                 </li>
               ))}
             </ul>
-            <div className="flex items-center gap-2 rounded-xl border border-border/60 bg-background/80 p-4 text-xs text-muted-foreground">
-              <ShieldCheck className="size-4 shrink-0 text-primary" />
-              {t('بياناتك محمية ولا تُشارك مع أطراف خارجية', 'Your data is protected and never shared with third parties')}
+            <div className="flex items-start gap-2 rounded-xl border border-border/60 bg-background/80 p-4 text-xs text-muted-foreground">
+              <ShieldCheck className="mt-0.5 size-4 shrink-0 text-primary" />
+              <span>
+                {t(
+                  'بياناتك محمية وفق ',
+                  'Your data is protected under our ',
+                )}
+                <Link href="/privacy" className="font-semibold text-primary underline-offset-4 hover:underline">
+                  {t('سياسة الخصوصية', 'Privacy Policy')}
+                </Link>
+                {t(' و', ' and ')}
+                <Link href="/terms" className="font-semibold text-primary underline-offset-4 hover:underline">
+                  {t('الشروط والأحكام', 'Terms')}
+                </Link>
+                .
+              </span>
             </div>
           </CardContent>
         </Card>

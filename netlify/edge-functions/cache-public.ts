@@ -10,7 +10,7 @@ type EdgeContext = {
   next: (options?: { sendConditionalRequest?: boolean }) => Promise<Response>
 }
 
-const MARKETING = new Set(['/', '/faq'])
+const MARKETING = new Set(['/', '/faq', '/privacy', '/terms'])
 
 function isPublicPath(pathname: string): boolean {
   if (MARKETING.has(pathname)) return true

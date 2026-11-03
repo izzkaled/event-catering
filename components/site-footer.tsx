@@ -227,12 +227,35 @@ export function SiteFooter() {
         </div>
 
         <div className="border-t border-[var(--line)]">
-          <div className="mx-auto flex max-w-6xl flex-col items-center gap-3 px-4 py-4 text-[0.7rem] text-[var(--ink-muted)] sm:flex-row sm:justify-between sm:gap-4 sm:text-xs">
-            <p className="order-1 text-center sm:w-1/4 sm:text-start">
-              © 2026 Event Catering. {isAr ? 'جميع الحقوق محفوظة.' : 'All rights reserved.'}
-            </p>
+          <div className="mx-auto flex max-w-6xl flex-col items-center gap-3 px-4 py-4 text-[0.7rem] text-[var(--ink-muted)] sm:gap-4 sm:text-xs">
+            <div className="flex w-full flex-col items-center justify-between gap-3 sm:flex-row">
+              <p className="text-center sm:text-start">
+                © 2026 Event Catering. {isAr ? 'جميع الحقوق محفوظة.' : 'All rights reserved.'}
+              </p>
 
-            <div className="order-3 mt-2 flex flex-wrap items-center justify-center gap-2 sm:order-2 sm:mt-0">
+              <nav
+                aria-label={isAr ? 'المستندات القانونية' : 'Legal'}
+                className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1"
+              >
+                <Link href="/privacy" className="transition hover:text-brand-palm">
+                  {isAr ? 'سياسة الخصوصية' : 'Privacy'}
+                </Link>
+                <span aria-hidden className="text-[var(--line)]">
+                  ·
+                </span>
+                <Link href="/terms" className="transition hover:text-brand-palm">
+                  {isAr ? 'الشروط والأحكام' : 'Terms'}
+                </Link>
+              </nav>
+
+              <p className="text-center sm:text-end">
+                {isAr
+                  ? 'جميع الأسعار بالريال العُماني وتشمل الضريبة'
+                  : 'All prices are in OMR and include VAT'}
+              </p>
+            </div>
+
+            <div className="flex flex-wrap items-center justify-center gap-2">
               <span className="sr-only">{isAr ? 'طرق الدفع' : 'Payment methods'}</span>
               <PaymentBadge title={isAr ? 'فيزا' : 'Visa'}>
                 <PayVisa className="h-3.5 w-auto" />
@@ -247,12 +270,6 @@ export function SiteFooter() {
                 <PayGooglePay className="h-4 w-auto" />
               </PaymentBadge>
             </div>
-
-            <p className="order-2 text-center sm:order-3 sm:w-1/4 sm:text-end">
-              {isAr
-                ? 'جميع الأسعار بالريال العُماني وتشمل الضريبة'
-                : 'All prices are in OMR and include VAT'}
-            </p>
           </div>
         </div>
       </div>

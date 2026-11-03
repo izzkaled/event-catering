@@ -35,6 +35,18 @@
     Netlify-CDN-Cache-Control = "public, durable, s-maxage=300, stale-while-revalidate=86400"
 
 [[headers]]
+  for = "/privacy"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+    Netlify-CDN-Cache-Control = "public, durable, s-maxage=86400, stale-while-revalidate=604800"
+
+[[headers]]
+  for = "/terms"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+    Netlify-CDN-Cache-Control = "public, durable, s-maxage=86400, stale-while-revalidate=604800"
+
+[[headers]]
   for = "/packages"
   [headers.values]
     Cache-Control = "public, max-age=0, must-revalidate"

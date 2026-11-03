@@ -20,6 +20,8 @@ Email: izzkaled@gmail.com
 - [Packages](https://www.event-om.com/packages): All hospitality packages with indicative pricing
 - [Find my experience](https://www.event-om.com/experience/find): Guided package recommendations
 - [FAQ](https://www.event-om.com/faq): Common questions about packages, pricing, and requests
+- [Privacy Policy](https://www.event-om.com/privacy): Personal data protection (Oman PDPL-aligned)
+- [Terms of Service](https://www.event-om.com/terms): Platform terms for hospitality requests
 - [Login](https://www.event-om.com/auth/login): Customer account access
 
 ## Brand names

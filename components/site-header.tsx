@@ -74,24 +74,26 @@ export function SiteHeader() {
     <>
       <header
         className={cn(
-          'sticky top-0 z-50 w-full min-w-0 pt-safe transition-[padding,background-color,box-shadow,backdrop-filter] duration-300',
+          // Blur strength stays fixed — tweening backdrop-filter was the lag source.
+          'sticky top-0 z-50 w-full min-w-0 pt-safe backdrop-blur-xl transition-[background-color,box-shadow] duration-300 ease-out',
           scrolled
-            ? 'bg-brand-cream/88 shadow-[0_10px_40px_-18px_rgba(31,26,23,0.35)] backdrop-blur-xl'
-            : 'bg-brand-cream/72 backdrop-blur-md',
+            ? 'bg-brand-cream/88 shadow-[0_10px_40px_-18px_rgba(31,26,23,0.35)]'
+            : 'bg-brand-cream/72',
         )}
       >
         <HeaderBrandMotion />
 
         <div
           className={cn(
-            'site-container relative z-10 transition-[padding] duration-300',
+            'site-container relative z-10 transition-[padding] duration-300 ease-out',
             scrolled ? 'py-2' : 'py-3 sm:py-3.5',
           )}
         >
           <div
             className={cn(
-              'relative grid items-center gap-2 rounded-2xl border px-3 transition-all duration-300 sm:gap-3 sm:px-4',
+              'relative grid items-center gap-2 rounded-2xl border px-3 sm:gap-3 sm:px-4',
               'grid-cols-[minmax(0,1fr)_auto] md:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]',
+              'transition-[height,background-color,border-color,box-shadow] duration-300 ease-out',
               scrolled
                 ? 'h-14 border-[var(--line)] bg-white/75 shadow-[0_8px_30px_-20px_rgba(31,26,23,0.45)]'
                 : 'h-14 border-transparent bg-transparent sm:h-16 sm:border-[var(--line)]/70 sm:bg-white/45 sm:shadow-[0_12px_40px_-28px_rgba(31,26,23,0.35)]',

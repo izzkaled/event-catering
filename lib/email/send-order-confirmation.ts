@@ -137,15 +137,16 @@ function eventCopy(event: OrderConfirmationEvent, orderNo: string) {
   }
 }
 
-function pdfAttachment(
+async function pdfAttachment(
   order: Order,
   kind: 'requested' | 'confirmed',
   filename: string,
   audience: 'customer' | 'admin',
 ) {
+  const buffer = await buildInvoicePdfBuffer(order, kind, audience)
   return {
     filename,
-    content: buildInvoicePdfBuffer(order, kind, audience).toString('base64'),
+    content: buffer.toString('base64'),
     contentType: 'application/pdf' as const,
   }
 }
@@ -290,10 +291,10 @@ export async function sendOrderConfirmation(input: {
   const adminFilename = `order-details-${order.order_number}.pdf`
 
   const customerAttachments = shouldAttachPdf(event)
-    ? [pdfAttachment(order, kind, customerFilename, 'customer')]
+    ? [await pdfAttachment(order, kind, customerFilename, 'customer')]
     : undefined
   const adminAttachments = shouldAttachPdf(event)
-    ? [pdfAttachment(order, kind, adminFilename, 'admin')]
+    ? [await pdfAttachment(order, kind, adminFilename, 'admin')]
     : undefined
 
   const sends: Promise<unknown>[] = []

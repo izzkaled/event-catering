@@ -154,6 +154,8 @@ export function JsonLdBusiness() {
           { '@type': 'WebPage', name: 'باقات كاترينج وضيافة', url: `${SITE_URL}/packages` },
           { '@type': 'WebPage', name: 'اعثر على تجربتك', url: `${SITE_URL}/experience/find` },
           { '@type': 'WebPage', name: 'أسئلة شائعة', url: `${SITE_URL}/faq` },
+          { '@type': 'WebPage', name: 'سياسة الخصوصية', url: `${SITE_URL}/privacy` },
+          { '@type': 'WebPage', name: 'الشروط والأحكام', url: `${SITE_URL}/terms` },
         ],
       },
     ],

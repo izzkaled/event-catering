@@ -38,18 +38,19 @@ export function Hero() {
     }
 
     // Defer decode until after first paint for faster initial load.
-    const idle =
-      'requestIdleCallback' in window
-        ? window.requestIdleCallback(() => void tryPlay(), { timeout: 900 })
-        : window.setTimeout(() => void tryPlay(), 120)
+    let idleHandle = 0
+    let usedIdleCallback = false
+    if (typeof window.requestIdleCallback === 'function') {
+      usedIdleCallback = true
+      idleHandle = window.requestIdleCallback(() => void tryPlay(), { timeout: 900 })
+    } else {
+      idleHandle = window.setTimeout(() => void tryPlay(), 120)
+    }
 
     return () => {
       cancelled = true
-      if ('requestIdleCallback' in window) {
-        window.cancelIdleCallback(idle as number)
-      } else {
-        window.clearTimeout(idle as number)
-      }
+      if (usedIdleCallback) window.cancelIdleCallback(idleHandle)
+      else window.clearTimeout(idleHandle)
     }
   }, [])
 

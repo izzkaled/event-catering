@@ -16,19 +16,21 @@ export function PackageDetail({ pkg }: { pkg: ExperiencePackage }) {
   return (
     <div>
       <div className="relative h-[min(52vh,28rem)] w-full overflow-hidden">
-        <Image
-          src={pkg.cover_image}
-          alt={name}
-          fill
-          priority
-          className="object-cover"
-          sizes="100vw"
-        />
+        <div className="pkg-ken absolute inset-0">
+          <Image
+            src={pkg.cover_image}
+            alt={name}
+            fill
+            priority
+            className="object-cover"
+            sizes="100vw"
+          />
+        </div>
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/20 to-transparent" />
       </div>
 
       <div className="site-container relative -mt-16 pb-16">
-        <div className="max-w-3xl rounded-2xl border border-border/80 bg-background/95 p-6 shadow-lg backdrop-blur sm:p-8">
+        <div className="pkg-enter max-w-3xl rounded-2xl border border-border/80 bg-background/95 p-6 shadow-lg backdrop-blur sm:p-8">
           <p className="brand-kicker mb-2">{pkg.category}</p>
           <h1 className="font-ios text-3xl font-semibold tracking-tight sm:text-4xl">{name}</h1>
           <p className="mt-4 text-[1.05rem] leading-relaxed text-muted-foreground">{desc}</p>

@@ -1,79 +1,259 @@
 'use client'
 
+import type { ReactNode } from 'react'
 import Link from 'next/link'
-import { Phone, Mail, MapPin } from 'lucide-react'
+import { Phone, Mail, MapPin, ChevronDown } from 'lucide-react'
 import { BrandLogo } from '@/components/brand-logo'
+import {
+  IconFacebook,
+  IconGoogleMaps,
+  IconInstagram,
+  IconTikTok,
+  IconWhatsApp,
+  PayApplePay,
+  PayGooglePay,
+  PayMastercard,
+  PayVisa,
+} from '@/components/brand-icons'
+import { FooterSkyline } from '@/components/footer-skyline'
 import { useLanguage } from '@/components/language-provider'
+import { cn } from '@/lib/utils'
 
-const WHATSAPP = process.env.NEXT_PUBLIC_WHATSAPP || '96877222432'
+const WHATSAPP = (process.env.NEXT_PUBLIC_WHATSAPP || '96897021006').replace(/\D/g, '')
+const PHONE_DISPLAY = '+968 9702 1006'
+const EMAIL = 'Izzkaled@gmail.com'
+const MAPS_URL = 'https://maps.google.com/?q=Muscat,Oman'
+const INSTAGRAM =
+  process.env.NEXT_PUBLIC_INSTAGRAM_URL?.trim() || 'https://www.instagram.com/'
+const FACEBOOK =
+  process.env.NEXT_PUBLIC_FACEBOOK_URL?.trim() || 'https://www.facebook.com/'
+const TIKTOK = process.env.NEXT_PUBLIC_TIKTOK_URL?.trim() || 'https://www.tiktok.com/'
+
+function SocialCircle({
+  href,
+  label,
+  children,
+  className,
+}: {
+  href: string
+  label: string
+  children: ReactNode
+  className?: string
+}) {
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label={label}
+      title={label}
+      className={cn(
+        'grid size-11 place-items-center rounded-full bg-[var(--brand-cream)] text-[var(--ink-soft)] ring-1 ring-[var(--line)] transition hover:bg-brand-palm hover:text-white hover:ring-brand-palm',
+        className,
+      )}
+    >
+      {children}
+    </a>
+  )
+}
+
+function PaymentBadge({
+  title,
+  children,
+}: {
+  title: string
+  children: ReactNode
+}) {
+  return (
+    <span
+      title={title}
+      className="inline-flex h-7 items-center gap-1.5 rounded-lg border border-[var(--line)] bg-white px-2 shadow-sm"
+    >
+      {children}
+    </span>
+  )
+}
 
 export function SiteFooter() {
   const { lang, t } = useLanguage()
+  const isAr = lang === 'ar'
 
-  const desc =
-    lang === 'ar'
-      ? 'إيفنت كاترينج — ضيافة مصممة لمناسبتك، بكل تفاصيلها. للجهات والشركات والمناسبات الخاصة في عُمان.'
-      : 'Event Catering — hospitality designed for your occasion. For government, corporate, and private events in Oman.'
-
-  const quickLinks = [
+  const exploreLeft = [
     { href: '/packages', label: t('nav.packages') },
-    { href: '/experience/find', label: lang === 'ar' ? 'اعثر على تجربتي' : 'Find My Experience' },
+    { href: '/experience/find', label: isAr ? 'اعثر على تجربتي' : 'Find experience' },
     { href: '/#how', label: t('nav.how') },
-    { href: '/#contact', label: t('nav.contact') },
+    { href: '/profile', label: t('nav.profile') },
   ]
 
+  const exploreRight = [
+    { href: '/experience', label: t('nav.booking') },
+    { href: '/#business', label: t('nav.business') },
+    { href: '/faq', label: isAr ? 'الأسئلة الشائعة' : 'FAQ' },
+    { href: '/admin/login', label: isAr ? 'دخول الموظفين' : 'Staff login' },
+  ]
+
+  const socials = (
+    <>
+      <li>
+        <SocialCircle href={INSTAGRAM} label="Instagram" className="size-9 sm:size-11 [&_svg]:size-4 sm:[&_svg]:size-5">
+          <IconInstagram className="size-5" />
+        </SocialCircle>
+      </li>
+      <li>
+        <SocialCircle href={FACEBOOK} label="Facebook" className="size-9 sm:size-11 [&_svg]:size-4 sm:[&_svg]:size-5">
+          <IconFacebook className="size-5" />
+        </SocialCircle>
+      </li>
+      <li>
+        <SocialCircle href={TIKTOK} label="TikTok" className="size-9 sm:size-11 [&_svg]:size-4 sm:[&_svg]:size-5">
+          <IconTikTok className="size-5" />
+        </SocialCircle>
+      </li>
+      <li>
+        <SocialCircle
+          href={`https://wa.me/${WHATSAPP}`}
+          label="WhatsApp"
+          className="size-9 sm:size-11 [&_svg]:size-4 sm:[&_svg]:size-5"
+        >
+          <IconWhatsApp className="size-5" />
+        </SocialCircle>
+      </li>
+      <li>
+        <SocialCircle href={MAPS_URL} label="Google Maps" className="size-9 sm:size-11 [&_svg]:size-4 sm:[&_svg]:size-5">
+          <IconGoogleMaps className="size-5" />
+        </SocialCircle>
+      </li>
+    </>
+  )
+
   return (
-    <footer className="min-w-0 w-full overflow-x-clip border-t border-border bg-secondary/40">
-      <div className="site-container grid gap-8 py-12 sm:grid-cols-2 lg:grid-cols-3">
-        <div className="flex flex-col gap-3">
-          <Link href="/" className="flex items-center gap-2">
-          <BrandLogo size="md" full className="justify-start" />
-          </Link>
-          <p className="text-sm leading-relaxed text-muted-foreground">{desc}</p>
-        </div>
-
-        <div className="flex flex-col gap-1.5">
-          <h3 className="mb-1.5 text-sm font-bold text-brand-palm">
-            {lang === 'ar' ? 'روابط سريعة' : 'Quick links'}
-          </h3>
-          {quickLinks.map((link) => (
-            <Link
-              key={link.href + link.label}
-              href={link.href}
-              className="touch-target flex min-h-9 items-center text-sm text-muted-foreground hover:text-foreground"
-            >
-              {link.label}
-            </Link>
-          ))}
-        </div>
-
-        <div className="flex flex-col gap-3">
-          <h3 className="text-sm font-bold text-brand-palm">
-            {lang === 'ar' ? 'تواصل معنا' : 'Contact'}
-          </h3>
-          <a
-            href={`https://wa.me/${WHATSAPP}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
-          >
-            <Phone className="size-4 text-brand-terracotta" />
-            {t('footer.whatsapp')}: 77222432
-          </a>
-          <span className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Mail className="size-4 text-brand-terracotta" />
-            Izzkaled@gmail.com
-          </span>
-          <span className="flex items-center gap-2 text-sm text-muted-foreground">
-            <MapPin className="size-4 text-brand-terracotta" />
-            {t('footer.location')}
-          </span>
-        </div>
+    <footer className="mt-12 min-w-0 w-full overflow-x-clip text-[var(--ink)] sm:mt-20">
+      <div className="-mb-px overflow-hidden text-brand-palm" aria-hidden>
+        <FooterSkyline className="mx-auto block h-auto w-full max-w-6xl overflow-visible" />
       </div>
-      <div className="border-t border-border">
-        <div className="site-container py-4 text-center text-sm text-muted-foreground">
-          © 2026 Event Catering · إيفنت كاترينج —{' '}
-          {lang === 'ar' ? 'جميع الحقوق محفوظة.' : 'All rights reserved.'}
+
+      <div className="paper-grain border-t border-[var(--line)] bg-brand-cream">
+        <div className="mx-auto max-w-6xl px-4 pt-4 pb-3 sm:pt-8 sm:pb-6">
+          <div className="flex flex-wrap items-center gap-3">
+            <Link href="/" className="flex min-w-0 items-center gap-3" aria-label="Event Catering">
+              <BrandLogo size="md" full className="justify-start" />
+            </Link>
+            <ul className="ms-auto flex flex-wrap gap-1.5 sm:hidden">{socials}</ul>
+          </div>
+
+          <p className="mt-3 text-[0.95rem] font-semibold leading-snug text-brand-palm">
+            {isAr ? 'ضيافة مصممة لمناسبتك' : 'Hospitality designed for your occasion'}
+          </p>
+          <p className="mt-1 text-sm leading-relaxed text-[var(--ink-muted)]">
+            {isAr
+              ? 'ضيافة مناسبات عُمان • جهات حكومية • شركات • مناسبات خاصة'
+              : 'Event hospitality Oman • Government • Corporate • Private'}
+          </p>
+
+          <ul className="mt-4 hidden flex-wrap gap-2 sm:flex">{socials}</ul>
+
+          <div className="mt-8 grid gap-6 sm:mt-10 lg:grid-cols-2 lg:gap-10">
+            <details className="group" open>
+              <summary className="flex cursor-pointer list-none items-center justify-between text-xl font-bold leading-normal text-brand-palm marker:content-none lg:pointer-events-none [&::-webkit-details-marker]:hidden">
+                <span>{isAr ? 'تصفّح' : 'Explore'}</span>
+                <ChevronDown className="size-4 shrink-0 text-[var(--ink-muted)] transition-transform duration-200 group-open:rotate-180 lg:hidden" />
+              </summary>
+              <div className="mt-3 grid grid-cols-2 gap-x-8 gap-y-2.5">
+                <ul className="flex flex-col gap-2.5">
+                  {exploreLeft.map((link) => (
+                    <li key={link.href + link.label}>
+                      <Link
+                        href={link.href}
+                        className="text-[15px] text-[var(--ink-soft)] transition hover:text-brand-palm"
+                      >
+                        {link.label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+                <ul className="flex flex-col gap-2.5">
+                  {exploreRight.map((link) => (
+                    <li key={link.href + link.label}>
+                      <Link
+                        href={link.href}
+                        className="text-[15px] text-[var(--ink-soft)] transition hover:text-brand-palm"
+                      >
+                        {link.label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </details>
+
+            <details className="group" open>
+              <summary className="flex cursor-pointer list-none items-center justify-between text-xl font-bold leading-normal text-brand-palm marker:content-none lg:pointer-events-none [&::-webkit-details-marker]:hidden">
+                <span>{t('nav.contact')}</span>
+                <ChevronDown className="size-4 shrink-0 text-[var(--ink-muted)] transition-transform duration-200 group-open:rotate-180 lg:hidden" />
+              </summary>
+              <ul className="mt-3 flex flex-col gap-3.5 text-[15px]">
+                <li>
+                  <a
+                    href={`tel:+${WHATSAPP}`}
+                    className="flex items-start gap-2.5 text-[var(--ink-soft)] transition hover:text-brand-palm"
+                  >
+                    <Phone className="mt-0.5 size-4 shrink-0 text-brand-palm" strokeWidth={2} />
+                    <span dir="ltr">{PHONE_DISPLAY}</span>
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href={`mailto:${EMAIL}`}
+                    className="flex items-start gap-2.5 break-all text-[var(--ink-soft)] transition hover:text-brand-palm"
+                  >
+                    <Mail className="mt-0.5 size-4 shrink-0 text-brand-palm" strokeWidth={2} />
+                    {EMAIL}
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href={MAPS_URL}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-start gap-2.5 text-[var(--ink-soft)] transition hover:text-brand-palm"
+                  >
+                    <MapPin className="mt-0.5 size-4 shrink-0 text-brand-palm" strokeWidth={2} />
+                    {t('footer.location')}
+                  </a>
+                </li>
+              </ul>
+            </details>
+          </div>
+        </div>
+
+        <div className="border-t border-[var(--line)]">
+          <div className="mx-auto flex max-w-6xl flex-col items-center gap-3 px-4 py-4 text-[0.7rem] text-[var(--ink-muted)] sm:flex-row sm:justify-between sm:gap-4 sm:text-xs">
+            <p className="order-1 text-center sm:w-1/4 sm:text-start">
+              © 2026 Event Catering. {isAr ? 'جميع الحقوق محفوظة.' : 'All rights reserved.'}
+            </p>
+
+            <div className="order-3 mt-2 flex flex-wrap items-center justify-center gap-2 sm:order-2 sm:mt-0">
+              <span className="sr-only">{isAr ? 'طرق الدفع' : 'Payment methods'}</span>
+              <PaymentBadge title={isAr ? 'فيزا' : 'Visa'}>
+                <PayVisa className="h-3.5 w-auto" />
+              </PaymentBadge>
+              <PaymentBadge title={isAr ? 'ماستركارد' : 'Mastercard'}>
+                <PayMastercard className="h-4 w-auto" />
+              </PaymentBadge>
+              <PaymentBadge title="Apple Pay">
+                <PayApplePay className="h-4 w-auto" />
+              </PaymentBadge>
+              <PaymentBadge title="Google Pay">
+                <PayGooglePay className="h-4 w-auto" />
+              </PaymentBadge>
+            </div>
+
+            <p className="order-2 text-center sm:order-3 sm:w-1/4 sm:text-end">
+              {isAr
+                ? 'جميع الأسعار بالريال العُماني وتشمل الضريبة'
+                : 'All prices are in OMR and include VAT'}
+            </p>
+          </div>
         </div>
       </div>
     </footer>

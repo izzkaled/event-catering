@@ -62,7 +62,7 @@ function ensureArabicFont(doc: jsPDF) {
 }
 
 function supportWhatsAppDisplay() {
-  const raw = safe(process.env.NEXT_PUBLIC_WHATSAPP || '96877222432').replace(/\D/g, '')
+  const raw = safe(process.env.NEXT_PUBLIC_WHATSAPP || '96897021006').replace(/\D/g, '')
   return raw.startsWith('968') ? `+968 ${raw.slice(3)}` : `+${raw}`
 }
 

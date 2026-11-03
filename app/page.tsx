@@ -6,11 +6,8 @@ import { IntroSection } from '@/components/home/intro-section'
 import { OccasionsSection } from '@/components/home/occasions-section'
 import { HowItWorks } from '@/components/home/how-it-works'
 import { ValueTrustStrip } from '@/components/home/value-trust-strip'
-import { FaqSection } from '@/components/home/faq-section'
-import { CtaBanner } from '@/components/home/cta-banner'
 import { HomeChatbot } from '@/components/home/home-chatbot'
 import { JsonLdBusiness } from '@/components/seo/json-ld-business'
-import { JsonLdFaq } from '@/components/seo/json-ld-faq'
 import { SEO_DESCRIPTION, SEO_TITLE_DEFAULT, SITE_URL } from '@/lib/seo'
 
 /** Marketing homepage — static shell + ISR revalidation for CDN absorption. */
@@ -32,7 +29,6 @@ export default function HomePage() {
   return (
     <div className="page-shell flex min-h-screen flex-col">
       <JsonLdBusiness />
-      <JsonLdFaq />
       <SiteHeader />
       <main className="min-w-0 flex-1">
         <Hero />
@@ -40,8 +36,6 @@ export default function HomePage() {
         <OccasionsSection />
         <HowItWorks />
         <ValueTrustStrip />
-        <FaqSection limit={4} />
-        <CtaBanner />
       </main>
       <SiteFooter />
       <HomeChatbot />

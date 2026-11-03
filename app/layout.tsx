@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next'
-import { IBM_Plex_Sans, IBM_Plex_Sans_Arabic, Geist_Mono } from 'next/font/google'
+import { Inter, IBM_Plex_Sans_Arabic, Geist_Mono } from 'next/font/google'
 import { Toaster } from '@/components/ui/sonner'
 import { LanguageProvider } from '@/components/language-provider'
 import { VisitorTracker } from '@/components/visitor-tracker'
@@ -20,7 +20,7 @@ import {
 } from '@/lib/seo'
 import './globals.css'
 
-/** Arabic UI — IBM Plex Sans Arabic. Latin UI uses IBM Plex Sans. */
+/** Arabic UI — IBM Plex Sans Arabic. Latin UI — Inter (Dar Ward-style system sans). */
 const plexArabic = IBM_Plex_Sans_Arabic({
   variable: '--font-plex-ar',
   subsets: ['arabic'],
@@ -28,10 +28,10 @@ const plexArabic = IBM_Plex_Sans_Arabic({
   display: 'swap',
 })
 
-const plexSans = IBM_Plex_Sans({
+const inter = Inter({
   variable: '--font-plex-en',
   subsets: ['latin'],
-  weight: ['300', '400', '500', '600', '700'],
+  weight: ['400', '500', '600', '700', '800'],
   display: 'swap',
 })
 
@@ -128,9 +128,9 @@ export default function RootLayout({
       lang="ar"
       dir="rtl"
       suppressHydrationWarning
-      className={`${plexArabic.variable} ${plexSans.variable} ${geistMono.variable} lang-ar bg-background`}
+      className={`${plexArabic.variable} ${inter.variable} ${geistMono.variable} lang-ar bg-background`}
     >
-      <body className="font-ui antialiased min-w-0">
+      <body className="font-ui antialiased min-w-0 text-foreground">
         <LanguageProvider>
           <SplashScreen />
           {children}

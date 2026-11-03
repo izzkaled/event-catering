@@ -21,7 +21,7 @@ const [order] = await sql`
   ) VALUES (
     ${orderNumber},
     ${'اختبار Resend'},
-    ${'96877222432'},
+    ${'96897021006'},
     ${'izzkaled@gmail.com'},
     ${'مسقط — طلب تجريبي'},
     ${'Al Khuwair'},

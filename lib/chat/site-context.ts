@@ -3,7 +3,7 @@ import { getActivePackagesWithSections } from '@/lib/packages/queries'
 import { toExperiencePackage } from '@/lib/packages/experience-map'
 import type { PackageWithSection } from '@/lib/packages/types'
 
-const WHATSAPP = process.env.NEXT_PUBLIC_WHATSAPP || '96877222432'
+const WHATSAPP = process.env.NEXT_PUBLIC_WHATSAPP || '96897021006'
 
 export type ChatSiteContext = {
   packages: Array<{

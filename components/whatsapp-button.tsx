@@ -4,7 +4,7 @@ import { usePathname } from 'next/navigation'
 import { MessageCircle } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
-const WHATSAPP = process.env.NEXT_PUBLIC_WHATSAPP || '96877222432'
+const WHATSAPP = process.env.NEXT_PUBLIC_WHATSAPP || '96897021006'
 
 const NO_BOTTOM_NAV = ['/admin', '/auth', '/booking']
 

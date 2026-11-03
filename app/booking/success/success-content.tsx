@@ -10,7 +10,7 @@ import { useLanguage } from '@/components/language-provider'
 import { Button } from '@/components/ui/button'
 import { trackEvent } from '@/lib/analytics'
 
-const WHATSAPP = process.env.NEXT_PUBLIC_WHATSAPP || '96877222432'
+const WHATSAPP = process.env.NEXT_PUBLIC_WHATSAPP || '96897021006'
 
 type StatusPayload = {
   orderNumber?: string

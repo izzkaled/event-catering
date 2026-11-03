@@ -64,71 +64,85 @@
 :root {
   color-scheme: light;
 
-  /* ── Brand tokens — Event Catering (plum / cream / gold) ── */
+  /* ── Brand tokens — Event Catering + Dar Ward contrast model ── */
   --brand-palm: #4a234a;
-  --brand-sand: #c9a86c;
+  --brand-sand: #c8962e;
   --brand-silver: #d4cfc6;
   --brand-terracotta: #b8915a;
-  --brand-cream: #f5f1e9;
+  /* One milky cream across the site — keep surfaces on the same family */
+  --brand-cream: #f7f1e7;
+
+  /* Ink / surface (high contrast on cream, matching Dar Ward) */
+  --ink: #1f1a17;
+  --ink-soft: #3d3631;
+  --ink-muted: #6b625c;
+  --paper-deep: #f7f1e7;
+  --line: color-mix(in srgb, var(--ink) 12%, transparent);
 
   /* ── Semantic (derived from brand) ── */
   --background: var(--brand-cream);
-  --foreground: var(--brand-palm);
-  --card: #fffcf8;
-  --card-foreground: var(--brand-palm);
-  --popover: #fffcf8;
-  --popover-foreground: var(--brand-palm);
+  --foreground: var(--ink);
+  --card: var(--brand-cream);
+  --card-foreground: var(--ink);
+  --popover: var(--brand-cream);
+  --popover-foreground: var(--ink);
   --primary: var(--brand-palm);
-  --primary-foreground: var(--brand-cream);
-  --secondary: #ebe4db;
-  --secondary-foreground: var(--brand-palm);
-  --muted: #ebe4db;
-  --muted-foreground: #6b5a6b;
-  --accent: var(--brand-terracotta);
-  --accent-foreground: #fffcf8;
+  --primary-foreground: #ffffff;
+  --secondary: var(--paper-deep);
+  --secondary-foreground: var(--ink);
+  --muted: var(--paper-deep);
+  --muted-foreground: var(--ink-muted);
+  --accent: var(--brand-sand);
+  --accent-foreground: var(--brand-cream);
   --destructive: #9b3b2e;
-  --border: color-mix(in srgb, var(--brand-silver) 72%, var(--brand-sand) 28%);
-  --input: color-mix(in srgb, var(--brand-silver) 60%, #ebe4db 40%);
-  --ring: var(--brand-sand);
+  --border: var(--line);
+  --input: color-mix(in srgb, var(--paper-deep) 70%, #fff 30%);
+  --ring: var(--brand-palm);
   --chart-1: var(--brand-palm);
   --chart-2: var(--brand-sand);
   --chart-3: var(--brand-terracotta);
-  --chart-4: #6b5a6b;
+  --chart-4: var(--ink-muted);
   --chart-5: var(--brand-silver);
-  --radius: 0.75rem;
-  --sidebar: #efe8df;
-  --sidebar-foreground: var(--brand-palm);
+  /* Dar Ward button radius base ≈ 8px (rounded-lg) */
+  --radius: 0.5rem;
+  --sidebar: var(--paper-deep);
+  --sidebar-foreground: var(--ink);
   --sidebar-primary: var(--brand-palm);
-  --sidebar-primary-foreground: var(--brand-cream);
-  --sidebar-accent: #ebe4db;
-  --sidebar-accent-foreground: var(--brand-palm);
-  --sidebar-border: color-mix(in srgb, var(--brand-silver) 72%, var(--brand-sand) 28%);
-  --sidebar-ring: var(--brand-sand);
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: color-mix(in srgb, var(--paper-deep) 80%, #fff 20%);
+  --sidebar-accent-foreground: var(--ink);
+  --sidebar-border: var(--line);
+  --sidebar-ring: var(--brand-palm);
 }
 
 .dark {
   color-scheme: dark;
   --brand-palm: #4a234a;
-  --brand-sand: #c9a86c;
+  --brand-sand: #c8962e;
   --brand-silver: #d4cfc6;
   --brand-terracotta: #b8915a;
-  --brand-cream: #f5f1e9;
+  --brand-cream: #f7f1e7;
+  --ink: #f7f1e7;
+  --ink-soft: #e8dfd0;
+  --ink-muted: #c4b8b0;
+  --paper-deep: #2a1f2a;
+  --line: color-mix(in srgb, var(--brand-cream) 14%, transparent);
   --background: #1a101a;
-  --foreground: #f5f1e9;
+  --foreground: #f7f1e9;
   --card: #241824;
-  --card-foreground: #f5f1e9;
+  --card-foreground: #f7f1e9;
   --popover: #241824;
-  --popover-foreground: #f5f1e9;
+  --popover-foreground: #f7f1e9;
   --primary: var(--brand-sand);
   --primary-foreground: var(--brand-palm);
   --secondary: #2e2230;
-  --secondary-foreground: #f5f1e9;
+  --secondary-foreground: #f7f1e9;
   --muted: #2e2230;
   --muted-foreground: #c4b8b0;
   --accent: var(--brand-terracotta);
   --accent-foreground: #fffcf8;
   --destructive: #d47368;
-  --border: color-mix(in srgb, var(--brand-silver) 18%, transparent);
+  --border: var(--line);
   --input: color-mix(in srgb, var(--brand-silver) 22%, transparent);
   --ring: var(--brand-sand);
   --chart-1: var(--brand-sand);
@@ -137,12 +151,12 @@
   --chart-4: var(--brand-silver);
   --chart-5: #6b5a6b;
   --sidebar: #1f141f;
-  --sidebar-foreground: #f5f1e9;
+  --sidebar-foreground: #f7f1e9;
   --sidebar-primary: var(--brand-sand);
   --sidebar-primary-foreground: var(--brand-palm);
   --sidebar-accent: #2e2230;
-  --sidebar-accent-foreground: #f5f1e9;
-  --sidebar-border: color-mix(in srgb, var(--brand-silver) 18%, transparent);
+  --sidebar-accent-foreground: #f7f1e9;
+  --sidebar-border: var(--line);
   --sidebar-ring: var(--brand-sand);
 }
 
@@ -215,6 +229,21 @@
 }
 
 @layer utilities {
+  /* Subtle paper texture (Dar Ward footer surfaces) */
+  .paper-grain {
+    background-image: radial-gradient(
+      color-mix(in srgb, var(--ink) 4%, transparent) 0.6px,
+      transparent 0.6px
+    );
+    background-size: 3px 3px;
+  }
+  .h-13 {
+    height: 3.25rem;
+  }
+  .size-13 {
+    width: 3.25rem;
+    height: 3.25rem;
+  }
   .page-shell {
     /* No overflow-x here — it breaks the fixed mobile bottom nav */
     @apply min-w-0 w-full max-w-full;
@@ -452,6 +481,36 @@
   }
 }
 
+@keyframes helper-fab-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 12px, 0) scale(0.72);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@keyframes helper-fab-out {
+  from {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translate3d(0, 10px, 0) scale(0.78);
+  }
+}
+
+@utility animate-helper-fab-in {
+  animation: helper-fab-in 0.42s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@utility animate-helper-fab-out {
+  animation: helper-fab-out 0.22s cubic-bezier(0.4, 0, 1, 1) both;
+}
+
 @keyframes khousa-ken {
   0% {
     transform: scale(1) translate3d(0, 0, 0);
@@ -542,15 +601,14 @@
   }
 }
 
+/* Opacity-only — transform under a sticky + backdrop-blur header causes shimmer */
 @keyframes event-wash {
   0%,
   100% {
     opacity: 0.7;
-    transform: translate3d(0, 0, 0);
   }
   50% {
     opacity: 1;
-    transform: translate3d(1.5%, 0, 0);
   }
 }
 
@@ -558,11 +616,9 @@
   0%,
   100% {
     opacity: 0.55;
-    transform: translate3d(0, 0, 0);
   }
   50% {
     opacity: 0.9;
-    transform: translate3d(-1.5%, 0, 0);
   }
 }
 
@@ -685,6 +741,161 @@
   }
 }
 
+/* Packages catalog — quiet motion so the grid feels alive */
+@keyframes pkg-rise {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 16px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes pkg-ken {
+  0% {
+    transform: scale(1) translate3d(0, 0, 0);
+  }
+  100% {
+    transform: scale(1.07) translate3d(-1.4%, 1%, 0);
+  }
+}
+
+@keyframes pkg-geo-drift {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: 88px 44px;
+  }
+}
+
+@keyframes pkg-star {
+  0%,
+  100% {
+    transform: rotate(0deg) scale(1);
+  }
+  50% {
+    transform: rotate(16deg) scale(1.05);
+  }
+}
+
+@keyframes pkg-orb {
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: scale(1) translate3d(0, 0, 0);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.14) translate3d(-8%, 6%, 0);
+  }
+}
+
+@keyframes pkg-dot {
+  0%,
+  100% {
+    opacity: 0.4;
+    transform: scale(0.85);
+    box-shadow: 0 0 0 0 rgba(224, 196, 138, 0);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1);
+    box-shadow: 0 0 0 5px rgba(224, 196, 138, 0.18);
+  }
+}
+
+@keyframes pkg-badge {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.045);
+  }
+}
+
+@keyframes pkg-ring {
+  0%,
+  100% {
+    opacity: 0.28;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes pkg-sheen {
+  0% {
+    opacity: 0;
+    transform: translate3d(-140%, 0, 0);
+  }
+  28% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(180%, 0, 0);
+  }
+}
+
+.pkg-enter {
+  animation: pkg-rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+  animation-delay: calc(var(--pkg-i, 0) * 55ms);
+}
+
+.pkg-card {
+  animation: pkg-rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+  animation-delay: calc(var(--pkg-i, 0) * 55ms);
+  transition:
+    transform 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.45s ease;
+}
+
+.pkg-card:hover {
+  transform: translate3d(0, -6px, 0);
+}
+
+.pkg-ken {
+  animation: pkg-ken 18s ease-in-out infinite alternate;
+}
+
+.pkg-geo {
+  animation: pkg-geo-drift 32s linear infinite;
+}
+
+.pkg-star {
+  animation: pkg-star 16s ease-in-out infinite;
+  transform-origin: center;
+}
+
+.pkg-orb {
+  animation: pkg-orb 9s ease-in-out infinite;
+}
+
+.pkg-dot {
+  animation: pkg-dot 2.4s ease-in-out infinite;
+}
+
+.pkg-badge-live {
+  animation: pkg-badge 2.6s ease-in-out infinite;
+}
+
+.pkg-live-ring {
+  animation: pkg-ring 3.6s ease-in-out infinite;
+}
+
+.pkg-sheen {
+  opacity: 0;
+}
+
+.pkg-card:hover .pkg-sheen,
+.pkg-feature:hover .pkg-sheen {
+  animation: pkg-sheen 0.95s ease;
+}
+
 /* Story focus: one sharp section, others softly dimmed (not unreadable) */
 .drama-panel {
   will-change: transform, opacity, filter;
@@ -749,5 +960,32 @@
     transform: none !important;
     stroke-dashoffset: 0 !important;
     height: 100% !important;
+  }
+
+  .pkg-enter,
+  .pkg-card,
+  .pkg-ken,
+  .pkg-geo,
+  .pkg-star,
+  .pkg-orb,
+  .pkg-dot,
+  .pkg-badge-live,
+  .pkg-live-ring,
+  .pkg-sheen {
+    animation: none !important;
+  }
+
+  .pkg-enter,
+  .pkg-card {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  .pkg-card:hover {
+    transform: none !important;
+  }
+
+  .pkg-sheen {
+    opacity: 0 !important;
   }
 }

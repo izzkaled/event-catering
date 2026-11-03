@@ -17,7 +17,7 @@ export function LanguageSwitcher({ size = 'sm', className }: LanguageSwitcherPro
       role="group"
       aria-label="Language"
       className={cn(
-        'inline-flex items-center rounded-xl border border-border/70 bg-secondary/50 p-0.5 shadow-sm',
+        'inline-flex items-center rounded-xl border border-[var(--line)] bg-white/75 p-0.5 shadow-sm backdrop-blur-sm',
         isLg ? 'text-sm' : 'text-xs',
         className,
       )}
@@ -30,12 +30,12 @@ export function LanguageSwitcher({ size = 'sm', className }: LanguageSwitcherPro
             type="button"
             onClick={() => setLang(code)}
             className={cn(
-              'rounded-[0.65rem] font-bold transition-all',
-              isLg ? 'min-h-11 min-w-11 px-4' : 'min-h-8 min-w-[2.25rem] px-2 sm:min-h-7',
+              'rounded-lg font-bold tracking-wide transition-all duration-200',
+              isLg ? 'min-h-11 min-w-11 px-4' : 'min-h-8 min-w-[2.35rem] px-2 sm:min-h-8',
               code === 'ar' ? 'font-ar' : 'font-en',
               active
-                ? 'bg-background text-primary shadow-sm ring-1 ring-primary/20'
-                : 'text-muted-foreground hover:bg-background/60 hover:text-foreground',
+                ? 'bg-brand-palm text-white shadow-sm'
+                : 'text-[var(--ink-muted)] hover:bg-[var(--paper-deep)] hover:text-brand-palm',
             )}
           >
             {code.toUpperCase()}

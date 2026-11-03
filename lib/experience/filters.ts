@@ -25,6 +25,62 @@ export const GUEST_BANDS: { id: GuestBand; ar: string; en: string; min: number; 
   { id: '250_plus', ar: '250+', en: '250+', min: 251, max: 9999 },
 ]
 
+export type MealType = 'breakfast' | 'lunch' | 'dinner'
+
+export const MEAL_TYPES: {
+  id: MealType
+  ar: string
+  en: string
+  keywords: string[]
+}[] = [
+  {
+    id: 'breakfast',
+    ar: 'إفطار',
+    en: 'Breakfast',
+    keywords: ['إفطار', 'فطور', 'breakfast', 'morning', 'صباحي'],
+  },
+  {
+    id: 'lunch',
+    ar: 'غداء',
+    en: 'Lunch',
+    keywords: ['غداء', 'lunch', 'ظهر', 'منتصف'],
+  },
+  {
+    id: 'dinner',
+    ar: 'عشاء',
+    en: 'Dinner',
+    keywords: ['عشاء', 'dinner', 'مساء', 'سهرة', 'مسائي'],
+  },
+]
+
+export function packageMatchesMeal(
+  pkg: {
+    name_ar?: string | null
+    name_en?: string | null
+    description_ar?: string | null
+    description_en?: string | null
+    features_ar?: string[] | null
+    features_en?: string[] | null
+  },
+  meal: MealType | null,
+) {
+  if (!meal) return true
+  const row = MEAL_TYPES.find((m) => m.id === meal)
+  if (!row) return true
+  const haystack = [
+    pkg.name_ar,
+    pkg.name_en,
+    pkg.description_ar,
+    pkg.description_en,
+    ...(pkg.features_ar || []),
+    ...(pkg.features_en || []),
+  ]
+    .filter(Boolean)
+    .join(' ')
+    .toLowerCase()
+  return row.keywords.some((k) => haystack.includes(k.toLowerCase()))
+}
+
 export const BUDGET_BANDS: { id: BudgetBand; ar: string; en: string; min: number; max: number }[] = [
   { id: 'under_100', ar: 'أقل من 100 ر.ع', en: 'Under 100 OMR', min: 0, max: 99 },
   { id: '100_250', ar: '100–250 ر.ع', en: '100–250 OMR', min: 100, max: 250 },

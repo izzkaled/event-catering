@@ -2,26 +2,89 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
+import { useEffect, useRef, useState } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useLanguage } from '@/components/language-provider'
 import { cn } from '@/lib/utils'
 
+const HERO_POSTER = '/images/brand/brand-table.webp'
+const HERO_VIDEO = '/videos/hero-catering.mp4'
+
 export function Hero() {
   const { t, dir, lang } = useLanguage()
   const isRtl = dir === 'rtl'
   const Chevron = isRtl ? ChevronLeft : ChevronRight
+  const videoRef = useRef<HTMLVideoElement>(null)
+  const [canPlayVideo, setCanPlayVideo] = useState(false)
+
+  useEffect(() => {
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    if (reduced) return
+
+    const video = videoRef.current
+    if (!video) return
+
+    let cancelled = false
+
+    const tryPlay = async () => {
+      try {
+        video.muted = true
+        await video.play()
+        if (!cancelled) setCanPlayVideo(true)
+      } catch {
+        // Autoplay blocked — keep poster image.
+      }
+    }
+
+    // Defer decode until after first paint for faster initial load.
+    const idle =
+      'requestIdleCallback' in window
+        ? window.requestIdleCallback(() => void tryPlay(), { timeout: 900 })
+        : window.setTimeout(() => void tryPlay(), 120)
+
+    return () => {
+      cancelled = true
+      if ('requestIdleCallback' in window) {
+        window.cancelIdleCallback(idle as number)
+      } else {
+        window.clearTimeout(idle as number)
+      }
+    }
+  }, [])
 
   return (
     <section className="relative min-h-[min(100svh,52rem)] overflow-hidden">
+      {/* Instant LCP poster */}
       <Image
-        src="/images/brand/brand-table.webp"
+        src={HERO_POSTER}
         alt={t('hero.imageAlt')}
         fill
         priority
-        className="object-cover object-[68%_center] sm:object-center"
+        className={cn(
+          'object-cover object-[68%_center] transition-opacity duration-700 sm:object-center',
+          canPlayVideo ? 'opacity-0' : 'opacity-100',
+        )}
         sizes="100vw"
       />
+
+      {/* Short looped brand video — muted, inline, no controls */}
+      <video
+        ref={videoRef}
+        className={cn(
+          'absolute inset-0 h-full w-full object-cover object-[68%_center] transition-opacity duration-700 sm:object-center',
+          canPlayVideo ? 'opacity-100' : 'opacity-0',
+        )}
+        poster={HERO_POSTER}
+        muted
+        playsInline
+        loop
+        preload="metadata"
+        aria-hidden
+        tabIndex={-1}
+      >
+        <source src={HERO_VIDEO} type="video/mp4" />
+      </video>
 
       <div
         className={cn(
@@ -58,7 +121,7 @@ export function Hero() {
               render={<Link href="/packages" />}
               nativeButton={false}
               size="lg"
-              className="h-12 min-h-12 w-full gap-1.5 rounded-full border-0 bg-[#c9a86c] px-8 font-ios text-[0.95rem] font-semibold text-[#2a122a] shadow-[0_10px_28px_-8px_rgba(0,0,0,0.45)] transition hover:bg-[#d4b57a] active:scale-[0.98] sm:w-auto"
+              className="w-full gap-2 bg-brand-sand text-[var(--ink)] shadow-sm hover:bg-brand-sand/90 sm:w-auto"
             >
               {t('hero.cta')}
               <Chevron className="size-[1.125rem]" strokeWidth={1.75} />
@@ -68,7 +131,7 @@ export function Hero() {
               nativeButton={false}
               size="lg"
               variant="outline"
-              className="h-12 min-h-12 w-full rounded-full border-white/55 bg-white/10 px-8 font-ios text-[0.95rem] font-medium text-white backdrop-blur-md transition hover:border-white/80 hover:bg-white/18 active:scale-[0.98] sm:w-auto"
+              className="w-full border-white/40 bg-transparent text-white hover:bg-white/10 sm:w-auto"
             >
               {t('hero.ctaSecondary')}
             </Button>

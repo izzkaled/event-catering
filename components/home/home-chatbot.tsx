@@ -4,11 +4,15 @@ import { useEffect, useRef, useState, useTransition } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { CalendarPlus, CreditCard, Loader2, MapPin, Package, Send, X } from 'lucide-react'
+import { ChatCircle, X as PhosphorX } from '@phosphor-icons/react'
+import { IconWhatsApp } from '@/components/brand-icons'
 import { useLanguage } from '@/components/language-provider'
 import { Button } from '@/components/ui/button'
 import { ChatActionChips, ChatMessageContent } from '@/components/home/chat-message-content'
 import { cn } from '@/lib/utils'
 import type { ChatAction } from '@/lib/chat/links'
+
+const WHATSAPP = (process.env.NEXT_PUBLIC_WHATSAPP || '96897021006').replace(/\D/g, '')
 
 type ChatMsg = { id: string; role: 'user' | 'assistant'; content: string; actions?: ChatAction[] }
 
@@ -64,6 +68,7 @@ function TypingDots() {
 export function HomeChatbot() {
   const { lang, dir } = useLanguage()
   const ar = lang === 'ar'
+  const [menuOpen, setMenuOpen] = useState(false)
   const [open, setOpen] = useState(false)
   const [input, setInput] = useState('')
   const [messages, setMessages] = useState<ChatMsg[]>([])
@@ -73,6 +78,25 @@ export function HomeChatbot() {
   const listRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const welcomed = useRef(false)
+
+  function toggleLauncher() {
+    if (open) {
+      setOpen(false)
+      setMenuOpen(false)
+      return
+    }
+    setMenuOpen((v) => !v)
+  }
+
+  function openChat() {
+    setMenuOpen(false)
+    setOpen(true)
+  }
+
+  function closeAll() {
+    setOpen(false)
+    setMenuOpen(false)
+  }
 
   const suggestions = ar ? SUGGESTIONS_AR : SUGGESTIONS_EN
 
@@ -228,12 +252,17 @@ export function HomeChatbot() {
 
   return (
     <>
-      {open && (
+      {(open || menuOpen) && (
         <button
           type="button"
-          aria-label={ar ? 'إغلاق المساعد' : 'Close helper'}
-          className="fixed inset-0 z-[44] bg-brand-palm/15 backdrop-blur-[2px] motion-safe:animate-in motion-safe:fade-in-0"
-          onClick={() => setOpen(false)}
+          aria-label={ar ? 'إغلاق' : 'Close'}
+          className={cn(
+            'fixed inset-0 z-[44] transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]',
+            open
+              ? 'bg-brand-palm/12 backdrop-blur-md'
+              : 'bg-brand-palm/[0.04] backdrop-blur-[3px]',
+          )}
+          onClick={closeAll}
         />
       )}
 
@@ -244,13 +273,16 @@ export function HomeChatbot() {
         aria-label={ar ? 'مساعد إيفنت' : 'Event Helper'}
         className={cn(
           'fixed z-[46] start-3 sm:start-6',
-          'bottom-[calc(10.25rem+env(safe-area-inset-bottom,0px))] md:bottom-[7rem]',
-          'flex w-[min(22.5rem,calc(100vw-1.5rem))] flex-col overflow-hidden',
-          'rounded-[1.75rem] border border-brand-sand/30 bg-brand-cream/98 shadow-[0_20px_50px_-12px_color-mix(in_srgb,var(--brand-palm)_35%,transparent)] backdrop-blur-xl',
-          'transition-[opacity,transform] duration-300 ease-out origin-bottom',
+          'bottom-[calc(8.75rem+env(safe-area-inset-bottom,0px))] md:bottom-[5.75rem]',
+          'flex w-[min(20.5rem,calc(100vw-1.5rem))] flex-col overflow-hidden',
+          'rounded-2xl border border-white/45',
+          'bg-brand-cream/55 shadow-[0_24px_60px_-18px_rgba(31,26,23,0.4)]',
+          'backdrop-blur-2xl backdrop-saturate-150',
+          'ring-1 ring-black/5',
+          'origin-bottom transition-[opacity,transform,max-height] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]',
           open
-            ? 'pointer-events-auto max-h-[min(30rem,68vh)] translate-y-0 scale-100 opacity-100'
-            : 'pointer-events-none max-h-0 translate-y-3 scale-[0.96] opacity-0',
+            ? 'pointer-events-auto max-h-[min(28rem,64vh)] translate-y-0 scale-100 opacity-100'
+            : 'pointer-events-none max-h-0 translate-y-4 scale-[0.94] opacity-0',
         )}
       >
         {/* Header */}
@@ -278,7 +310,7 @@ export function HomeChatbot() {
             </div>
             <button
               type="button"
-              onClick={() => setOpen(false)}
+              onClick={closeAll}
               className="touch-target flex size-9 shrink-0 items-center justify-center rounded-full bg-white/10 transition hover:bg-white/20"
               aria-label={ar ? 'إغلاق' : 'Close'}
             >
@@ -382,42 +414,111 @@ export function HomeChatbot() {
         </div>
       </div>
 
-      {/* FAB */}
+      {/* Compact glass launcher — expands to WhatsApp + Chat */}
       <div
         className={cn(
           'fixed z-[45] start-3 sm:start-6',
           'bottom-[calc(5.5rem+env(safe-area-inset-bottom,0px))] md:bottom-6',
-          'flex flex-col items-center gap-2',
+          'flex flex-col items-center',
         )}
       >
-        {!open && (
-          <span className="pointer-events-none rounded-full border border-brand-sand/40 bg-brand-cream/95 px-2.5 py-1 text-[10px] font-bold text-brand-palm shadow-md backdrop-blur-sm">
-            {ar ? 'مساعد إيفنت' : 'Event Helper'}
-          </span>
-        )}
-        <button
-          type="button"
-          onClick={() => setOpen((v) => !v)}
-          aria-expanded={open}
-          aria-label={ar ? 'فتح مساعد إيفنت كاترينج' : 'Open Event Catering assistant'}
+        <div
           className={cn(
-            'relative flex size-[3.6rem] items-center justify-center overflow-hidden rounded-full transition-transform active:scale-95 sm:size-16 sm:hover:scale-105',
-            'shadow-[0_12px_28px_-6px_color-mix(in_srgb,var(--brand-palm)_45%,transparent)]',
-            'ring-2 ring-brand-sand/70 ring-offset-2 ring-offset-background',
-            open && 'ring-brand-terracotta/80',
+            'relative flex flex-col items-center gap-2.5 rounded-[1.65rem] p-2',
+            'transition-[background,box-shadow,backdrop-filter,padding] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]',
+            menuOpen && !open
+              ? 'border border-white/50 bg-white/35 shadow-[0_16px_40px_-16px_rgba(31,26,23,0.35)] backdrop-blur-xl backdrop-saturate-150 ring-1 ring-black/[0.04]'
+              : 'border border-transparent bg-transparent shadow-none',
           )}
         >
-          {open ? (
-            <span className="flex size-full items-center justify-center bg-brand-palm text-brand-cream">
-              <X className="size-6" />
+          {/* Expanded actions */}
+          <div
+            className={cn(
+              'flex flex-col items-center gap-2.5 overflow-hidden transition-[max-height,opacity,margin] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]',
+              menuOpen && !open
+                ? 'pointer-events-auto mb-0.5 max-h-40 opacity-100'
+                : 'pointer-events-none mb-0 max-h-0 opacity-0',
+            )}
+          >
+            <a
+              href={`https://wa.me/${WHATSAPP}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => setMenuOpen(false)}
+              className={cn(
+                'group flex flex-col items-center gap-1',
+                menuOpen && !open && 'animate-helper-fab-in [animation-delay:40ms]',
+              )}
+              aria-label="WhatsApp"
+            >
+              <span className="rounded-full border border-white/40 bg-[#128C7E]/85 px-2 py-0.5 text-[9px] font-bold text-white shadow-sm backdrop-blur-md">
+                WhatsApp
+              </span>
+              <span className="flex size-11 items-center justify-center rounded-full bg-[#25D366]/95 text-white shadow-[0_8px_22px_-6px_rgba(37,211,102,0.55)] ring-1 ring-white/35 backdrop-blur-sm transition duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-105 group-active:scale-95">
+                <IconWhatsApp className="size-5" />
+              </span>
+            </a>
+
+            <button
+              type="button"
+              onClick={openChat}
+              className={cn(
+                'group flex flex-col items-center gap-1',
+                menuOpen && !open && 'animate-helper-fab-in [animation-delay:110ms]',
+              )}
+              aria-label={ar ? 'محادثة المساعد' : 'Chat with assistant'}
+            >
+              <span className="rounded-full border border-white/50 bg-brand-cream/70 px-2 py-0.5 text-[9px] font-bold text-brand-palm shadow-sm backdrop-blur-md">
+                {ar ? 'محادثة' : 'Chat'}
+              </span>
+              <span className="flex size-11 items-center justify-center rounded-full bg-brand-palm/92 text-brand-cream shadow-[0_8px_22px_-6px_rgba(74,35,74,0.5)] ring-1 ring-white/30 backdrop-blur-sm transition duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-105 group-active:scale-95">
+                <ChatCircle weight="fill" className="size-5" />
+              </span>
+            </button>
+          </div>
+
+          {!open && !menuOpen && (
+            <span className="pointer-events-none absolute -top-7 rounded-full border border-white/45 bg-white/45 px-2 py-0.5 text-[9px] font-bold text-brand-palm shadow-md backdrop-blur-md transition-opacity duration-300">
+              {ar ? 'مساعد إيفنت' : 'Event Helper'}
             </span>
-          ) : (
-            <>
-              <span className="absolute inset-0 animate-ping rounded-full bg-brand-sand/20 [animation-duration:2.8s]" />
-              <ChatbotLogo size={64} className="relative" />
-            </>
           )}
-        </button>
+
+          <button
+            type="button"
+            onClick={toggleLauncher}
+            aria-expanded={menuOpen || open}
+            aria-label={
+              open || menuOpen
+                ? ar
+                  ? 'إغلاق'
+                  : 'Close'
+                : ar
+                  ? 'فتح مساعد إيفنت'
+                  : 'Open Event helper'
+            }
+            className={cn(
+              'relative flex size-12 items-center justify-center overflow-hidden rounded-full',
+              'transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] active:scale-95',
+              'shadow-[0_10px_26px_-8px_color-mix(in_srgb,var(--brand-palm)_42%,transparent)]',
+              'ring-2 ring-white/55 ring-offset-2 ring-offset-transparent',
+              open || menuOpen
+                ? 'bg-brand-palm/90 text-brand-cream backdrop-blur-md ring-brand-palm/25'
+                : 'bg-white/40 backdrop-blur-md',
+            )}
+          >
+            {open || menuOpen ? (
+              <PhosphorX
+                weight="bold"
+                className="size-5 transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]"
+              />
+            ) : (
+              <>
+                <span className="absolute inset-0 animate-ping rounded-full bg-brand-sand/15 [animation-duration:2.8s]" />
+                <ChatbotLogo size={48} className="relative ring-0" />
+              </>
+            )}
+          </button>
+        </div>
       </div>
     </>
   )

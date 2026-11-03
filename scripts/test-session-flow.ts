@@ -1,5 +1,5 @@
 async function main() {
-  const phone = '77222432'
+  const phone = '97021006'
   const send = await fetch('http://localhost:3000/api/phone/send-otp', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },

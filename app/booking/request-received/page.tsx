@@ -14,7 +14,7 @@ function RequestReceivedInner() {
   const orderNumber = params.get('order') || '---'
   const { lang } = useLanguage()
   const ar = lang === 'ar'
-  const whatsapp = (process.env.NEXT_PUBLIC_WHATSAPP || '96877222432').replace(/\D/g, '')
+  const whatsapp = (process.env.NEXT_PUBLIC_WHATSAPP || '96897021006').replace(/\D/g, '')
 
   return (
     <main className="mx-auto flex w-full max-w-xl flex-1 flex-col items-center justify-center px-4 py-16 text-center">

@@ -3,15 +3,15 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
-import { Home, Layers, UserRound } from 'lucide-react'
+import { House, Stack, UserCircle } from '@phosphor-icons/react'
 import { useLanguage } from '@/components/language-provider'
 import { cn } from '@/lib/utils'
 
 const HIDDEN_PREFIXES = ['/admin', '/auth', '/booking', '/experience']
 
-/** Spacer height: floating bar (~3.5rem) + float gap + safe area */
+/** Spacer height: floating bar + float gap + safe area */
 const NAV_SPACE =
-  'h-[calc(4.75rem+env(safe-area-inset-bottom,0px))] md:hidden'
+  'h-[calc(4.85rem+env(safe-area-inset-bottom,0px))] md:hidden'
 
 export function MobileBottomNav() {
   const pathname = usePathname()
@@ -27,41 +27,58 @@ export function MobileBottomNav() {
 
   const hidden = HIDDEN_PREFIXES.some((p) => pathname?.startsWith(p))
 
-  /**
-   * Keep the floating dock in the visible viewport when mobile chrome
-   * resizes — without fighting pinch-zoom.
-   */
   useEffect(() => {
     if (hidden) return
 
     let disposed = false
     let raf = 0
+    let applied = 0
     let sync: (() => void) | null = null
+
+    const isEditing = () => {
+      const el = document.activeElement
+      if (!el || !(el instanceof HTMLElement)) return false
+      const tag = el.tagName
+      return (
+        tag === 'INPUT' ||
+        tag === 'TEXTAREA' ||
+        tag === 'SELECT' ||
+        el.isContentEditable
+      )
+    }
 
     const attach = () => {
       if (disposed) return
       const shell = shellRef.current
       if (!shell) return
 
+      // Only lift above the virtual keyboard. Do NOT track browser chrome
+      // (address bar / chin) — those visualViewport changes cause nav shake.
       sync = () => {
         cancelAnimationFrame(raf)
         raf = requestAnimationFrame(() => {
           const vv = window.visualViewport
-          if (!vv || (vv.scale ?? 1) > 1.01) {
-            shell.style.removeProperty('transform')
+          if (!vv || (vv.scale ?? 1) > 1.01 || !isEditing()) {
+            if (applied !== 0) {
+              applied = 0
+              shell.style.removeProperty('transform')
+            }
             return
           }
           const shift = Math.round(window.innerHeight - vv.height - vv.offsetTop)
-          // Only nudge when keyboard/chrome actually eats space
+          // Large threshold + hysteresis: ignore address-bar sized deltas
+          const next = shift > 120 ? shift : 0
+          if (Math.abs(next - applied) < 12) return
+          applied = next
           shell.style.transform =
-            shift > 8 ? `translate3d(0, ${-shift}px, 0)` : 'translate3d(0, 0, 0)'
+            next > 0 ? `translate3d(0, ${-next}px, 0)` : 'translate3d(0, 0, 0)'
         })
       }
 
       sync()
       window.visualViewport?.addEventListener('resize', sync)
-      window.visualViewport?.addEventListener('scroll', sync)
-      window.addEventListener('resize', sync)
+      window.addEventListener('focusin', sync)
+      window.addEventListener('focusout', sync)
       window.addEventListener('orientationchange', sync)
     }
 
@@ -73,10 +90,11 @@ export function MobileBottomNav() {
       cancelAnimationFrame(raf)
       if (sync) {
         window.visualViewport?.removeEventListener('resize', sync)
-        window.visualViewport?.removeEventListener('scroll', sync)
-        window.removeEventListener('resize', sync)
+        window.removeEventListener('focusin', sync)
+        window.removeEventListener('focusout', sync)
         window.removeEventListener('orientationchange', sync)
       }
+      shellRef.current?.style.removeProperty('transform')
     }
   }, [hidden])
 
@@ -89,19 +107,19 @@ export function MobileBottomNav() {
     {
       href: '/',
       label: t('nav.home'),
-      icon: Home,
+      icon: House,
       active: pathname === '/',
     },
     {
       href: '/packages',
       label: t('nav.packages'),
-      icon: Layers,
+      icon: Stack,
       active: pathname?.startsWith('/packages') || pathname?.startsWith('/experience'),
     },
     {
       href: accountHref,
       label: accountLabel,
-      icon: UserRound,
+      icon: UserCircle,
       active:
         pathname?.startsWith('/profile') ||
         pathname?.startsWith('/subscriptions') ||
@@ -115,20 +133,20 @@ export function MobileBottomNav() {
 
       <div
         ref={shellRef}
-        className="pointer-events-none fixed inset-x-0 bottom-0 z-50 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom,0px))] pt-1 md:hidden backface-hidden transform-[translate3d(0,0,0)]"
+        className="pointer-events-none fixed inset-x-0 bottom-0 z-50 px-3.5 pb-[max(0.7rem,env(safe-area-inset-bottom,0px))] pt-1 md:hidden backface-hidden transform-[translate3d(0,0,0)]"
       >
         <nav
           dir={dir}
           aria-label={lang === 'ar' ? 'التنقل السفلي' : 'Bottom navigation'}
           className={cn(
             'pointer-events-auto mx-auto w-full max-w-md',
-            'rounded-[1.65rem] border border-white/50',
-            'bg-[#faf7f2]/88 shadow-[0_10px_40px_-12px_rgba(42,18,42,0.35),0_2px_8px_-2px_rgba(42,18,42,0.12)]',
-            'backdrop-blur-xl backdrop-saturate-150',
-            'ring-1 ring-black/4',
+            'rounded-full border border-white/55',
+            'bg-white/40 shadow-[0_12px_40px_-14px_rgba(31,26,23,0.38),0_2px_10px_-4px_rgba(31,26,23,0.12)]',
+            'backdrop-blur-2xl backdrop-saturate-150',
+            'ring-1 ring-black/[0.04]',
           )}
         >
-          <ul className="grid h-[3.35rem] grid-cols-3 px-1.5">
+          <ul className="grid h-[3.45rem] grid-cols-3 gap-0.5 p-1">
             {items.map((item) => {
               const Icon = item.icon
               return (
@@ -136,27 +154,34 @@ export function MobileBottomNav() {
                   <Link
                     href={item.href}
                     className={cn(
-                      'relative flex h-full min-w-0 flex-col items-center justify-center gap-0.5 rounded-2xl px-1 transition-colors',
-                      'active:scale-[0.96]',
-                      item.active ? 'text-[#4A234A]' : 'text-[#4A234A]/45',
+                      'relative flex h-full min-w-0 flex-col items-center justify-center gap-0.5 rounded-full px-1',
+                      'transition-all duration-400 ease-[cubic-bezier(0.22,1,0.36,1)] active:scale-[0.94]',
+                      item.active
+                        ? 'text-brand-palm'
+                        : 'text-brand-palm/55 hover:text-brand-palm/80',
                     )}
                   >
-                    {item.active ? (
-                      <span
-                        aria-hidden
-                        className="absolute inset-x-3 top-1.5 h-8 rounded-full bg-[#4A234A]/08"
-                      />
-                    ) : null}
+                    <span
+                      aria-hidden
+                      className={cn(
+                        'absolute inset-0 rounded-full transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]',
+                        item.active
+                          ? 'scale-100 bg-brand-palm/[0.09] opacity-100 shadow-[inset_0_1px_0_rgba(255,255,255,0.55)]'
+                          : 'scale-90 bg-transparent opacity-0',
+                      )}
+                    />
                     <Icon
-                      className="relative size-[1.35rem]"
-                      strokeWidth={item.active ? 2.4 : 1.75}
-                      fill={item.active ? 'currentColor' : 'none'}
-                      fillOpacity={item.active ? 0.18 : 0}
+                      weight={item.active ? 'fill' : 'bold'}
+                      className={cn(
+                        'relative size-[1.35rem] shrink-0 transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]',
+                        item.active && 'scale-105',
+                      )}
+                      aria-hidden
                     />
                     <span
                       className={cn(
-                        'relative w-full truncate text-center text-[10px] leading-none tracking-wide',
-                        item.active ? 'font-semibold' : 'font-medium',
+                        'relative w-full truncate text-center text-[10.5px] leading-none tracking-wide transition-all duration-400',
+                        item.active ? 'font-bold' : 'font-semibold',
                       )}
                     >
                       {item.label}

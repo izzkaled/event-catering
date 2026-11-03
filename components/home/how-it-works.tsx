@@ -73,7 +73,7 @@ export function HowItWorks() {
                 style={{ animationDelay: `${180 + i * 160}ms` }}
               >
                 <div className="relative z-10 shrink-0">
-                  <span className="how-map-node relative flex size-12 items-center justify-center rounded-full border border-brand-sand/40 bg-[#fffcf8] text-brand-palm shadow-[0_8px_20px_-12px_rgba(74,35,74,0.45)]">
+                  <span className="how-map-node relative flex size-12 items-center justify-center rounded-full border border-brand-sand/40 bg-brand-cream text-brand-palm shadow-[0_8px_20px_-12px_rgba(74,35,74,0.45)]">
                     <Icon className="size-5" strokeWidth={1.75} />
                     <span className="absolute -top-1 -end-1 flex size-5 items-center justify-center rounded-full bg-brand-palm font-ios text-[10px] font-semibold text-brand-cream">
                       {String(i + 1).padStart(2, '0')}
@@ -156,7 +156,7 @@ export function HowItWorks() {
                   className="how-map-stop relative flex flex-col items-center gap-4 text-center"
                   style={{ animationDelay: `${220 + i * 180}ms` }}
                 >
-                  <span className="how-map-node relative z-10 flex size-14 items-center justify-center rounded-full border border-brand-sand/40 bg-[#fffcf8] text-brand-palm shadow-[0_10px_24px_-12px_rgba(74,35,74,0.5)]">
+                  <span className="how-map-node relative z-10 flex size-14 items-center justify-center rounded-full border border-brand-sand/40 bg-brand-cream text-brand-palm shadow-[0_10px_24px_-12px_rgba(74,35,74,0.5)]">
                     <Icon className="size-6" strokeWidth={1.75} />
                     <span className="absolute -top-1 -end-1 flex size-6 items-center justify-center rounded-full bg-brand-palm font-ios text-[11px] font-semibold text-brand-cream">
                       {String(i + 1).padStart(2, '0')}

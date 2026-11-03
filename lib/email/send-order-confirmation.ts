@@ -181,7 +181,7 @@ export async function sendOrderConfirmation(input: {
   const resendKey = process.env.RESEND_API_KEY?.trim()
   const adminEmail = process.env.ADMIN_EMAIL?.trim()
   const siteUrl = SITE_URL
-  const whatsapp = process.env.NEXT_PUBLIC_WHATSAPP || '96877222432'
+  const whatsapp = process.env.NEXT_PUBLIC_WHATSAPP || '96897021006'
   const from = getResendFromAddress()
 
   const [order] = await db.select().from(orders).where(eq(orders.id, orderId)).limit(1)

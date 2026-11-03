@@ -58,7 +58,7 @@ export async function sendOutreachEmail(input: OutreachEmailInput) {
 
   const resend = new Resend(apiKey)
   const siteUrl = SITE_URL
-  const whatsapp = process.env.NEXT_PUBLIC_WHATSAPP || '96877222432'
+  const whatsapp = process.env.NEXT_PUBLIC_WHATSAPP || '96897021006'
   const companyLine = input.companyName?.trim()
     ? `<p style="color:#64748b;font-size:13px">إلى: ${escapeHtml(input.companyName.trim())}</p>`
     : ''

@@ -1,4 +1,4 @@
-import { create as createFont } from 'fontkit'
+import { create as createFont, type Font } from 'fontkit'
 import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 
@@ -18,7 +18,8 @@ const LATIN_OR_DIGIT = /[A-Za-z0-9\u00C0-\u024F]/
 const LATIN_PUNCT =
   /[\u0020-\u002F\u003A-\u0040\u005B-\u0060\u007B-\u007E\u00A0-\u00BF\u2010-\u2027\u2030-\u205E\u2212\u00B7\u2022\u2026]/
 
-type OpenTypeFont = ReturnType<typeof createFont>
+/** Single OpenType face — create() can also return FontCollection. */
+type OpenTypeFont = Font
 
 type GlyphPathCommand = {
   command: string
@@ -61,8 +62,12 @@ export function resolveLatinFontPath() {
   return LATIN_FONT_CANDIDATES.find((path) => existsSync(path)) ?? null
 }
 
-export function openInvoiceFont(fontPath: string) {
-  return createFont(readFileSync(fontPath)) as OpenTypeFont
+export function openInvoiceFont(fontPath: string): OpenTypeFont {
+  const font = createFont(readFileSync(fontPath))
+  if (!('layout' in font) || typeof font.layout !== 'function') {
+    throw new Error(`Expected a single font face, got a collection: ${fontPath}`)
+  }
+  return font
 }
 
 export function loadInvoiceFonts(): FontPair {

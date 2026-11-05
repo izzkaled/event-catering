@@ -46,7 +46,13 @@ export async function sendOutreachEmail(input: OutreachEmailInput) {
   }
 
   if (isResendSandboxFrom()) {
-    const owner = (process.env.RESEND_ACCOUNT_EMAIL || process.env.ADMIN_EMAIL || '').trim().toLowerCase()
+    const owner = (
+      process.env.RESEND_ACCOUNT_EMAIL ||
+      (process.env.ADMIN_EMAIL || '').split(/[,;\s]+/).map((p) => p.trim()).find(Boolean) ||
+      ''
+    )
+      .trim()
+      .toLowerCase()
     const blocked = recipients.filter((r) => r !== owner)
     if (blocked.length) {
       throw new Error(

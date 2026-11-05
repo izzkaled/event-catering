@@ -12,10 +12,20 @@ export function isResendSandboxFrom(from = getResendFromAddress()): boolean {
   return from.includes('onboarding@resend.dev')
 }
 
+function resendSandboxOwnerEmail(): string | null {
+  const account = process.env.RESEND_ACCOUNT_EMAIL?.trim().toLowerCase()
+  if (account) return account
+  const firstAdmin = (process.env.ADMIN_EMAIL || '')
+    .split(/[,;\s]+/)
+    .map((part) => part.trim().toLowerCase())
+    .find(Boolean)
+  return firstAdmin || null
+}
+
 /** Resend sandbox only delivers to the account owner email unless a domain is verified. */
 export function resendSandboxOwnerHint(): string | null {
   if (!isResendSandboxFrom()) return null
-  const owner = process.env.RESEND_ACCOUNT_EMAIL?.trim() || process.env.ADMIN_EMAIL?.trim()
+  const owner = resendSandboxOwnerEmail()
   if (!owner) return 'Verify a domain at resend.com/domains and set RESEND_FROM_EMAIL for all user emails.'
   return `Resend sandbox only delivers to ${owner}. Verify a domain and set RESEND_FROM_EMAIL to email any user.`
 }
@@ -27,7 +37,8 @@ export async function sendOtpEmail(to: string, code: string, appName = APP_NAME)
   }
 
   const hint = resendSandboxOwnerHint()
-  if (hint && to.trim().toLowerCase() !== (process.env.RESEND_ACCOUNT_EMAIL || process.env.ADMIN_EMAIL || '').trim().toLowerCase()) {
+  const owner = resendSandboxOwnerEmail()
+  if (hint && owner && to.trim().toLowerCase() !== owner) {
     throw new Error(hint)
   }
 

@@ -1,5 +1,6 @@
 import { eq } from 'drizzle-orm'
 import { Resend } from 'resend'
+import { getAdminEmails } from '@/lib/auth/admin'
 import { db } from '@/lib/db'
 import { orders, users, type Order } from '@/lib/db/schema'
 import { formatPhoneDisplay, ORDER_STATUS_LABELS, PAYMENT_STATUS_LABELS } from '@/lib/constants'
@@ -180,7 +181,7 @@ export async function sendOrderConfirmation(input: {
 }): Promise<SendOrderConfirmationResult> {
   const { orderId, event } = input
   const resendKey = process.env.RESEND_API_KEY?.trim()
-  const adminEmail = process.env.ADMIN_EMAIL?.trim()
+  const adminEmails = getAdminEmails()
   const siteUrl = SITE_URL
   const whatsapp = process.env.NEXT_PUBLIC_WHATSAPP || '96897021006'
   const from = getResendFromAddress()
@@ -311,17 +312,19 @@ export async function sendOrderConfirmation(input: {
     )
   }
 
-  // Always notify ADMIN_EMAIL with the detailed order PDF (even if same as customer).
-  if (notifyAdmin(event) && adminEmail) {
-    sends.push(
-      resend.emails.send({
-        from,
-        to: adminEmail,
-        subject: copy.adminSubject,
-        html: adminHtml,
-        attachments: adminAttachments,
-      }),
-    )
+  // Notify every ADMIN_EMAIL allowlist address with the detailed order PDF.
+  if (notifyAdmin(event) && adminEmails.length > 0) {
+    for (const adminEmail of adminEmails) {
+      sends.push(
+        resend.emails.send({
+          from,
+          to: adminEmail,
+          subject: copy.adminSubject,
+          html: adminHtml,
+          attachments: adminAttachments,
+        }),
+      )
+    }
   }
 
   await Promise.all(sends)
@@ -329,7 +332,7 @@ export async function sendOrderConfirmation(input: {
   return {
     success: true,
     customerEmailed: Boolean(customerEmail),
-    adminEmailed: notifyAdmin(event) && Boolean(adminEmail),
+    adminEmailed: notifyAdmin(event) && adminEmails.length > 0,
   }
 }
 

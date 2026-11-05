@@ -23,8 +23,8 @@ export default function AdminLoginPage() {
       <LanguageSwitcher />
       <p className="max-w-sm text-center text-sm text-muted-foreground">
         {tx(
-          'دخول الإدارة مسموح فقط للحسابات المضافة في إعدادات السيرفر (ADMIN_EMAIL / ADMIN_PHONE).',
-          'Admin access is limited to accounts listed in server settings (ADMIN_EMAIL / ADMIN_PHONE).',
+          'دخول الإدارة مسموح فقط للحسابات المدرجة في ADMIN_EMAIL / ADMIN_PHONE (يمكن أكثر من إيميل مفصول بفاصلة).',
+          'Admin access is limited to ADMIN_EMAIL / ADMIN_PHONE allowlists (comma-separated emails supported).',
         )}
       </p>
       <Suspense>

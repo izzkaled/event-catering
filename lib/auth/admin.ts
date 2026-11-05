@@ -7,17 +7,38 @@ type AuthUser = {
   phone?: string | null
 }
 
+/** Split ADMIN_EMAIL / ADMIN_PHONE allowlists: comma, semicolon, or whitespace. */
+function parseAllowlist(raw: string | undefined): string[] {
+  if (!raw?.trim()) return []
+  return raw
+    .split(/[,;\s]+/)
+    .map((part) => part.trim())
+    .filter(Boolean)
+}
+
+export function getAdminEmails(): string[] {
+  return [
+    ...new Set(parseAllowlist(process.env.ADMIN_EMAIL).map((email) => email.toLowerCase())),
+  ]
+}
+
+export function getAdminPhones(): string[] {
+  return [
+    ...new Set(
+      parseAllowlist(process.env.ADMIN_PHONE).map((phone) => normalizePhone(phone) || phone),
+    ),
+  ]
+}
+
 export function isAdminPhone(phone: string): boolean {
-  const raw = process.env.ADMIN_PHONE?.trim()
-  if (!raw) return false
-  const adminPhone = normalizePhone(raw) || raw
-  return phone === adminPhone
+  const normalized = normalizePhone(phone) || phone
+  return getAdminPhones().includes(normalized)
 }
 
 export function isAdminEmail(email: string): boolean {
-  const adminEmail = process.env.ADMIN_EMAIL?.trim().toLowerCase()
-  if (!adminEmail) return false
-  return email.trim().toLowerCase() === adminEmail
+  const normalized = email.trim().toLowerCase()
+  if (!normalized) return false
+  return getAdminEmails().includes(normalized)
 }
 
 /**
@@ -39,4 +60,3 @@ export function isAdminUser(user: AuthUser | null | undefined): boolean {
 export function resolveUserRole(user: AuthUser | null | undefined): 'admin' | 'user' {
   return isAdminUser(user) ? 'admin' : 'user'
 }
-

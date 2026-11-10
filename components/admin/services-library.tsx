@@ -12,7 +12,8 @@ import {
   Wallet,
 } from 'lucide-react'
 import { toast } from 'sonner'
-import type { HospitalityService } from '@/lib/db/schema'
+import type { HospitalityService, Supplier } from '@/lib/db/schema'
+import { DEFAULT_SUPPLIER_ID } from '@/lib/db/schema'
 import { ImageUploadField } from '@/components/admin/image-upload-field'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -37,17 +38,19 @@ type FormState = {
   description_ar: string
   description_en: string
   category: string
+  supplier_id: string
   pricing_model: 'fixed' | 'per_guest'
   price_omr: string
   image_url: string
 }
 
-const emptyForm = (): FormState => ({
+const emptyForm = (supplierId = DEFAULT_SUPPLIER_ID): FormState => ({
   name_ar: '',
   name_en: '',
   description_ar: '',
   description_en: '',
   category: 'food_beverage',
+  supplier_id: supplierId,
   pricing_model: 'fixed',
   price_omr: '',
   image_url: '',
@@ -56,22 +59,40 @@ const emptyForm = (): FormState => ({
 export function ServicesLibrary() {
   const { tx, lang } = useLanguage()
   const [rows, setRows] = useState<HospitalityService[]>([])
+  const [suppliers, setSuppliers] = useState<Supplier[]>([])
   const [loading, setLoading] = useState(true)
   const [show, setShow] = useState(false)
   const [saving, setSaving] = useState(false)
   const [q, setQ] = useState('')
   const [catFilter, setCatFilter] = useState('all')
-  const [form, setForm] = useState<FormState>(emptyForm)
+  const [supplierFilter, setSupplierFilter] = useState('all')
+  const [form, setForm] = useState<FormState>(emptyForm())
 
   const load = useCallback(async () => {
-    const res = await fetch('/api/admin/services')
-    if (res.ok) setRows(await res.json())
+    const [svcRes, supRes] = await Promise.all([
+      fetch('/api/admin/services'),
+      fetch('/api/admin/suppliers'),
+    ])
+    if (svcRes.ok) setRows(await svcRes.json())
+    if (supRes.ok) {
+      const list = (await supRes.json()) as Supplier[]
+      setSuppliers(list.filter((s) => s.is_active !== false))
+    }
     setLoading(false)
   }, [])
 
   useEffect(() => {
     load()
   }, [load])
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const param = new URLSearchParams(window.location.search).get('supplier')
+    if (param) {
+      setSupplierFilter(param)
+      setForm((f) => ({ ...f, supplier_id: param }))
+    }
+  }, [])
 
   const active = useMemo(() => rows.filter((r) => !r.is_archived), [rows])
 
@@ -84,15 +105,26 @@ export function ServicesLibrary() {
   const filtered = useMemo(() => {
     return active.filter((r) => {
       if (catFilter !== 'all' && r.category !== catFilter) return false
+      if (supplierFilter !== 'all' && r.supplier_id !== supplierFilter) return false
       if (!q.trim()) return true
       const hay = `${r.name_ar} ${r.name_en} ${r.slug}`.toLowerCase()
       return hay.includes(q.trim().toLowerCase())
     })
-  }, [active, catFilter, q])
+  }, [active, catFilter, supplierFilter, q])
+
+  const supplierName = (id: string | null | undefined) => {
+    const s = suppliers.find((x) => x.id === id)
+    if (!s) return tx('بدون مورد', 'No supplier')
+    return lang === 'ar' ? s.name_ar : s.name_en
+  }
 
   const create = async () => {
     if (!form.name_ar.trim() || !form.name_en.trim()) {
       toast.error(tx('الاسم مطلوب بالعربي والإنجليزي', 'AR and EN names are required'))
+      return
+    }
+    if (!form.supplier_id) {
+      toast.error(tx('اختر المورد', 'Pick a supplier'))
       return
     }
     setSaving(true)
@@ -108,7 +140,7 @@ export function ServicesLibrary() {
       }
       toast.success(tx('تمت إضافة الخدمة', 'Service added'))
       setShow(false)
-      setForm(emptyForm())
+      setForm(emptyForm(form.supplier_id || DEFAULT_SUPPLIER_ID))
       await load()
     } finally {
       setSaving(false)
@@ -172,6 +204,14 @@ export function ServicesLibrary() {
           </div>
           <div className="grid grid-cols-1 gap-2 sm:flex sm:flex-wrap sm:justify-end">
             <Button
+              render={<Link href="/admin/suppliers" />}
+              nativeButton={false}
+              variant="outline"
+              className="min-h-11 w-full sm:w-auto"
+            >
+              {tx('الموردون', 'Suppliers')}
+            </Button>
+            <Button
               render={<Link href="/admin/packages" />}
               nativeButton={false}
               variant="outline"
@@ -214,6 +254,20 @@ export function ServicesLibrary() {
             </p>
           </div>
           <div className="grid gap-4 @2xl:grid-cols-2">
+            <div className="@2xl:col-span-2">
+              <Label>{tx('المورد', 'Supplier')}</Label>
+              <select
+                className={selectClass}
+                value={form.supplier_id}
+                onChange={(e) => setForm({ ...form, supplier_id: e.target.value })}
+              >
+                {suppliers.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {lang === 'ar' ? s.name_ar : s.name_en}
+                  </option>
+                ))}
+              </select>
+            </div>
             <div>
               <Label className="font-ar">{tx('الاسم (عربي)', 'Name (AR)')}</Label>
               <Input
@@ -345,6 +399,18 @@ export function ServicesLibrary() {
               </option>
             ))}
           </select>
+          <select
+            className={cn(selectClass, 'mt-0 @2xl:w-56')}
+            value={supplierFilter}
+            onChange={(e) => setSupplierFilter(e.target.value)}
+          >
+            <option value="all">{tx('كل الموردين', 'All suppliers')}</option>
+            {suppliers.map((s) => (
+              <option key={s.id} value={s.id}>
+                {lang === 'ar' ? s.name_ar : s.name_en}
+              </option>
+            ))}
+          </select>
         </div>
       </div>
 
@@ -366,6 +432,9 @@ export function ServicesLibrary() {
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-1.5">
+                      <span className="rounded-full bg-brand-palm/10 px-2 py-0.5 text-[10px] font-semibold text-brand-palm">
+                        {supplierName(row.supplier_id)}
+                      </span>
                       <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-semibold text-muted-foreground">
                         {catLabel(row.category)}
                       </span>

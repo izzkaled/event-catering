@@ -24,6 +24,7 @@ export async function POST(_request: Request, context: RouteContext) {
       .insert(packages)
       .values({
         section_id: source.section_id,
+        supplier_id: source.supplier_id,
         slug,
         name_ar: `${source.name_ar} (نسخة)`,
         name_en: `${source.name_en} (Copy)`,

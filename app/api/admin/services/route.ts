@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { asc, eq } from 'drizzle-orm'
 import { verifyAdmin } from '@/lib/admin-auth'
 import { db } from '@/lib/db'
-import { hospitalityServices } from '@/lib/db/schema'
+import { DEFAULT_SUPPLIER_ID, hospitalityServices } from '@/lib/db/schema'
 
 export const dynamic = 'force-dynamic'
 
@@ -10,10 +10,17 @@ function slugify(input: string) {
   return input.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 80)
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   const unauthorized = await verifyAdmin()
   if (unauthorized) return unauthorized
-  const rows = await db.select().from(hospitalityServices).orderBy(asc(hospitalityServices.sort_order))
+  const supplierId = new URL(request.url).searchParams.get('supplier_id')
+  const rows = supplierId
+    ? await db
+        .select()
+        .from(hospitalityServices)
+        .where(eq(hospitalityServices.supplier_id, supplierId))
+        .orderBy(asc(hospitalityServices.sort_order))
+    : await db.select().from(hospitalityServices).orderBy(asc(hospitalityServices.sort_order))
   return NextResponse.json(rows)
 }
 
@@ -25,6 +32,7 @@ export async function POST(request: Request) {
     const name_ar = String(body.name_ar || '').trim()
     const name_en = String(body.name_en || '').trim()
     const category = String(body.category || 'additional').trim()
+    const supplier_id = String(body.supplier_id || DEFAULT_SUPPLIER_ID).trim() || DEFAULT_SUPPLIER_ID
     if (!name_ar || !name_en) {
       return NextResponse.json({ error: 'Names required' }, { status: 400 })
     }
@@ -35,6 +43,7 @@ export async function POST(request: Request) {
     const [row] = await db
       .insert(hospitalityServices)
       .values({
+        supplier_id,
         slug,
         name_ar,
         name_en,

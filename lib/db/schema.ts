@@ -25,9 +25,30 @@ export const packageSections = pgTable('package_sections', {
   updated_at: timestamp('updated_at').defaultNow(),
 })
 
+/** Hospitality suppliers — own services & brand logo for packages. */
+export const suppliers = pgTable('suppliers', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  slug: text('slug').unique().notNull(),
+  name_ar: text('name_ar').notNull(),
+  name_en: text('name_en').notNull(),
+  description_ar: text('description_ar'),
+  description_en: text('description_en'),
+  logo_url: text('logo_url'),
+  contact_phone: text('contact_phone'),
+  contact_email: text('contact_email'),
+  is_active: boolean('is_active').default(true).notNull(),
+  sort_order: integer('sort_order').default(0).notNull(),
+  created_at: timestamp('created_at').defaultNow(),
+  updated_at: timestamp('updated_at').defaultNow(),
+})
+
+/** Stable id for the default in-house supplier (migration + fallbacks). */
+export const DEFAULT_SUPPLIER_ID = '00000000-0000-4000-8000-000000000001'
+
 export const packages = pgTable('packages', {
   id: uuid('id').defaultRandom().primaryKey(),
   section_id: uuid('section_id').references(() => packageSections.id),
+  supplier_id: uuid('supplier_id').references(() => suppliers.id),
   slug: text('slug').unique(),
   name_ar: text('name_ar').notNull(),
   name_en: text('name_en').notNull(),
@@ -70,6 +91,7 @@ export const packages = pgTable('packages', {
   updated_at: timestamp('updated_at').defaultNow(),
 }, (table) => [
   index('packages_section_id_idx').on(table.section_id),
+  index('packages_supplier_id_idx').on(table.supplier_id),
   index('packages_status_idx').on(table.status),
   index('packages_slug_idx').on(table.slug),
   /** Speeds storefront listing: WHERE is_active AND status ORDER BY sort_order */
@@ -93,6 +115,7 @@ export const packageCategories = pgTable('package_categories', {
 /** Catalog of à-la-carte hospitality services for the experience builder. */
 export const hospitalityServices = pgTable('hospitality_services', {
   id: uuid('id').defaultRandom().primaryKey(),
+  supplier_id: uuid('supplier_id').references(() => suppliers.id),
   slug: text('slug').unique().notNull(),
   name_ar: text('name_ar').notNull(),
   name_en: text('name_en').notNull(),
@@ -111,7 +134,9 @@ export const hospitalityServices = pgTable('hospitality_services', {
   sort_order: integer('sort_order').default(0).notNull(),
   created_at: timestamp('created_at').defaultNow(),
   updated_at: timestamp('updated_at').defaultNow(),
-})
+}, (table) => [
+  index('hospitality_services_supplier_id_idx').on(table.supplier_id),
+])
 
 export const packageServices = pgTable('package_services', {
   id: uuid('id').defaultRandom().primaryKey(),
@@ -286,6 +311,7 @@ export const emailContacts = pgTable('email_contacts', {
 ])
 
 export type PackageSection = typeof packageSections.$inferSelect
+export type Supplier = typeof suppliers.$inferSelect
 export type Package = typeof packages.$inferSelect
 export type PackageCategory = typeof packageCategories.$inferSelect
 export type HospitalityService = typeof hospitalityServices.$inferSelect

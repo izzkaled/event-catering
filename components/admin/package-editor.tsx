@@ -1,10 +1,12 @@
 ﻿'use client'
 
 import { useEffect, useMemo, useState } from 'react'
+import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import {
   ArrowRight,
+  Building2,
   Eye,
   Loader2,
   Package,
@@ -12,7 +14,8 @@ import {
   Sparkles,
 } from 'lucide-react'
 import { toast } from 'sonner'
-import type { HospitalityService, PackageCategory } from '@/lib/db/schema'
+import type { HospitalityService, PackageCategory, Supplier } from '@/lib/db/schema'
+import { DEFAULT_SUPPLIER_ID } from '@/lib/db/schema'
 import { ImageUploadField } from '@/components/admin/image-upload-field'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -20,6 +23,7 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { cn } from '@/lib/utils'
 import { useLanguage } from '@/components/language-provider'
+import { formatOmr } from '@/lib/experience/pricing'
 
 type ServiceLink = {
   service_id: string
@@ -28,6 +32,7 @@ type ServiceLink = {
 }
 
 type FormState = {
+  supplier_id: string
   name_ar: string
   name_en: string
   slug: string
@@ -55,6 +60,7 @@ type FormState = {
 }
 
 const emptyForm = (): FormState => ({
+  supplier_id: '',
   name_ar: '',
   name_en: '',
   slug: '',
@@ -107,6 +113,7 @@ export function PackageEditor({ packageId }: { packageId?: string }) {
   const { tx, lang } = useLanguage()
   const [form, setForm] = useState<FormState>(emptyForm)
   const [services, setServices] = useState<HospitalityService[]>([])
+  const [suppliers, setSuppliers] = useState<Supplier[]>([])
   const [categories, setCategories] = useState<PackageCategory[]>([])
   const [saving, setSaving] = useState(false)
   const [loading, setLoading] = useState(Boolean(packageId))
@@ -114,9 +121,11 @@ export function PackageEditor({ packageId }: { packageId?: string }) {
   useEffect(() => {
     Promise.all([
       fetch('/api/admin/services').then((r) => r.json()),
+      fetch('/api/admin/suppliers').then((r) => r.json()),
       fetch('/api/admin/package-categories').then((r) => r.json()),
-    ]).then(([svc, cats]) => {
+    ]).then(([svc, sup, cats]) => {
       setServices(Array.isArray(svc) ? svc.filter((s: HospitalityService) => !s.is_archived) : [])
+      setSuppliers(Array.isArray(sup) ? sup.filter((s: Supplier) => s.is_active !== false) : [])
       setCategories(Array.isArray(cats) ? cats.filter((c: PackageCategory) => c.is_active) : [])
     })
   }, [])
@@ -131,6 +140,7 @@ export function PackageEditor({ packageId }: { packageId?: string }) {
           return
         }
         setForm({
+          supplier_id: pkg.supplier_id || DEFAULT_SUPPLIER_ID,
           name_ar: pkg.name_ar || '',
           name_en: pkg.name_en || '',
           slug: pkg.slug || '',
@@ -166,11 +176,22 @@ export function PackageEditor({ packageId }: { packageId?: string }) {
       .finally(() => setLoading(false))
   }, [packageId])
 
+  const supplierServices = useMemo(
+    () => services.filter((s) => !form.supplier_id || s.supplier_id === form.supplier_id),
+    [services, form.supplier_id],
+  )
+
+  const selectedSupplier = useMemo(
+    () => suppliers.find((s) => s.id === form.supplier_id) || null,
+    [suppliers, form.supplier_id],
+  )
+
   const payload = useMemo(() => {
     const min = Number(form.min_guests) || 1
     const max = Number(form.max_guests) || min
     const typical = Math.round((min + max) / 2)
     return {
+      supplier_id: form.supplier_id || DEFAULT_SUPPLIER_ID,
       name_ar: form.name_ar,
       name_en: form.name_en,
       slug: form.slug,
@@ -209,7 +230,36 @@ export function PackageEditor({ packageId }: { packageId?: string }) {
     }
   }, [form])
 
+  const selectSupplier = (id: string) => {
+    if (id === form.supplier_id) return
+    const mismatched = form.services.filter((link) => {
+      const svc = services.find((s) => s.id === link.service_id)
+      return svc && svc.supplier_id !== id
+    })
+    if (mismatched.length) {
+      const ok = confirm(
+        tx(
+          'تغيير المورد سيزيل الخدمات غير التابعة له من الباقة. متابعة؟',
+          'Changing supplier will remove services that do not belong to them. Continue?',
+        ),
+      )
+      if (!ok) return
+    }
+    setForm((f) => ({
+      ...f,
+      supplier_id: id,
+      services: f.services.filter((link) => {
+        const svc = services.find((s) => s.id === link.service_id)
+        return !svc || svc.supplier_id === id
+      }),
+    }))
+  }
+
   const save = async (publish?: boolean) => {
+    if (!form.supplier_id) {
+      toast.error(tx('اختر المورد أولاً', 'Pick a supplier first'))
+      return
+    }
     setSaving(true)
     const body = { ...payload, status: publish ? 'published' : form.status }
     try {
@@ -339,7 +389,74 @@ export function PackageEditor({ packageId }: { packageId?: string }) {
 
       <section className={sectionClass}>
         <SectionTitle
-          title={tx('البيانات الأساسية', 'Basic information')}
+          title={tx('1. اختيار المورد', '1. Choose supplier')}
+          hint={tx(
+            'بعد الاختيار تظهر خدمات هذا المورد بأسعارها وصورها فقط.',
+            'After picking, only that supplier’s services (prices & images) appear.',
+          )}
+        />
+        {!suppliers.length ? (
+          <div className="rounded-xl border border-dashed border-border px-4 py-8 text-center">
+            <Building2 className="mx-auto size-7 text-brand-sand" />
+            <p className="mt-2 text-sm text-muted-foreground">
+              {tx('لا يوجد موردون بعد', 'No suppliers yet')}
+            </p>
+            <Button
+              render={<Link href="/admin/suppliers" />}
+              nativeButton={false}
+              className="mt-4 min-h-11"
+            >
+              {tx('إضافة مورد', 'Add supplier')}
+            </Button>
+          </div>
+        ) : (
+          <div className="grid gap-2 sm:grid-cols-2">
+            {suppliers.map((s) => {
+              const selected = form.supplier_id === s.id
+              return (
+                <button
+                  key={s.id}
+                  type="button"
+                  onClick={() => selectSupplier(s.id)}
+                  className={cn(
+                    'flex items-center gap-3 rounded-xl p-3 text-start ring-1 transition',
+                    selected
+                      ? 'bg-brand-palm/8 ring-brand-palm'
+                      : 'bg-background ring-foreground/10 hover:ring-brand-palm/40',
+                  )}
+                >
+                  <span className="relative size-12 shrink-0 overflow-hidden rounded-lg bg-[var(--paper-deep)] ring-1 ring-foreground/8">
+                    {s.logo_url ? (
+                      <Image src={s.logo_url} alt="" fill className="object-cover" sizes="48px" />
+                    ) : (
+                      <span className="grid size-full place-items-center text-muted-foreground">
+                        <Building2 className="size-4" />
+                      </span>
+                    )}
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block truncate font-semibold">
+                      {lang === 'ar' ? s.name_ar : s.name_en}
+                    </span>
+                    <span className="block truncate text-xs text-muted-foreground">
+                      {lang === 'ar' ? s.name_en : s.name_ar}
+                    </span>
+                  </span>
+                </button>
+              )
+            })}
+          </div>
+        )}
+        {selectedSupplier?.logo_url ? (
+          <p className="text-xs text-muted-foreground">
+            {tx('شعار المورد سيظهر على بطاقة الباقة في الموقع.', 'Supplier logo will appear on the package card.')}
+          </p>
+        ) : null}
+      </section>
+
+      <section className={cn(sectionClass, !form.supplier_id && 'pointer-events-none opacity-50')}>
+        <SectionTitle
+          title={tx('2. البيانات الأساسية', '2. Basic information')}
           hint={tx('الاسم والوصف بالعربي والإنجليزي', 'Name and description in AR / EN')}
         />
         <div className="grid gap-4 @2xl:grid-cols-2">
@@ -403,9 +520,9 @@ export function PackageEditor({ packageId }: { packageId?: string }) {
         </div>
       </section>
 
-      <section className={sectionClass}>
+      <section className={cn(sectionClass, !form.supplier_id && 'pointer-events-none opacity-50')}>
         <SectionTitle
-          title={tx('التصنيف / المناسبة', 'Category / occasion')}
+          title={tx('2ب. التصنيف / المناسبة', '2b. Category / occasion')}
           hint={tx('يمكن اختيار أكثر من مناسبة', 'You can select multiple occasions')}
         />
         <div className="flex flex-wrap gap-2">
@@ -436,8 +553,8 @@ export function PackageEditor({ packageId }: { packageId?: string }) {
         </div>
       </section>
 
-      <section className={sectionClass}>
-        <SectionTitle title={tx('التسعير والضيوف', 'Pricing & guests')} />
+      <section className={cn(sectionClass, !form.supplier_id && 'pointer-events-none opacity-50')}>
+        <SectionTitle title={tx('3. التسعير والضيوف', '3. Pricing & guests')} />
         <div className="grid gap-4 @xl:grid-cols-2 @3xl:grid-cols-3">
           <div>
             <Label>{tx('نموذج التسعير', 'Pricing model')}</Label>
@@ -498,39 +615,83 @@ export function PackageEditor({ packageId }: { packageId?: string }) {
         </div>
       </section>
 
-      <section className={sectionClass}>
+      <section className={cn(sectionClass, !form.supplier_id && 'pointer-events-none opacity-50')}>
         <SectionTitle
-          title={tx('محتوى الباقة', 'Package content')}
-          hint={tx('من مكتبة الخدمات', 'From the services library')}
+          title={tx('4. محتوى الباقة', '4. Package content')}
+          hint={
+            form.supplier_id
+              ? tx('خدمات المورد المختار فقط — مع السعر والصورة', 'Only this supplier’s services — with price & image')
+              : tx('اختر المورد أولاً', 'Pick a supplier first')
+          }
         />
-        <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
-          <select
-            className={cn(selectClass, 'mt-0 min-w-0 flex-1 sm:min-w-[16rem]')}
-            defaultValue=""
-            onChange={(e) => {
-              if (e.target.value) addService(e.target.value)
-              e.target.value = ''
-            }}
-          >
-            <option value="">{tx('إضافة خدمة…', 'Add service…')}</option>
-            {services.map((s) => (
-              <option key={s.id} value={s.id}>
-                {lang === 'ar' ? s.name_ar : s.name_en} ({s.category}) — {s.price_omr} OMR
-                {s.pricing_model === 'per_guest'
-                  ? lang === 'ar'
-                    ? ' / ضيف'
-                    : ' / guest'
-                  : ''}
-              </option>
-            ))}
-          </select>
+        {!form.supplier_id ? (
+          <p className="rounded-xl bg-muted/40 px-3 py-4 text-center text-sm text-muted-foreground">
+            {tx('اختر المورد لعرض خدماته', 'Select a supplier to see their services')}
+          </p>
+        ) : (
+          <>
+        <div className="grid gap-2 sm:grid-cols-2">
+          {supplierServices.length === 0 ? (
+            <p className="sm:col-span-2 rounded-xl border border-dashed border-border px-3 py-6 text-center text-sm text-muted-foreground">
+              {tx('لا توجد خدمات لهذا المورد بعد.', 'No services for this supplier yet.')}{' '}
+              <Link href="/admin/services" className="font-semibold text-brand-palm underline">
+                {tx('أضف خدمة', 'Add a service')}
+              </Link>
+            </p>
+          ) : (
+            supplierServices.map((s) => {
+              const added = form.services.some((l) => l.service_id === s.id)
+              return (
+                <button
+                  key={s.id}
+                  type="button"
+                  disabled={added}
+                  onClick={() => addService(s.id)}
+                  className={cn(
+                    'flex items-center gap-3 rounded-xl p-2.5 text-start ring-1 transition',
+                    added
+                      ? 'bg-emerald-50 ring-emerald-200 opacity-70'
+                      : 'bg-background ring-foreground/10 hover:ring-brand-palm/40',
+                  )}
+                >
+                  <span className="relative size-14 shrink-0 overflow-hidden rounded-lg bg-[var(--paper-deep)]">
+                    {s.image_url ? (
+                      <Image src={s.image_url} alt="" fill className="object-cover" sizes="56px" />
+                    ) : (
+                      <span className="grid size-full place-items-center text-[10px] text-muted-foreground">
+                        {tx('بدون صورة', 'No image')}
+                      </span>
+                    )}
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-sm font-semibold">
+                      {lang === 'ar' ? s.name_ar : s.name_en}
+                    </span>
+                    <span className="ltr-data mt-0.5 block text-xs text-muted-foreground">
+                      {formatOmr(Number(s.price_omr), lang)}
+                      {s.pricing_model === 'per_guest'
+                        ? lang === 'ar'
+                          ? ' / ضيف'
+                          : ' / guest'
+                        : ''}
+                    </span>
+                  </span>
+                  <span className="shrink-0 text-[11px] font-semibold text-brand-palm">
+                    {added ? tx('مضافة', 'Added') : tx('إضافة', 'Add')}
+                  </span>
+                </button>
+              )
+            })
+          )}
+        </div>
+        <div className="flex justify-end">
           <Button
-            render={<Link href="/admin/services" />}
+            render={<Link href={`/admin/services?supplier=${form.supplier_id}`} />}
             nativeButton={false}
             variant="outline"
             className="min-h-11 w-full sm:w-auto"
           >
-            {tx('مكتبة الخدمات', 'Manage services')}
+            {tx('مكتبة خدمات المورد', 'Supplier services')}
           </Button>
         </div>
         <div className="space-y-2">
@@ -546,6 +707,11 @@ export function PackageEditor({ packageId }: { packageId?: string }) {
                   key={link.service_id}
                   className="flex flex-col gap-3 rounded-xl bg-muted/30 p-3 ring-1 ring-foreground/6 sm:flex-row sm:items-center"
                 >
+                  <span className="relative size-12 shrink-0 overflow-hidden rounded-lg bg-[var(--paper-deep)]">
+                    {svc?.image_url ? (
+                      <Image src={svc.image_url} alt="" fill className="object-cover" sizes="48px" />
+                    ) : null}
+                  </span>
                   <div className="min-w-0 flex-1">
                     <p className="font-ar font-medium">{svc?.name_ar || link.service_id}</p>
                     <p className="font-en text-xs text-muted-foreground">
@@ -607,10 +773,12 @@ export function PackageEditor({ packageId }: { packageId?: string }) {
             })
           )}
         </div>
+          </>
+        )}
       </section>
 
-      <section className={sectionClass}>
-        <SectionTitle title={tx('المميزات والصورة', 'Features & cover')} />
+      <section className={cn(sectionClass, !form.supplier_id && 'pointer-events-none opacity-50')}>
+        <SectionTitle title={tx('5. المميزات والصورة', '5. Features & cover')} />
         <div className="grid gap-4 @2xl:grid-cols-2">
           <div>
             <Label className="font-ar">{tx('المميزات عربي (سطر لكل عنصر)', 'Features AR (one per line)')}</Label>
@@ -639,8 +807,8 @@ export function PackageEditor({ packageId }: { packageId?: string }) {
         </div>
       </section>
 
-      <section className={sectionClass}>
-        <SectionTitle title={tx('الظهور والشارات', 'Visibility & badges')} />
+      <section className={cn(sectionClass, !form.supplier_id && 'pointer-events-none opacity-50')}>
+        <SectionTitle title={tx('6. الظهور والشارات', '6. Visibility & badges')} />
         <div className="grid gap-4 @xl:grid-cols-2">
           <div>
             <Label>{tx('الحالة', 'Status')}</Label>

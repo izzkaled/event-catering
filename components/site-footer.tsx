@@ -89,7 +89,6 @@ export function SiteFooter() {
     { href: '/experience', label: t('nav.booking') },
     { href: '/#business', label: t('nav.business') },
     { href: '/faq', label: isAr ? 'الأسئلة الشائعة' : 'FAQ' },
-    { href: '/admin/login', label: isAr ? 'دخول الموظفين' : 'Staff login' },
   ]
 
   const socials = (

@@ -31,7 +31,20 @@ export function PackageDetail({ pkg }: { pkg: ExperiencePackage }) {
 
       <div className="site-container relative -mt-16 pb-16">
         <div className="pkg-enter max-w-3xl rounded-2xl border border-border/80 bg-background/95 p-6 shadow-lg backdrop-blur sm:p-8">
-          <p className="brand-kicker mb-2">{pkg.category}</p>
+          <div className="mb-2 flex flex-wrap items-center gap-3">
+            <p className="brand-kicker mb-0">{pkg.category}</p>
+            {pkg.supplier_logo_url ? (
+              <span className="relative size-10 overflow-hidden rounded-full border border-border bg-white shadow-sm">
+                <Image
+                  src={pkg.supplier_logo_url}
+                  alt={lang === 'ar' ? pkg.supplier_name_ar || '' : pkg.supplier_name_en || ''}
+                  fill
+                  className="object-cover"
+                  sizes="40px"
+                />
+              </span>
+            ) : null}
+          </div>
           <h1 className="font-ios text-3xl font-semibold tracking-tight sm:text-4xl">{name}</h1>
           <p className="mt-4 text-[1.05rem] leading-relaxed text-muted-foreground">{desc}</p>
 

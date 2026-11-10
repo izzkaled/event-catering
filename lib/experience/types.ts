@@ -96,6 +96,10 @@ export type ExperiencePackage = Omit<
   badge_ar?: string
   badge_en?: string
   base_price: number
+  /** Public brand mark for the package supplier (logo only). */
+  supplier_logo_url?: string | null
+  supplier_name_ar?: string | null
+  supplier_name_en?: string | null
 }
 
 export type ExperienceDraft = {

@@ -96,7 +96,8 @@
   --accent-foreground: var(--brand-cream);
   --destructive: #9b3b2e;
   --border: var(--line);
-  --input: color-mix(in srgb, var(--paper-deep) 70%, #fff 30%);
+  /* Stronger than paper cream so fields read clearly on brand surfaces */
+  --input: color-mix(in srgb, var(--ink) 26%, transparent);
   --ring: var(--brand-palm);
   --chart-1: var(--brand-palm);
   --chart-2: var(--brand-sand);
@@ -367,6 +368,15 @@
     direction: ltr;
     unicode-bidi: isolate;
   }
+
+  /* Native selects / bare inputs used in admin & builders — match visible Input styles */
+  select:not([data-slot]),
+  input:not([data-slot]):not([type='checkbox']):not([type='radio']):not([type='file']):not([type='hidden']):not([type='range']):not([type='color']),
+  textarea:not([data-slot]) {
+    background-color: #fff;
+    border-color: var(--input);
+    color: var(--ink);
+  }
   .brand-kicker {
     @apply font-ios text-[0.7rem] font-medium uppercase tracking-[0.28em] text-brand-sand sm:text-xs;
   }
@@ -628,6 +638,38 @@
   }
   to {
     width: 100%;
+  }
+}
+
+@keyframes splash-rise {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 14px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes splash-ken {
+  from {
+    transform: scale(1.04);
+  }
+  to {
+    transform: scale(1.1);
+  }
+}
+
+@keyframes splash-glow {
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: scale(0.96);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.04);
   }
 }
 

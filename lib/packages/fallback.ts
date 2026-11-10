@@ -1,3 +1,4 @@
+import { DEFAULT_SUPPLIER_ID } from '@/lib/db/schema'
 import type { PackageWithSection } from '@/lib/packages/types'
 
 type Seed = {
@@ -25,6 +26,7 @@ function pkg(partial: Seed): PackageWithSection {
   return {
     id: partial.id,
     section_id: null,
+    supplier_id: DEFAULT_SUPPLIER_ID,
     slug: slugify(partial.name_en),
     name_ar: partial.name_ar,
     name_en: partial.name_en,
@@ -62,6 +64,9 @@ function pkg(partial: Seed): PackageWithSection {
     section_slug: partial.section_slug,
     section_name_ar: partial.section_name_ar,
     section_name_en: partial.section_name_en,
+    supplier_logo_url: '/images/brand/logo-mark.webp',
+    supplier_name_ar: 'إيفنت كاترينج',
+    supplier_name_en: 'Event Catering',
   }
 }
 

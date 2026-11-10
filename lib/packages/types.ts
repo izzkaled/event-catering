@@ -4,6 +4,9 @@ export type PackageWithSection = Package & {
   section_slug: string | null
   section_name_ar: string | null
   section_name_en: string | null
+  supplier_logo_url?: string | null
+  supplier_name_ar?: string | null
+  supplier_name_en?: string | null
 }
 
 export function groupPackagesBySection(items: PackageWithSection[]) {

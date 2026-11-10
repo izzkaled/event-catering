@@ -17,6 +17,7 @@ import {
   Users,
   X,
   ConciergeBell,
+  Building2,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { BrandLogo } from '@/components/brand-logo'
@@ -30,6 +31,7 @@ const nav = [
   { href: '/admin/payments', key: 'admin.nav.payments' as const, icon: CreditCard },
   { href: '/admin/customers', key: 'admin.nav.customers' as const, icon: Users },
   { href: '/admin/packages', key: 'admin.nav.packages' as const, icon: Package },
+  { href: '/admin/suppliers', key: 'admin.nav.suppliers' as const, icon: Building2 },
   { href: '/admin/package-categories', key: 'admin.nav.categories' as const, icon: FolderTree },
   { href: '/admin/services', key: 'admin.nav.services' as const, icon: ConciergeBell },
   { href: '/admin/schedule', key: 'admin.nav.schedule' as const, icon: CalendarDays },
@@ -117,29 +119,36 @@ export function AdminAppShell({ children }: { children: ReactNode }) {
         </div>
       )}
 
-      <div className="flex min-w-0 flex-1 flex-col">
-        <header className="flex h-16 items-center justify-between border-b border-border px-4 lg:px-8">
-          <div className="flex items-center gap-3">
+      <div className="flex min-w-0 flex-1 flex-col overflow-x-clip">
+        <header className="flex h-14 min-w-0 items-center justify-between gap-2 border-b border-border px-3 sm:h-16 sm:px-4 lg:px-8">
+          <div className="flex min-w-0 items-center gap-2 sm:gap-3">
             <button
               type="button"
               aria-label={tx('القائمة', 'Menu')}
               onClick={() => setOpen(true)}
-              className="flex size-11 items-center justify-center rounded-lg lg:hidden"
+              className="flex size-10 shrink-0 items-center justify-center rounded-lg sm:size-11 lg:hidden"
             >
               <Menu className="size-6" />
             </button>
-            <h1 className="text-lg font-bold">{current ? t(current.key) : t('admin.title')}</h1>
+            <h1 className="truncate text-base font-bold sm:text-lg">
+              {current ? t(current.key) : t('admin.title')}
+            </h1>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
             <LanguageSwitcher />
-            <Button variant="outline" size="sm" onClick={logout} className="lg:hidden">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={logout}
+              className="lg:hidden"
+              aria-label={t('admin.logout')}
+            >
               <LogOut className="size-4" />
-              {t('admin.logout')}
+              <span className="hidden sm:inline">{t('admin.logout')}</span>
             </Button>
-            <span className="hidden text-sm text-muted-foreground sm:inline">{t('admin.title')}</span>
           </div>
         </header>
-        <main className="flex-1 overflow-x-clip p-4 lg:p-8">{children}</main>
+        <main className="min-w-0 flex-1 overflow-x-clip p-3 sm:p-4 lg:p-8">{children}</main>
       </div>
     </div>
   )

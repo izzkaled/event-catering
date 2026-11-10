@@ -7,6 +7,7 @@ import {
   packageServices,
   packages,
   siteSettings,
+  suppliers,
   type HospitalityService,
   type PackageCategory,
 } from '@/lib/db/schema'
@@ -67,12 +68,16 @@ export async function getPublishedPackagesWithSections(): Promise<PackageWithSec
         section_slug: packageSections.slug,
         section_name_ar: packageSections.name_ar,
         section_name_en: packageSections.name_en,
+        supplier_logo_url: suppliers.logo_url,
+        supplier_name_ar: suppliers.name_ar,
+        supplier_name_en: suppliers.name_en,
       })
       .from(packages)
       .leftJoin(
         packageSections,
         and(eq(packages.section_id, packageSections.id), eq(packageSections.is_active, true)),
       )
+      .leftJoin(suppliers, eq(packages.supplier_id, suppliers.id))
       .where(and(eq(packages.is_active, true), eq(packages.status, 'published')))
       .orderBy(asc(packages.sort_order), asc(packages.name_en))
 
@@ -106,9 +111,13 @@ export async function getExperiencePackageBySlug(slug: string, opts?: { preview?
         section_slug: packageSections.slug,
         section_name_ar: packageSections.name_ar,
         section_name_en: packageSections.name_en,
+        supplier_logo_url: suppliers.logo_url,
+        supplier_name_ar: suppliers.name_ar,
+        supplier_name_en: suppliers.name_en,
       })
       .from(packages)
       .leftJoin(packageSections, eq(packages.section_id, packageSections.id))
+      .leftJoin(suppliers, eq(packages.supplier_id, suppliers.id))
       .where(eq(packages.slug, slug))
       .limit(1)
 
@@ -145,9 +154,13 @@ export async function getPackageWithServices(id: string): Promise<FullPackage | 
       section_slug: packageSections.slug,
       section_name_ar: packageSections.name_ar,
       section_name_en: packageSections.name_en,
+      supplier_logo_url: suppliers.logo_url,
+      supplier_name_ar: suppliers.name_ar,
+      supplier_name_en: suppliers.name_en,
     })
     .from(packages)
     .leftJoin(packageSections, eq(packages.section_id, packageSections.id))
+    .leftJoin(suppliers, eq(packages.supplier_id, suppliers.id))
     .where(eq(packages.id, id))
     .limit(1)
 
@@ -167,9 +180,13 @@ export async function getAllPackagesAdmin() {
       section_slug: packageSections.slug,
       section_name_ar: packageSections.name_ar,
       section_name_en: packageSections.name_en,
+      supplier_logo_url: suppliers.logo_url,
+      supplier_name_ar: suppliers.name_ar,
+      supplier_name_en: suppliers.name_en,
     })
     .from(packages)
     .leftJoin(packageSections, eq(packages.section_id, packageSections.id))
+    .leftJoin(suppliers, eq(packages.supplier_id, suppliers.id))
     .orderBy(asc(packages.sort_order), asc(packages.created_at))
 }
 

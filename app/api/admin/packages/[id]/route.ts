@@ -95,6 +95,7 @@ export async function PATCH(request: Request, context: RouteContext) {
     }
     if (body.visits_per_month !== undefined) updates.visits_per_month = Number(body.visits_per_month)
     if (body.section_id !== undefined) updates.section_id = body.section_id || null
+    if (body.supplier_id !== undefined) updates.supplier_id = body.supplier_id || null
     if (body.sort_order !== undefined) updates.sort_order = Number(body.sort_order)
 
     if (body.status !== undefined) {

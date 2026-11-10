@@ -90,5 +90,8 @@ export function toExperiencePackage(
             ? 'New'
             : base.badge_en,
     base_price: Number.parseFloat(String(pkg.price_omr)) || 0,
+    supplier_logo_url: pkg.supplier_logo_url ?? null,
+    supplier_name_ar: pkg.supplier_name_ar ?? null,
+    supplier_name_en: pkg.supplier_name_en ?? null,
   }
 }

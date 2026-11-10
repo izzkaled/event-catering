@@ -153,6 +153,18 @@ export function PackageCard({ pkg, index = 0, selected, onToggleCompare, compare
             {highlight}
           </span>
         )}
+
+        {pkg.supplier_logo_url ? (
+          <span className="absolute bottom-2.5 end-2.5 z-[3] size-9 overflow-hidden rounded-full border border-white/70 bg-white/95 shadow-md">
+            <Image
+              src={pkg.supplier_logo_url}
+              alt={isAr ? pkg.supplier_name_ar || '' : pkg.supplier_name_en || ''}
+              fill
+              className="object-cover"
+              sizes="36px"
+            />
+          </span>
+        ) : null}
       </Link>
 
       {onToggleCompare && (

@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { asc, eq } from 'drizzle-orm'
 import { verifyAdmin } from '@/lib/admin-auth'
 import { db } from '@/lib/db'
-import { packages, packageServices } from '@/lib/db/schema'
+import { DEFAULT_SUPPLIER_ID, packages, packageServices } from '@/lib/db/schema'
 import { visitsPerMonthFromWeekly } from '@/lib/booking/schedule'
 import { revalidateStorefront } from '@/lib/cache/storefront'
 import { getAllPackagesAdmin, getMaxFeaturedPackages } from '@/lib/packages/storefront'
@@ -100,6 +100,7 @@ export async function POST(request: Request) {
         features_en: Array.isArray(body.features_en) ? body.features_en.map(String) : [],
         status: body.status || 'draft',
         section_id: body.section_id || null,
+        supplier_id: body.supplier_id || DEFAULT_SUPPLIER_ID,
         is_active: body.status ? body.status === 'published' : false,
         is_popular: Boolean(body.is_popular),
         is_featured: Boolean(body.is_popular || body.is_featured),

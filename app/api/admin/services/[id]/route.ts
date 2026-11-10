@@ -20,6 +20,7 @@ export async function PATCH(request: Request, context: RouteContext) {
     'description_en',
     'category',
     'image_url',
+    'supplier_id',
     'is_active',
     'is_archived',
     'sort_order',

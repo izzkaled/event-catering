@@ -17,6 +17,7 @@ export default function robots(): MetadataRoute.Robots {
     '/booking/request-received',
     '/profile',
     '/subscriptions',
+    '/suppliers/join',
   ]
 
   const allowAi = {

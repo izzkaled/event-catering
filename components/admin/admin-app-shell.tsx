@@ -18,6 +18,7 @@ import {
   X,
   ConciergeBell,
   Building2,
+  ClipboardPenLine,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { BrandLogo } from '@/components/brand-logo'
@@ -32,6 +33,11 @@ const nav = [
   { href: '/admin/customers', key: 'admin.nav.customers' as const, icon: Users },
   { href: '/admin/packages', key: 'admin.nav.packages' as const, icon: Package },
   { href: '/admin/suppliers', key: 'admin.nav.suppliers' as const, icon: Building2 },
+  {
+    href: '/admin/supplier-applications',
+    key: 'admin.nav.supplierApplications' as const,
+    icon: ClipboardPenLine,
+  },
   { href: '/admin/package-categories', key: 'admin.nav.categories' as const, icon: FolderTree },
   { href: '/admin/services', key: 'admin.nav.services' as const, icon: ConciergeBell },
   { href: '/admin/schedule', key: 'admin.nav.schedule' as const, icon: CalendarDays },

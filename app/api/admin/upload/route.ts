@@ -10,7 +10,7 @@ import {
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 
-const KINDS = new Set<ImageKind>(['package_cover', 'service'])
+const KINDS = new Set<ImageKind>(['package_cover', 'service', 'supplier_gallery'])
 
 export async function POST(request: Request) {
   const unauthorized = await verifyAdmin()

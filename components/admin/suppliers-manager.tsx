@@ -198,7 +198,15 @@ export function SuppliersManager() {
             'Monthly supplier revenue settlement for month-end close.',
           )}
         </p>
-        <div className="grid grid-cols-2 gap-2 sm:flex sm:shrink-0 sm:flex-wrap">
+        <div className="grid grid-cols-1 gap-2 sm:flex sm:shrink-0 sm:flex-wrap">
+          <Button
+            render={<Link href="/admin/supplier-applications" />}
+            nativeButton={false}
+            variant="outline"
+            className="min-h-11 w-full sm:min-h-10 sm:w-auto"
+          >
+            {tx('طلبات التسجيل', 'Applications')}
+          </Button>
           <Button
             render={<Link href="/admin/services" />}
             nativeButton={false}

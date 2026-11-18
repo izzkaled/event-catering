@@ -287,6 +287,37 @@ export const otpCodes = pgTable('otp_codes', {
   index('otp_codes_phone_idx').on(table.phone),
 ])
 
+/**
+ * Public supplier onboarding applications — visible to admin only.
+ * Shared via /suppliers/join
+ */
+export const supplierApplications = pgTable('supplier_applications', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  company_name: text('company_name').notNull(),
+  contact_phone: text('contact_phone').notNull(),
+  /** e.g. same_day | hours_24 | hours_48 | days_3 | week_plus */
+  prep_speed: text('prep_speed').notNull(),
+  breakfast_price_omr: decimal('breakfast_price_omr', { precision: 10, scale: 2 }),
+  lunch_price_omr: decimal('lunch_price_omr', { precision: 10, scale: 2 }),
+  dinner_price_omr: decimal('dinner_price_omr', { precision: 10, scale: 2 }),
+  instagram: text('instagram'),
+  desserts_type: text('desserts_type'),
+  min_order_qty: integer('min_order_qty'),
+  min_order_price_omr: decimal('min_order_price_omr', { precision: 10, scale: 2 }),
+  /** e.g. omani | arabic | indian | asian | international | mixed | other */
+  kitchen_type: text('kitchen_type').notNull(),
+  photo_urls: text('photo_urls').array().default([]).notNull(),
+  notes: text('notes'),
+  /** pending | reviewed | approved | rejected */
+  status: text('status').default('pending').notNull(),
+  admin_notes: text('admin_notes'),
+  created_at: timestamp('created_at').defaultNow(),
+  updated_at: timestamp('updated_at').defaultNow(),
+}, (table) => [
+  index('supplier_applications_status_idx').on(table.status),
+  index('supplier_applications_created_at_idx').on(table.created_at),
+])
+
 /** Named email lists for AI outreach (companies, partners, etc.) */
 export const emailCollections = pgTable('email_collections', {
   id: uuid('id').defaultRandom().primaryKey(),
@@ -321,6 +352,8 @@ export type ScheduleEvent = typeof schedule_events.$inferSelect
 export type User = typeof users.$inferSelect
 export type EmailCollection = typeof emailCollections.$inferSelect
 export type EmailContact = typeof emailContacts.$inferSelect
+export type SupplierApplication = typeof supplierApplications.$inferSelect
+export type SupplierApplicationStatus = 'pending' | 'reviewed' | 'approved' | 'rejected'
 export type UserRole = 'user' | 'admin'
 export type PackageStatus = 'published' | 'draft' | 'archived' | 'hidden'
 export type PricingModel = 'fixed' | 'per_guest' | 'starting_from' | 'custom_quote'

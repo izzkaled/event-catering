@@ -1,4 +1,4 @@
-export type ImageKind = 'package_cover' | 'service'
+export type ImageKind = 'package_cover' | 'service' | 'supplier_gallery'
 
 export const IMAGE_SPECS: Record<
   ImageKind,
@@ -17,6 +17,13 @@ export const IMAGE_SPECS: Record<
     maxBytes: 2 * 1024 * 1024,
     ar: 'صورة الخدمة: 1200×900 بكسل (نسبة 4:3)، JPG أو WebP أو PNG، حد أقصى 2 ميجا',
     en: 'Service image: 1200×900 px (4:3), JPG/WebP/PNG, max 2 MB',
+  },
+  supplier_gallery: {
+    width: 1600,
+    height: 1200,
+    maxBytes: 2.5 * 1024 * 1024,
+    ar: 'صور المناسبات والبوفيه: JPG أو WebP أو PNG، حد أقصى 2.5 ميجا للصورة',
+    en: 'Event/buffet photos: JPG/WebP/PNG, max 2.5 MB each',
   },
 }
 

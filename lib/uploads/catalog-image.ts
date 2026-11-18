@@ -89,7 +89,12 @@ export async function storeCatalogImage(opts: {
   const ext =
     opts.mimeType === 'image/png' ? 'png' : opts.mimeType === 'image/webp' ? 'webp' : 'jpg'
   const key = `${opts.kind}-${randomUUID()}.${ext}`
-  const folder = opts.kind === 'package_cover' ? 'event-packages' : 'event-services'
+  const folder =
+    opts.kind === 'package_cover'
+      ? 'event-packages'
+      : opts.kind === 'supplier_gallery'
+        ? 'supplier-applications'
+        : 'event-services'
 
   if (isCloudinaryConfigured()) {
     const url = await uploadCloudinary({

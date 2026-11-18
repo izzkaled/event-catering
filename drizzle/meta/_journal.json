@@ -57,6 +57,13 @@
       "when": 1785400000000,
       "tag": "0008_suppliers",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1785500000000,
+      "tag": "0009_supplier_applications",
+      "breakpoints": true
     }
   ]
 }

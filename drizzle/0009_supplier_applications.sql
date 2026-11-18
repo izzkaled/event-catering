@@ -6,6 +6,7 @@ CREATE TABLE IF NOT EXISTS "supplier_applications" (
   "breakfast_price_omr" numeric(10, 2),
   "lunch_price_omr" numeric(10, 2),
   "dinner_price_omr" numeric(10, 2),
+  "snacks_price_omr" numeric(10, 2),
   "instagram" text,
   "desserts_type" text,
   "min_order_qty" integer,

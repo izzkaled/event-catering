@@ -218,6 +218,10 @@ export function SupplierApplicationsPanel() {
                 <Field label={tx('غداء', 'Lunch')} value={money(row.lunch_price_omr, lang)} />
                 <Field label={tx('عشاء', 'Dinner')} value={money(row.dinner_price_omr, lang)} />
                 <Field
+                  label={tx('وجبات خفيفة', 'Snacks')}
+                  value={money(row.snacks_price_omr, lang)}
+                />
+                <Field
                   label={tx('أقل عدد', 'Min qty')}
                   value={row.min_order_qty != null ? String(row.min_order_qty) : '—'}
                 />

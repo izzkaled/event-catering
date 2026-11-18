@@ -118,6 +118,7 @@ export async function POST(request: Request) {
         breakfast_price_omr: moneyOrNull(form.get('breakfast_price_omr')),
         lunch_price_omr: moneyOrNull(form.get('lunch_price_omr')),
         dinner_price_omr: moneyOrNull(form.get('dinner_price_omr')),
+        snacks_price_omr: moneyOrNull(form.get('snacks_price_omr')),
         instagram,
         desserts_type: desserts_type?.slice(0, 200) || null,
         min_order_qty: intOrNull(form.get('min_order_qty')),

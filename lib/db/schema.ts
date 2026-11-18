@@ -300,6 +300,7 @@ export const supplierApplications = pgTable('supplier_applications', {
   breakfast_price_omr: decimal('breakfast_price_omr', { precision: 10, scale: 2 }),
   lunch_price_omr: decimal('lunch_price_omr', { precision: 10, scale: 2 }),
   dinner_price_omr: decimal('dinner_price_omr', { precision: 10, scale: 2 }),
+  snacks_price_omr: decimal('snacks_price_omr', { precision: 10, scale: 2 }),
   instagram: text('instagram'),
   desserts_type: text('desserts_type'),
   min_order_qty: integer('min_order_qty'),

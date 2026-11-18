@@ -26,6 +26,7 @@ type FormState = {
   breakfast_price_omr: string
   lunch_price_omr: string
   dinner_price_omr: string
+  snacks_price_omr: string
   instagram: string
   desserts_type: string
   min_order_qty: string
@@ -41,6 +42,7 @@ const empty: FormState = {
   breakfast_price_omr: '',
   lunch_price_omr: '',
   dinner_price_omr: '',
+  snacks_price_omr: '',
   instagram: '',
   desserts_type: '',
   min_order_qty: '',
@@ -219,7 +221,7 @@ export function SupplierJoinForm() {
         <h2 className="text-lg font-semibold text-[var(--ink)]">
           {tx('الأسعار والحد الأدنى', 'Prices & minimums')}
         </h2>
-        <div className="grid gap-4 sm:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <div>
             <Label htmlFor="breakfast">{tx('سعر الإفطار (ر.ع)', 'Breakfast price (OMR)')}</Label>
             <Input
@@ -248,6 +250,16 @@ export function SupplierJoinForm() {
               inputMode="decimal"
               value={form.dinner_price_omr}
               onChange={(e) => set({ dinner_price_omr: e.target.value })}
+            />
+          </div>
+          <div>
+            <Label htmlFor="snacks">{tx('سعر الوجبات الخفيفة (ر.ع)', 'Snacks / light meals (OMR)')}</Label>
+            <Input
+              id="snacks"
+              className="mt-1.5 h-11 ltr-data"
+              inputMode="decimal"
+              value={form.snacks_price_omr}
+              onChange={(e) => set({ snacks_price_omr: e.target.value })}
             />
           </div>
         </div>
